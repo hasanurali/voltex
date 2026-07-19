@@ -1,7 +1,7 @@
 import app from "./app.js";
 import env from "./config/env.js";
 import connectMongoDb from "./config/db.js";
-import { log } from "./utils/index.js"
+import { log } from "./shared/utils/index.js";
 
 const PORT = env.PORT;
 

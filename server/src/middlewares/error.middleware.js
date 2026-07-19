@@ -1,5 +1,5 @@
-import env from "../config/env.js"
-import { log } from "../utils/index.js"
+import env from "../config/env.js";
+import { log } from "../shared/utils/index.js";
 
 const errorHandler = (err, req, res, next) => {
     const statusCode = err.status || 500;
