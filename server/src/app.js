@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 
+import { errorHandler } from "./middlewares/index.js";
+
 
 const app = express();
 
@@ -26,5 +28,8 @@ app.use((req, res) => {
         message: "Route not found"
     })
 });
+
+// Globle error handler
+app.use(errorHandler);
 
 export default app;
