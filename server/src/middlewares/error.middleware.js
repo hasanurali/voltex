@@ -37,11 +37,11 @@ const errorHandler = (err, req, res, next) => {
 
     log(`Message: ${message},
          Status: ${statusCode},
-         Route: ${err.method} ${err.originalUrl}
+         Route: ${req.method} ${req.originalUrl}
          Time: ${new Date().toISOString()}
          Stack: ${err.stack}`);
 
-    return res.status(statusCode).res({
+    return res.status(statusCode).json({
         success: false,
         message,
         errors: err.errors || []
