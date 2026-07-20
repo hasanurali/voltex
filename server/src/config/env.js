@@ -2,7 +2,9 @@ import "dotenv/config";
 
 
 const requiredEnv = [
-    "MONGO_URI"
+    "MONGO_URI",
+    "JWT_REFRESH_KEY",
+    "JWT_ACCESS_KEY"
 ];
 
 // Check Required Environment Variable Is Present
@@ -18,6 +20,12 @@ const env = Object.freeze({
     PORT: Number(process.env.PORT) || 5000,
     MONGO_URI: process.env.MONGO_URI,
 
+    JWT_REFRESH_KEY: process.env.JWT_REFRESH_KEY,
+    JWT_REFRESH_EXPIRED: process.env.JWT_REFRESH_EXPIRED || "7d",
+    JWT_ACCESS_KEY: process.env.JWT_ACCESS_KEY,
+    JWT_ACCESS_EXPIRED: process.env.JWT_ACCESS_EXPIRED || "10m",
+
+    BCRYPT_SALT_ROUND: Number(process.env.BCRYPT_SALT_ROUND) || 10
 });
 
 export default env;
