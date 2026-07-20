@@ -2,8 +2,8 @@ import env from "../config/env.js";
 import { log } from "../shared/utils/index.js";
 
 const errorHandler = (err, req, res, next) => {
-    const statusCode = err.status || 500;
-    const message = err.message || "Internal server error";
+    let statusCode = err.status || 500;
+    let message = err.message || "Internal server error";
 
     // handle Mongo / JWT errors
     if (err.name === "CastError") {
