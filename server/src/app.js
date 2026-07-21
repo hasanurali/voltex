@@ -3,6 +3,8 @@ import cors from "cors";
 
 import { errorHandler } from "./middlewares/index.js";
 
+import authRoutes from "./modules/auth/auth.route.js";
+
 
 const app = express();
 
@@ -19,6 +21,10 @@ app.get("/", (req, res) => {
         message: "API Running"
     })
 });
+
+
+// All Routes
+app.use("/api/v1/auth", authRoutes);
 
 
 // Not Found Route
