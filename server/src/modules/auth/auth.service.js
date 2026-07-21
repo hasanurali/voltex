@@ -18,3 +18,36 @@ export const registerService = async (userData) => {
 
     return user;
 };
+
+export const verifyEmailService = async ({ email, otp }) => {
+
+    if (!email) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.VERIFICATION_SESSION_EXPIRED);
+    };
+
+    const user = await authRepository.findUserByEmail(email);
+    if (!user) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.VERIFICATION_SESSION_EXPIRED);
+    };
+
+    if (user.isEmailVerified) {
+        throw new ApiError(StatusCodes.CONFLICT, AUTH_MESSAGES.EMAIL_ALREADY_VERIFIED)
+    };
+
+    const isValidOtp = await authRepository.matchOtp(email, otp);
+    if (!isValidOtp) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.INVALID_OTP);
+    };
+
+    const refreshToken = user.generateRefreshToken();
+    const accessToken = user.generateAccessToken();
+
+    const [updatedUser] = await Promise.all([
+        authRepository.markEmailVerified(user._id),
+        authRepository.deleteOtpByEmail(email)
+    ]);
+
+    await updatedUser.setRefreshTokenWithHash(refreshToken);
+
+    return { user: updatedUser, refreshToken, accessToken };
+};

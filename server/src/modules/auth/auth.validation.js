@@ -1,7 +1,7 @@
 import { body } from 'express-validator';
 
 export const registerValidation = [
-    
+
     // displayName
     body('displayName')
         .trim()
@@ -38,4 +38,14 @@ export const registerValidation = [
         .matches(/[a-z]/).withMessage("Password must contain at least one lowercase letter")
         .matches(/[0-9]/).withMessage("Password must contain at least one number")
         .matches(/[@$!%*?&]/).withMessage("Password must contain at least one special character"),
+];
+
+export const otpValidation = [
+
+    // Otp
+    body('otp')
+        .trim()
+        .notEmpty().withMessage('OTP is required')
+        .isNumeric().withMessage('OTP must contain numbers only')
+        .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
 ];

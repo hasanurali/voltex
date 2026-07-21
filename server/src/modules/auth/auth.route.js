@@ -12,5 +12,11 @@ authRoutes.post("/register",
     controllers.registerController
 );
 
+authRoutes.post("/verify-email",
+    validations.otpValidation,
+    middlewares.validationResultMiddleware,
+    controllers.verifyEmailController
+);
+
 
 export default authRoutes;

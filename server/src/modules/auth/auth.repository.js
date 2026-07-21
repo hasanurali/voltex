@@ -25,3 +25,38 @@ export const createOtp = async (otpData) => {
 
     return otp;
 };
+
+export const findUserByEmail = async (email) => {
+
+    const user = await userModel.findOne({ email });
+
+    return user;
+};
+
+export const matchOtp = async (email, otp) => {
+
+    const hashedOtp = otpModel.hashOtp(otp);
+
+    const isOtpExists = await otpModel.exists({
+        email,
+        otp: hashedOtp
+    });
+
+    return isOtpExists;
+};
+
+export const markEmailVerified = async (userId) => {
+
+    const updatedUser = await userModel.findByIdAndUpdate(userId, {
+        $set: {
+            isEmailVerified: true
+        }
+    }, { new: true });
+
+    return updatedUser;
+};
+
+export const deleteOtpByEmail = async (email) => {
+
+    await otpModel.deleteOne({ email });
+};
