@@ -92,9 +92,9 @@ userSchema.methods.generateAccessToken = function () {
     return accessToken;
 };
 
-userSchema.methods.setRefreshTokenWithHash = function (refreshToken) {
-    const hashedRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
-    this.refreshToken = hashedRefreshToken;
+userSchema.methods.setRefreshTokenWithHash = async function (refreshToken) {
+    this.refreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+    await this.save()
 };
 
 userSchema.methods.matchRefreshToken = function (refreshToken) {
