@@ -51,3 +51,25 @@ export const verifyEmailService = async ({ email, otp }) => {
 
     return { user: updatedUser, refreshToken, accessToken };
 };
+
+export const resendOtpService = async (email) => {
+
+    if (!email) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.VERIFICATION_SESSION_EXPIRED);
+    };
+
+    const user = await authRepository.findUserByEmail(email);
+    if (!user) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.VERIFICATION_SESSION_EXPIRED);
+    };
+
+    if (user.isEmailVerified) {
+        throw new ApiError(StatusCodes.CONFLICT, AUTH_MESSAGES.EMAIL_ALREADY_VERIFIED)
+    };
+
+    const otp = otpGenerator();
+
+    await authRepository.setNewOtp({ email, otp });
+
+    await mailService.sendOtp(email, user.displayName, otp);
+};

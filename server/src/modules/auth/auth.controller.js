@@ -11,7 +11,8 @@ export const registerController = asyncHandler(async (req, res) => {
 
     const user = await services.registerService(userData);
 
-    return res.status(StatusCodes.OK).json(new ApiResponse(AUTH_MESSAGES.REGISTER_SUCCESS, user));
+    return res.status(StatusCodes.CREATED)
+        .json(new ApiResponse(AUTH_MESSAGES.REGISTER_SUCCESS, user));
 });
 
 export const verifyEmailController = asyncHandler(async (req, res) => {
@@ -24,4 +25,14 @@ export const verifyEmailController = asyncHandler(async (req, res) => {
         .cookie("refreshToken", refreshToken, COOKIE_CONFIG.REFRESH)
         .cookie("accessToken", accessToken, COOKIE_CONFIG.ACCESS)
         .json(new ApiResponse(AUTH_MESSAGES.EMAIL_VERIFIED, user));
+});
+
+export const resendOtpController = asyncHandler(async (req, res) => {
+
+    const email = req.body.email;
+
+    await services.resendOtpService(email);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(AUTH_MESSAGES.OTP_SENT_SUCCESS));
 });

@@ -18,5 +18,9 @@ authRoutes.post("/verify-email",
     controllers.verifyEmailController
 );
 
+authRoutes.post("/resend-otp",
+    controllers.resendOtpController
+);
+
 
 export default authRoutes;

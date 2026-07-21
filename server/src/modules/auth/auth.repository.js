@@ -18,12 +18,10 @@ export const createOtp = async (otpData) => {
 
     const hashedOtp = otpModel.hashOtp(otpData.otp);
 
-    const otp = await otpModel.create({
+    await otpModel.create({
         ...otpData,
         otp: hashedOtp
     });
-
-    return otp;
 };
 
 export const findUserByEmail = async (email) => {
@@ -59,4 +57,20 @@ export const markEmailVerified = async (userId) => {
 export const deleteOtpByEmail = async (email) => {
 
     await otpModel.deleteOne({ email });
+};
+
+export const setNewOtp = async ({ email, otp }) => {
+
+    const hashedOtp = otpModel.hashOtp(otp);
+
+    await otpModel.findOneAndUpdate(
+        { email },
+        {
+            otp: hashedOtp,
+            createdAt: new Date()
+        },
+        {
+            upsert: true,
+            new: true
+        });
 };
