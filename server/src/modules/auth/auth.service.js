@@ -103,3 +103,8 @@ export const loginService = async ({ email, password }) => {
 
     return { user, refreshToken, accessToken };
 };
+
+export const logoutService = async (userId) => {
+
+    await authRepository.removeRefreshToken(userId);
+};

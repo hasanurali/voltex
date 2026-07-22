@@ -74,3 +74,14 @@ export const setNewOtp = async ({ email, otp }) => {
             new: true
         });
 };
+
+export const removeRefreshToken = async (userId) => {
+
+    await userModel.findByIdAndUpdate(userId,
+        {
+            $set: {
+                refreshToken: null
+            }
+        }
+    );
+};

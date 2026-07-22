@@ -28,5 +28,10 @@ authRoutes.post("/login",
     controllers.loginController
 );
 
+authRoutes.post("/logout",
+    middlewares.authMiddleware,
+    controllers.logoutController
+);
+
 
 export default authRoutes;
