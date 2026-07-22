@@ -32,8 +32,8 @@ const env = Object.freeze({
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
 
-    REFRESH_COOKIE_MAX_AGE: Number(process.env.REFRESH_COOKIE_MAX_AGE) || 10 * 60 * 1000,
-    ACCESS_COOKIE_MAX_AGE: Number(process.env.ACCESS_COOKIE_MAX_AGE) || 7 * 24 * 60 * 60 * 1000
+    REFRESH_COOKIE_MAX_AGE: Number(process.env.REFRESH_COOKIE_MAX_AGE) || 7 * 24 * 60 * 60 * 1000,
+    ACCESS_COOKIE_MAX_AGE: Number(process.env.ACCESS_COOKIE_MAX_AGE) || 10 * 60 * 1000,
 
 });
 
