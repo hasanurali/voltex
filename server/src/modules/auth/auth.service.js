@@ -1,9 +1,11 @@
 import { StatusCodes } from "http-status-codes";
+import jwt from "jsonwebtoken";
 
 import * as authRepository from "./auth.repository.js";
 import { ApiError, otpGenerator } from "../../shared/utils/index.js";
 import * as mailService from "../../shared/mail/mail.service.js";
 import { AUTH_MESSAGES } from "../../shared/constants/messages/index.js";
+import JWT_CONFIG from "../../config/jwt.js";
 
 
 export const registerService = async (userData) => {
@@ -107,4 +109,34 @@ export const loginService = async ({ email, password }) => {
 export const logoutService = async (userId) => {
 
     await authRepository.removeRefreshToken(userId);
+};
+
+export const refreshTokenService = async (refreshToken) => {
+
+    if (!refreshToken) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED);
+    };
+
+    const decoded = jwt.verify(refreshToken, JWT_CONFIG.REFRESH.KEY);
+
+    if (!decoded?.userId) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED);
+    };
+
+    const user = await authRepository.findUserById(decoded.userId, "refreshToken");
+    if (!user) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED);
+    };
+
+    const isValidToken = user.matchRefreshToken(refreshToken);
+    if (!isValidToken) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED);
+    };
+
+    const newRefreshToken = user.generateRefreshToken();
+    const newAccessToken = user.generateAccessToken();
+
+    await user.setRefreshTokenWithHash(newRefreshToken);
+
+    return { newRefreshToken, newAccessToken };
 };

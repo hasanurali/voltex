@@ -1,10 +1,11 @@
 const AUTH_MESSAGES = Object.freeze({
-    REGISTER_SUCCESS: "Registration successful.",
-    LOGIN_SUCCESS: "Login successful.",
-    LOGOUT_SUCCESS: "Logout successful.",
+    REGISTER_SUCCESS: "Registration successful",
+    LOGIN_SUCCESS: "Login successful",
+    LOGOUT_SUCCESS: "Logout successful",
+    TOKEN_REFRESH_SUCCESS: "Token refreshed successfully",
 
-    UNABLE_TO_SEND_OTP: "Unable to send OTP. Please try again later.",
-    VERIFICATION_SESSION_EXPIRED: "Verification session expired. Please login again.",
+    UNABLE_TO_SEND_OTP: "Unable to send OTP Please try again later",
+    VERIFICATION_SESSION_EXPIRED: "Verification session expired Please login again",
     EMAIL_VERIFIED: "Email verified successfully",
     EMAIL_ALREADY_VERIFIED: "Email already verified",
     OTP_SENT_SUCCESS: "Otp sent successfully",
@@ -12,8 +13,8 @@ const AUTH_MESSAGES = Object.freeze({
 
     UNAUTHORIZED: "You are not authorized",
 
-    INVALID_CREDENTIALS: "Invalid email or password.",
-    INVALID_OTP: "Invalid OTP.",
+    INVALID_CREDENTIALS: "Invalid email or password",
+    INVALID_OTP: "Invalid OTP",
 });
 
 export default AUTH_MESSAGES;

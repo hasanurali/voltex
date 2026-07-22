@@ -33,5 +33,9 @@ authRoutes.post("/logout",
     controllers.logoutController
 );
 
+authRoutes.post("/refresh-token",
+    controllers.refreshTokenController
+);
+
 
 export default authRoutes;

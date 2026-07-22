@@ -60,3 +60,15 @@ export const logoutController = asyncHandler(async (req, res) => {
         .clearCookie("accessToken", COOKIE_CONFIG.ACCESS)
         .json(new ApiResponse(AUTH_MESSAGES.LOGOUT_SUCCESS));
 });
+
+export const refreshTokenController = asyncHandler(async (req, res) => {
+
+    const refreshToken = req.cookies.refreshToken;
+
+    const { newRefreshToken, newAccessToken } = await services.refreshTokenService(refreshToken);
+
+    return res.status(StatusCodes.OK)
+        .cookie("refreshToken", newRefreshToken, COOKIE_CONFIG.REFRESH)
+        .cookie("accessToken", newAccessToken, COOKIE_CONFIG.ACCESS)
+        .json(new ApiResponse(AUTH_MESSAGES.TOKEN_REFRESH_SUCCESS));
+});

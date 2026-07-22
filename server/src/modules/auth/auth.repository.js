@@ -85,3 +85,10 @@ export const removeRefreshToken = async (userId) => {
         }
     );
 };
+
+export const findUserById = async (userId, select = "") => {
+
+    const user = await userModel.findById(userId).select(select);
+
+    return user;
+};
