@@ -8,7 +8,8 @@ const AUTH_MESSAGES = Object.freeze({
     EMAIL_VERIFIED: "Email verified successfully",
     EMAIL_ALREADY_VERIFIED: "Email already verified",
     OTP_SENT_SUCCESS: "Otp sent successfully",
-    
+    VERIFY_YOUR_EMAIL: "Verify your email",
+
     INVALID_CREDENTIALS: "Invalid email or password.",
     INVALID_OTP: "Invalid OTP.",
 });

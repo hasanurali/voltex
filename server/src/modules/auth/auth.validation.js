@@ -49,3 +49,18 @@ export const otpValidation = [
         .isNumeric().withMessage('OTP must contain numbers only')
         .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
 ];
+
+export const loginValidation = [
+
+    // Email
+    body('email')
+        .trim()
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Invalid email format')
+        .normalizeEmail(),
+
+    // Password
+    body('password')
+        .trim()
+        .notEmpty().withMessage("Password is required")
+];

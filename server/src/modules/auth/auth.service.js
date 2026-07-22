@@ -73,3 +73,33 @@ export const resendOtpService = async (email) => {
 
     await mailService.sendOtp(email, user.displayName, otp);
 };
+
+export const loginService = async ({ email, password }) => {
+
+    const user = await authRepository.findUserByEmail(email, "+password");
+    if (!user) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, AUTH_MESSAGES.INVALID_CREDENTIALS);
+    };
+
+    const isValidPassword = await user.comparePassword(password);
+    if (!isValidPassword) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, AUTH_MESSAGES.INVALID_CREDENTIALS);
+    };
+
+    if (!user.isEmailVerified) {
+        const otp = otpGenerator();
+
+        await authRepository.setNewOtp({ email, otp });
+
+        await mailService.sendOtp(email, user.displayName, otp);
+
+        throw new ApiError(StatusCodes.FORBIDDEN, AUTH_MESSAGES.VERIFY_YOUR_EMAIL);
+    };
+
+    const refreshToken = user.generateRefreshToken();
+    const accessToken = user.generateAccessToken();
+
+    await user.setRefreshTokenWithHash(refreshToken);
+
+    return { user, refreshToken, accessToken };
+};

@@ -36,3 +36,15 @@ export const resendOtpController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(AUTH_MESSAGES.OTP_SENT_SUCCESS));
 });
+
+export const loginController = asyncHandler(async (req, res) => {
+
+    const loginData = req.body;
+
+    const { user, refreshToken, accessToken } = await services.loginService(loginData);
+
+    return res.status(StatusCodes.OK)
+        .cookie("refreshToken", refreshToken, COOKIE_CONFIG.REFRESH)
+        .cookie("accessToken", accessToken, COOKIE_CONFIG.ACCESS)
+        .json(new ApiResponse(AUTH_MESSAGES.LOGIN_SUCCESS, user));
+});

@@ -24,9 +24,9 @@ export const createOtp = async (otpData) => {
     });
 };
 
-export const findUserByEmail = async (email) => {
+export const findUserByEmail = async (email, select = "") => {
 
-    const user = await userModel.findOne({ email });
+    const user = await userModel.findOne({ email }).select(select);
 
     return user;
 };

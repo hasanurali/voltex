@@ -22,5 +22,11 @@ authRoutes.post("/resend-otp",
     controllers.resendOtpController
 );
 
+authRoutes.post("/login",
+    validations.loginValidation,
+    middlewares.validationResultMiddleware,
+    controllers.loginController
+);
+
 
 export default authRoutes;
