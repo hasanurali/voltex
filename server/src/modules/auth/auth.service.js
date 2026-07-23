@@ -158,3 +158,17 @@ export const forgotPasswordService = async (email) => {
 
     await mailService.sendResetPasswordLink(email, user.displayName, resetLink);
 };
+
+export const resetPasswordService = async ({ password, token }) => {
+
+    if (!token) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.INVALID_OR_EXPIRED_LINK);
+    };
+
+    const matchedUser = await authRepository.matchResetPasswordToken(hashToken(token));
+    if (!matchedUser) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.INVALID_OR_EXPIRED_LINK);
+    };
+
+    await authRepository.resetPassword(matchedUser._id, password);
+};

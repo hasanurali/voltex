@@ -80,5 +80,15 @@ export const forgotPasswordController = asyncHandler(async (req, res) => {
     await services.forgotPasswordService(email);
 
     return res.status(StatusCodes.OK)
-        .json(new ApiResponse(AUTH_MESSAGES.PASSWORD_RESET));
+        .json(new ApiResponse(AUTH_MESSAGES.PASSWORD_RESET_LINK_SENT_SUCCESS));
+});
+
+export const resetPasswordController = asyncHandler(async (req, res) => {
+
+    const resetPasswordData = req.body;
+
+    await services.resetPasswordService(resetPasswordData);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(AUTH_MESSAGES.PASSWORD_RESET_SUCCESS));
 });

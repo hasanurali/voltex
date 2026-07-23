@@ -38,9 +38,15 @@ authRoutes.post("/refresh-token",
 );
 
 authRoutes.post("/forgot-password",
-    validations.resetPasswordValidation,
+    validations.forgotPasswordValidation,
     middlewares.validationResultMiddleware,
     controllers.forgotPasswordController
+);
+
+authRoutes.post("/reset-password",
+    validations.resetPasswordValidation,
+    middlewares.validationResultMiddleware,
+    controllers.resetPasswordController
 );
 
 

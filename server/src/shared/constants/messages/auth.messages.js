@@ -16,7 +16,9 @@ const AUTH_MESSAGES = Object.freeze({
     INVALID_CREDENTIALS: "Invalid email or password",
     INVALID_OTP: "Invalid OTP",
 
-    PASSWORD_RESET: "Successfully sent a password reset link to email, if it exists"
+    PASSWORD_RESET_LINK_SENT_SUCCESS: "Successfully sent a password reset link to email, if it exists",
+    PASSWORD_RESET_SUCCESS: "Password reset successfully, please login with your new password",
+    INVALID_OR_EXPIRED_LINK: "Invalid or expired password reset link"
 });
 
 export default AUTH_MESSAGES;

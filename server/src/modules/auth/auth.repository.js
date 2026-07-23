@@ -107,3 +107,31 @@ export const setResetPasswordTokenAndExpireWithId = async (userId, resetToken) =
         }
     );
 };
+
+export const matchResetPasswordToken = async (token) => {
+
+    const user = await userModel.findOne({
+        passwordResetToken: token,
+        passwordResetExpires: {
+            $gt: new Date()
+        }
+    });
+
+    return user;
+};
+
+export const resetPassword = async (userId, password) => {
+
+    const hashedPassword = await userModel.hashPassword(password);
+
+    await userModel.findByIdAndUpdate(userId,
+        {
+            $set: {
+                password: hashedPassword,
+                passwordResetToken: null,
+                passwordResetExpires: null,
+                refreshToken: null
+            }
+        }
+    );
+};
