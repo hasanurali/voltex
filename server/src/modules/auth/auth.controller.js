@@ -92,3 +92,13 @@ export const resetPasswordController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(AUTH_MESSAGES.PASSWORD_RESET_SUCCESS));
 });
+
+export const currentUserController = asyncHandler(async (req, res) => {
+
+    const userId = req.user.id;
+
+    const user = await services.currentUserService(userId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(AUTH_MESSAGES.USER_FETCHED_SUCCESS, user));
+});

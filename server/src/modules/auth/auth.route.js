@@ -49,5 +49,10 @@ authRoutes.post("/reset-password",
     controllers.resetPasswordController
 );
 
+authRoutes.get("/me",
+    middlewares.authMiddleware,
+    controllers.currentUserController
+);
+
 
 export default authRoutes;

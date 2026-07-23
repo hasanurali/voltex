@@ -3,6 +3,9 @@ const AUTH_MESSAGES = Object.freeze({
     LOGIN_SUCCESS: "Login successful",
     LOGOUT_SUCCESS: "Logout successful",
     TOKEN_REFRESH_SUCCESS: "Token refreshed successfully",
+    PASSWORD_RESET_LINK_SENT_SUCCESS: "Successfully sent a password reset link to email, if it exists",
+    PASSWORD_RESET_SUCCESS: "Password reset successfully, please login with your new password",
+    USER_FETCHED_SUCCESS: "User fetched successfully",
 
     UNABLE_TO_SEND_OTP: "Unable to send OTP Please try again later",
     VERIFICATION_SESSION_EXPIRED: "Verification session expired Please login again",
@@ -15,9 +18,6 @@ const AUTH_MESSAGES = Object.freeze({
 
     INVALID_CREDENTIALS: "Invalid email or password",
     INVALID_OTP: "Invalid OTP",
-
-    PASSWORD_RESET_LINK_SENT_SUCCESS: "Successfully sent a password reset link to email, if it exists",
-    PASSWORD_RESET_SUCCESS: "Password reset successfully, please login with your new password",
     INVALID_OR_EXPIRED_LINK: "Invalid or expired password reset link"
 });
 

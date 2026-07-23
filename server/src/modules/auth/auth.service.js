@@ -172,3 +172,13 @@ export const resetPasswordService = async ({ password, token }) => {
 
     await authRepository.resetPassword(matchedUser._id, password);
 };
+
+export const currentUserService = async (userId) => {
+
+    const user = await authRepository.findUserById(userId);
+    if (!user) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED);
+    };
+
+    return user;
+};
