@@ -35,6 +35,7 @@ const env = Object.freeze({
     REFRESH_COOKIE_MAX_AGE: Number(process.env.REFRESH_COOKIE_MAX_AGE) || 7 * 24 * 60 * 60 * 1000,
     ACCESS_COOKIE_MAX_AGE: Number(process.env.ACCESS_COOKIE_MAX_AGE) || 10 * 60 * 1000,
 
+    CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
 });
 
 export default env;

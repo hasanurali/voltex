@@ -37,5 +37,11 @@ authRoutes.post("/refresh-token",
     controllers.refreshTokenController
 );
 
+authRoutes.post("/forgot-password",
+    validations.resetPasswordValidation,
+    middlewares.validationResultMiddleware,
+    controllers.forgotPasswordController
+);
+
 
 export default authRoutes;

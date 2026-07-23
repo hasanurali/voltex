@@ -92,3 +92,18 @@ export const findUserById = async (userId, select = "") => {
 
     return user;
 };
+
+export const setResetPasswordTokenAndExpireWithId = async (userId, resetToken) => {
+
+    // 10 minutes
+    const addedTime = 10 * 60 * 1000;
+
+    await userModel.findByIdAndUpdate(userId,
+        {
+            $set: {
+                passwordResetToken: resetToken,
+                passwordResetExpires: new Date(Date.now() + addedTime),
+            }
+        }
+    );
+};

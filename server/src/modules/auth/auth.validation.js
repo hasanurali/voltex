@@ -56,6 +56,7 @@ export const loginValidation = [
     body('email')
         .trim()
         .notEmpty().withMessage('Email is required')
+        .toLowerCase()
         .isEmail().withMessage('Invalid email format')
         .normalizeEmail(),
 
@@ -63,4 +64,15 @@ export const loginValidation = [
     body('password')
         .trim()
         .notEmpty().withMessage("Password is required")
+];
+
+export const resetPasswordValidation = [
+
+    // Email
+    body('email')
+        .trim()
+        .notEmpty().withMessage('Email is required')
+        .toLowerCase()
+        .isEmail().withMessage('Invalid email format')
+        .normalizeEmail(),
 ];

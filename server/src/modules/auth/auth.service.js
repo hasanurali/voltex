@@ -2,10 +2,11 @@ import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
 
 import * as authRepository from "./auth.repository.js";
-import { ApiError, otpGenerator } from "../../shared/utils/index.js";
+import { ApiError, otpGenerator, resetPasswordTokenGenerator, hashToken } from "../../shared/utils/index.js";
 import * as mailService from "../../shared/mail/mail.service.js";
 import { AUTH_MESSAGES } from "../../shared/constants/messages/index.js";
 import JWT_CONFIG from "../../config/jwt.js";
+import env from "../../config/env.js";
 
 
 export const registerService = async (userData) => {
@@ -139,4 +140,21 @@ export const refreshTokenService = async (refreshToken) => {
     await user.setRefreshTokenWithHash(newRefreshToken);
 
     return { newRefreshToken, newAccessToken };
+};
+
+export const forgotPasswordService = async (email) => {
+
+    const user = await authRepository.findUserByEmail(email);
+
+    if (!user) {
+        return;
+    };
+
+    const token = resetPasswordTokenGenerator();
+
+    await authRepository.setResetPasswordTokenAndExpireWithId(user._id, hashToken(token));
+
+    const resetLink = `${env.CLIENT_URL}/auth/reset-password?token=${token}`;
+
+    await mailService.sendResetPasswordLink(email, user.displayName, resetLink);
 };

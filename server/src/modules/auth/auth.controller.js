@@ -72,3 +72,13 @@ export const refreshTokenController = asyncHandler(async (req, res) => {
         .cookie("accessToken", newAccessToken, COOKIE_CONFIG.ACCESS)
         .json(new ApiResponse(AUTH_MESSAGES.TOKEN_REFRESH_SUCCESS));
 });
+
+export const forgotPasswordController = asyncHandler(async (req, res) => {
+
+    const email = req.body.email;
+
+    await services.forgotPasswordService(email);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(AUTH_MESSAGES.PASSWORD_RESET));
+});
