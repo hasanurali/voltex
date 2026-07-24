@@ -1,9 +1,9 @@
-import env from "../config/env.js"
-import { log } from "../utils/index.js"
+import env from "../config/env.js";
+import { log } from "../shared/utils/index.js";
 
 const errorHandler = (err, req, res, next) => {
-    const statusCode = err.status || 500;
-    const message = err.message || "Internal server error";
+    let statusCode = err.status || 500;
+    let message = err.message || "Internal server error";
 
     // handle Mongo / JWT errors
     if (err.name === "CastError") {
@@ -37,11 +37,11 @@ const errorHandler = (err, req, res, next) => {
 
     log(`Message: ${message},
          Status: ${statusCode},
-         Route: ${err.method} ${err.originalUrl}
+         Route: ${req.method} ${req.originalUrl}
          Time: ${new Date().toISOString()}
          Stack: ${err.stack}`);
 
-    return res.status(statusCode).res({
+    return res.status(statusCode).json({
         success: false,
         message,
         errors: err.errors || []
