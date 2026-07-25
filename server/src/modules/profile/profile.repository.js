@@ -14,3 +14,16 @@ export const getProfileByUserId = async (userId, select = "") => {
 
     return profile;
 };
+
+export const updateProfileByUserId = async (userId, profileData) => {
+
+    const updatedProfile = await profileModel.findOneAndUpdate({ user: userId },
+        {
+            $set: profileData
+        },
+        {
+            new: true
+        });
+
+    return updatedProfile;
+};

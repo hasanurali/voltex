@@ -20,3 +20,30 @@ export const userPublicProfileService = async (username) => {
         profile
     };
 };
+
+export const updateProfileService = async (userId, profileData) => {
+
+    if (!profileData || Object.keys(profileData).length === 0) {
+        return;
+    };
+
+    const { displayName, ...profileFields } = profileData;
+
+    let updatedUser = null;
+
+    if (displayName !== undefined) {
+
+        updatedUser = await authRepository.updateUserByUserId(userId, { displayName });
+
+    };
+
+    const updatedProfile = Object.keys(profileFields).length ?
+        await profileRepository.updateProfileByUserId(userId, profileFields)
+        :
+        null;
+
+    return {
+        updatedUser,
+        updatedProfile
+    };
+};

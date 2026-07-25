@@ -142,3 +142,16 @@ export const findUserByUsername = async (username, select = "") => {
 
     return user;
 };
+
+export const updateUserByUserId = async (userId, userData) => {
+
+    const updatedUser = await userModel.findByIdAndUpdate(userId,
+        {
+            $set: userData
+        },
+        {
+            new: true
+        });
+
+    return updatedUser;
+};
