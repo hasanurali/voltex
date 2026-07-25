@@ -135,3 +135,10 @@ export const resetPassword = async (userId, password) => {
         }
     );
 };
+
+export const findUserByUsername = async (username, select = "") => {
+
+    const user = await userModel.findOne({ username }).select(select);
+
+    return user;
+};

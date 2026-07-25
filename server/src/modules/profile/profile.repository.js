@@ -8,9 +8,9 @@ export const createProfile = async (profileData) => {
     return profile;
 };
 
-export const getProfileByUserId = async (userId) => {
+export const getProfileByUserId = async (userId, select = "") => {
 
-    const profile = await profileModel.findOne({ user: userId });
+    const profile = await profileModel.findOne({ user: userId }).select(select);
 
     return profile;
 };
