@@ -7,18 +7,18 @@ export const registerValidation = [
         .trim()
         .notEmpty().withMessage('Name is required')
         .isString().withMessage('Name must be a string')
-        .isLength({ min: 2 }).withMessage('Name must be at least 2 characters')
-        .isLength({ max: 50 }).withMessage('Name cannot exceed 50 characters')
-        .matches(/^[a-zA-Z\s]+$/).withMessage('Name must contain only letters'),
+        .isLength({ min: 2, max: 30 }).withMessage('Name must be between 2 and 30 characters')
+        .matches(/^[\p{L}]+(?: [\p{L}]+)*$/u).withMessage("Name can only contain letters and spaces"),
 
     // Username
-    body('username')
+    body("username")
         .trim()
-        .notEmpty().withMessage('Username is required')
+        .notEmpty().withMessage("Username is required")
         .toLowerCase()
-        .isLength({ min: 3 }).withMessage('Username must be at least 3 characters')
-        .isLength({ max: 50 }).withMessage('Username cannot exceed 50 characters')
-        .matches(/^[a-z0-9@$!%*?&]+$/).withMessage('Username can only contain lowercase letters, numbers and special characters'),
+        .isLength({ min: 3, max: 30 }).withMessage("Username must be between 3 and 30 characters")
+        .matches(/^[a-z][a-z0-9_]*$/).withMessage(
+            "Username must start with a letter and can only contain lowercase letters, numbers, and underscores"
+        ),
 
     // Email
     body('email')
