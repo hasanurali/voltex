@@ -22,6 +22,13 @@ export const userPublicProfileService = async (username) => {
     };
 };
 
+export const checkUsernameService = async (username) => {
+
+    const isUserExists = await authRepository.checkUserExists(username);
+
+    return !isUserExists;
+};
+
 export const updateUsernameService = async (userId, username) => {
 
     const user = await authRepository.findUserById(userId);

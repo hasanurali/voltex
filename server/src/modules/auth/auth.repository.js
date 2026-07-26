@@ -155,3 +155,10 @@ export const updateUserByUserId = async (userId, userData) => {
 
     return updatedUser;
 };
+
+export const checkUserExists = async (username) => {
+
+    const isUserExists = await userModel.exists({ username })
+
+    return isUserExists;
+};

@@ -10,6 +10,10 @@ profileRoutes.get("/:username",
     controllers.userPublicProfileController,
 );
 
+profileRoutes.get("/username/check",
+    controllers.checkUsernameController,
+);
+
 profileRoutes.patch("/username",
     middlewares.authMiddleware,
     validations.updateUsernameValidation,
