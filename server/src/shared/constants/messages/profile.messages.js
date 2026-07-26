@@ -7,6 +7,7 @@ const PROFILE_MESSAGES = {
     AVATAR_UPDATE_SUCCESS: "Avatar changed successfully",
     COVER_IMAGE_UPDATE_SUCCESS: "Cover image changed successfully",
     AVATAR_DELETE_SUCCESS: "Avatar removed successfully",
+    COVER_IMAGE_DELETE_SUCCESS: "Cover image removed successfully",
 
     AVATAR_UPLOAD_FAIL: "Avatar upload failed, please try again",
     COVER_IMAGE_UPLOAD_FAIL: "Cover image upload failed, please try again",

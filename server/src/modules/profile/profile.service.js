@@ -5,7 +5,7 @@ import { ApiError } from "../../shared/utils/index.js";
 import { PROFILE_MESSAGES } from "../../shared/constants/messages/index.js";
 import { authRepository } from "../auth/index.js";
 import * as cloudinary from "../../shared/cloudinary/cloudinary.service.js";
-import { DEFAULT_AVATAR } from "../../shared/constants/assets/default.assets.js";
+import { DEFAULT_AVATAR, DEFAULT_COVER_IMAGE } from "../../shared/constants/assets/default.assets.js";
 
 
 export const userPublicProfileService = async (username) => {
@@ -144,6 +144,27 @@ export const deleteAvatarService = async (userId) => {
         profileRepository.updateProfileByUserId(userId, {
             "avatar.url": DEFAULT_AVATAR(userId),
             "avatar.publicId": null
+        }),
+        cloudinary.deleteImage(publicId)
+    ]);
+};
+
+export const deleteCoverImageService = async (userId) => {
+
+    const profile = await profileRepository.getProfileByUserId(userId);
+    if (!profile) {
+        throw new ApiError(StatusCodes.NOT_FOUND, PROFILE_MESSAGES.NOT_FOUND);
+    };
+
+    const publicId = profile.coverImage?.publicId;
+    if (!publicId) {
+        return;
+    };
+
+    await Promise.all([
+        profileRepository.updateProfileByUserId(userId, {
+            "coverImage.url": DEFAULT_COVER_IMAGE,
+            "coverImage.publicId": null
         }),
         cloudinary.deleteImage(publicId)
     ]);

@@ -86,3 +86,13 @@ export const deleteAvatarController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(PROFILE_MESSAGES.AVATAR_DELETE_SUCCESS));
 });
+
+export const deleteCoverImageController = asyncHandler(async (req, res) => {
+
+    const userId = req.user.id;
+
+    await services.deleteCoverImageService(userId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(PROFILE_MESSAGES.COVER_IMAGE_DELETE_SUCCESS));
+});
