@@ -8,6 +8,13 @@ import * as cloudinary from "../../shared/cloudinary/cloudinary.service.js";
 import { DEFAULT_AVATAR, DEFAULT_COVER_IMAGE } from "../../shared/constants/assets/default.assets.js";
 
 
+export const checkUsernameService = async (username) => {
+
+    const isUserExists = await authRepository.checkUserExists(username);
+
+    return !isUserExists;
+};
+
 export const userPublicProfileService = async (username) => {
 
     const user = await authRepository.findUserByUsername(username, "_id displayName username isVerified createdAt postsCount followersCount followingCount");
@@ -21,13 +28,6 @@ export const userPublicProfileService = async (username) => {
         user,
         profile
     };
-};
-
-export const checkUsernameService = async (username) => {
-
-    const isUserExists = await authRepository.checkUserExists(username);
-
-    return !isUserExists;
 };
 
 export const updateUsernameService = async (userId, username) => {

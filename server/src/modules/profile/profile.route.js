@@ -6,12 +6,12 @@ import * as middlewares from "../../middlewares/index.js";
 import * as validations from "./profile.validation.js";
 
 
-profileRoutes.get("/:username",
-    controllers.userPublicProfileController,
-);
-
 profileRoutes.get("/username/check",
     controllers.checkUsernameController,
+);
+
+profileRoutes.get("/:username",
+    controllers.userPublicProfileController,
 );
 
 profileRoutes.patch("/username",
