@@ -24,5 +24,12 @@ profileRoutes.patch("/avatar",
     controllers.updateAvatarController,
 );
 
+profileRoutes.patch("/cover-image",
+    middlewares.authMiddleware,
+    validations.updateCoverImageValidation,
+    middlewares.validationResultMiddleware,
+    controllers.updateCoverImageController,
+);
+
 
 export default profileRoutes;

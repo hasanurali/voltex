@@ -36,3 +36,12 @@ export const updateAvatarValidation = [
         .notEmpty().withMessage("Avatar is required")
         .isURL().withMessage("Invalid avatar"),
 ];
+
+export const updateCoverImageValidation = [
+
+    //Url
+    body("url")
+        .trim()
+        .notEmpty().withMessage("Cover image is required")
+        .isURL().withMessage("Invalid cover image"),
+];

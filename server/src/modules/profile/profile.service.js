@@ -76,3 +76,31 @@ export const updateAvatarService = async (userId, avatarData) => {
 
     return updatedProfile;
 };
+
+export const updateCoverImageService = async (userId, coverImageData) => {
+
+    const { url, publicId } = coverImageData;
+
+    if (!publicId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, PROFILE_MESSAGES.COVER_IMAGE_UPLOAD_FAIL);
+    };
+
+    const profile = await profileRepository.getProfileByUserId(userId);
+    if (!profile) {
+        throw new ApiError(StatusCodes.NOT_FOUND, PROFILE_MESSAGES.NOT_FOUND);
+    };
+
+    const oldPublicId = profile.coverImage?.publicId;
+
+    const updatedProfile = await profileRepository.updateProfileByUserId(userId, {
+        "coverImage.url": url,
+        "coverImage.publicId": publicId
+    });
+
+    if (oldPublicId && oldPublicId !== publicId) {
+
+        await cloudinary.deleteImage(oldPublicId);
+    };
+
+    return updatedProfile;
+};

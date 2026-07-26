@@ -37,3 +37,15 @@ export const updateAvatarController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(PROFILE_MESSAGES.AVATAR_UPDATE_SUCCESS, updatedProfile));
 });
+
+export const updateCoverImageController = asyncHandler(async (req, res) => {
+
+    const coverImageData = req.body;
+
+    const userId = req.user.id;
+
+    const updatedProfile = await services.updateCoverImageService(userId, coverImageData);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(PROFILE_MESSAGES.COVER_IMAGE_UPDATE_SUCCESS, updatedProfile));
+});
