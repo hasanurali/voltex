@@ -22,7 +22,7 @@ export const updateProfileByUserId = async (userId, profileData) => {
             $set: profileData
         },
         {
-            new: true
+            returnDocument: "after"
         });
 
     return updatedProfile;

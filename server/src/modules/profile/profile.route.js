@@ -17,5 +17,12 @@ profileRoutes.patch("/",
     controllers.updateProfileController,
 );
 
+profileRoutes.patch("/avatar",
+    middlewares.authMiddleware,
+    validations.updateAvatarValidation,
+    middlewares.validationResultMiddleware,
+    controllers.updateAvatarController,
+);
+
 
 export default profileRoutes;

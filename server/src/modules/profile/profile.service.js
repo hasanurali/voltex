@@ -4,6 +4,7 @@ import * as profileRepository from "./profile.repository.js";
 import { ApiError } from "../../shared/utils/index.js";
 import { PROFILE_MESSAGES } from "../../shared/constants/messages/index.js";
 import { authRepository } from "../auth/index.js";
+import * as cloudinary from "../../shared/cloudinary/cloudinary.service.js";
 
 
 export const userPublicProfileService = async (username) => {
@@ -46,4 +47,32 @@ export const updateProfileService = async (userId, profileData) => {
         updatedUser,
         updatedProfile
     };
+};
+
+export const updateAvatarService = async (userId, avatarData) => {
+
+    const { url, publicId } = avatarData;
+
+    if (!publicId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, PROFILE_MESSAGES.AVATAR_UPLOAD_FAIL);
+    };
+
+    const profile = await profileRepository.getProfileByUserId(userId);
+    if (!profile) {
+        throw new ApiError(StatusCodes.NOT_FOUND, PROFILE_MESSAGES.NOT_FOUND);
+    };
+
+    const oldPublicId = profile.avatar?.publicId;
+
+    const updatedProfile = await profileRepository.updateProfileByUserId(userId, {
+        "avatar.url": url,
+        "avatar.publicId": publicId
+    });
+
+    if (oldPublicId && oldPublicId !== publicId) {
+
+        await cloudinary.deleteImage(oldPublicId);
+    };
+
+    return updatedProfile;
 };

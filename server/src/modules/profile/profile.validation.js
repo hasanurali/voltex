@@ -27,3 +27,12 @@ export const updateProfileValidation = [
         .trim()
         .isLength({ max: 100 }).withMessage("Location cannot exceed 100 characters"),
 ];
+
+export const updateAvatarValidation = [
+
+    //Url
+    body("url")
+        .trim()
+        .notEmpty().withMessage("Avatar is required")
+        .isURL().withMessage("Invalid avatar"),
+];

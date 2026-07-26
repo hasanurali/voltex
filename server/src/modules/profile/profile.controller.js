@@ -25,3 +25,15 @@ export const updateProfileController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(PROFILE_MESSAGES.PROFILE_UPDATE_SUCCESS, { updatedUser, updatedProfile }));
 });
+
+export const updateAvatarController = asyncHandler(async (req, res) => {
+
+    const avatarData = req.body;
+
+    const userId = req.user.id;
+
+    const updatedProfile = await services.updateAvatarService(userId, avatarData);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(PROFILE_MESSAGES.AVATAR_UPDATE_SUCCESS, updatedProfile));
+});

@@ -49,7 +49,7 @@ export const markEmailVerified = async (userId) => {
         $set: {
             isEmailVerified: true
         }
-    }, { new: true });
+    }, { returnDocument: "after" });
 
     return updatedUser;
 };
@@ -71,7 +71,7 @@ export const setNewOtp = async ({ email, otp }) => {
         },
         {
             upsert: true,
-            new: true
+            returnDocument: "after"
         });
 };
 
@@ -150,7 +150,7 @@ export const updateUserByUserId = async (userId, userData) => {
             $set: userData
         },
         {
-            new: true
+            returnDocument: "after"
         });
 
     return updatedUser;
