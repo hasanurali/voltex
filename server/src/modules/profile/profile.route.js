@@ -42,5 +42,10 @@ profileRoutes.patch("/cover-image",
     controllers.updateCoverImageController,
 );
 
+profileRoutes.delete("/avatar",
+    middlewares.authMiddleware,
+    controllers.deleteAvatarController,
+);
+
 
 export default profileRoutes;

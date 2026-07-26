@@ -5,6 +5,7 @@ import { ApiError } from "../../shared/utils/index.js";
 import { PROFILE_MESSAGES } from "../../shared/constants/messages/index.js";
 import { authRepository } from "../auth/index.js";
 import * as cloudinary from "../../shared/cloudinary/cloudinary.service.js";
+import { DEFAULT_AVATAR } from "../../shared/constants/assets/default.assets.js";
 
 
 export const userPublicProfileService = async (username) => {
@@ -58,7 +59,6 @@ export const updateProfileService = async (userId, profileData) => {
     if (displayName !== undefined) {
 
         updatedUser = await authRepository.updateUserByUserId(userId, { displayName });
-
     };
 
     const updatedProfile = Object.keys(profileFields).length ?
@@ -126,4 +126,25 @@ export const updateCoverImageService = async (userId, coverImageData) => {
     };
 
     return updatedProfile;
+};
+
+export const deleteAvatarService = async (userId) => {
+
+    const profile = await profileRepository.getProfileByUserId(userId);
+    if (!profile) {
+        throw new ApiError(StatusCodes.NOT_FOUND, PROFILE_MESSAGES.NOT_FOUND);
+    };
+
+    const publicId = profile.avatar?.publicId;
+    if (!publicId) {
+        return;
+    };
+
+    await Promise.all([
+        profileRepository.updateProfileByUserId(userId, {
+            "avatar.url": DEFAULT_AVATAR(userId),
+            "avatar.publicId": null
+        }),
+        cloudinary.deleteImage(publicId)
+    ]);
 };
