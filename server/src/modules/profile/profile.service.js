@@ -22,6 +22,22 @@ export const userPublicProfileService = async (username) => {
     };
 };
 
+export const updateUsernameService = async (userId, username) => {
+
+    const user = await authRepository.findUserById(userId);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, PROFILE_MESSAGES.NOT_FOUND)
+    };
+
+    if (user.username === username) {
+        return user;
+    };
+
+    const updatedUser = await authRepository.updateUserByUserId(userId, { username });
+
+    return updatedUser;
+};
+
 export const updateProfileService = async (userId, profileData) => {
 
     if (!profileData || Object.keys(profileData).length === 0) {

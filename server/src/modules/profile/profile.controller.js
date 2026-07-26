@@ -14,6 +14,18 @@ export const userPublicProfileController = asyncHandler(async (req, res) => {
         .json(new ApiResponse(PROFILE_MESSAGES.PROFILE_FETCH_SUCCESS, { user, profile }));
 });
 
+export const updateUsernameController = asyncHandler(async (req, res) => {
+
+    const username = req.body.username;
+
+    const userId = req.user.id;
+
+    const updatedUser = await services.updateUsernameService(userId, username);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(PROFILE_MESSAGES.USERNAME_UPDATE_SUCCESS, updatedUser));
+});
+
 export const updateProfileController = asyncHandler(async (req, res) => {
 
     const profileData = req.body;

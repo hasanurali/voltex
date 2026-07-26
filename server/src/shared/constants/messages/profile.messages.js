@@ -1,5 +1,6 @@
 const PROFILE_MESSAGES = {
     PROFILE_FETCH_SUCCESS: "Profile fetched successfully",
+    USERNAME_UPDATE_SUCCESS: "Username updated successfully",
     PROFILE_UPDATE_SUCCESS: "Profile updated successfully",
     AVATAR_UPDATE_SUCCESS: "Avatar changed successfully",
     COVER_IMAGE_UPDATE_SUCCESS: "Cover image changed successfully",
