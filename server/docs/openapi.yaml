@@ -1,0 +1,469 @@
+openapi: 3.1.0
+
+info:
+  title: Voltex API
+  description: REST API for the Voltex social media platform
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: Authentication and account management
+
+  - name: Profile
+    description: User profile management
+
+  - name: User
+    description: User management
+
+  - name: Follow
+    description: User follow management
+
+  - name: Post
+    description: Post management
+
+  - name: Comment
+    description: Comment management
+
+  - name: Reaction
+    description: Post and comment reactions
+
+  - name: Notification
+    description: Notification management
+
+  - name: Conversation
+    description: Conversation management
+
+  - name: Message
+    description: Messaging
+
+  - name: Setting
+    description: User settings
+
+  - name: Block
+    description: User blocking
+
+
+paths:
+
+  # ============================================================
+  # AUTHENTICATION
+  # ============================================================
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+
+      summary: Register a new user
+
+      description: >
+        Creates a new user account and profile and sends an email
+        verification OTP.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+
+      responses:
+
+        '201':
+          description: Registration successful
+
+        '400':
+          description: Validation failed
+
+        '409':
+          description: Email or username already exists
+
+
+  /auth/verify-email:
+    post:
+      tags:
+        - Authentication
+
+      summary: Verify email address
+
+      description: >
+        Verifies the user's email address using the OTP sent to their
+        email. On successful verification, access and refresh token
+        cookies are issued.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailRequest'
+
+      responses:
+
+        '200':
+          description: Email verified successfully. Access and refresh token cookies are set.
+
+        '400':
+          description: |
+            Possible messages:
+            - Verification session expired. Please login again
+            - Invalid OTP
+
+        '409':
+          description: Email already verified
+
+
+  /auth/resend-otp:
+    post:
+      tags:
+        - Authentication
+
+      summary: Resend verification OTP
+
+      description: >
+        Generates a new verification OTP and sends it to the user's
+        email address.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRequest'
+
+      responses:
+
+        '200':
+          description: OTP sent successfully
+
+        '400':
+          description: Verification session expired. Please login again
+
+        '409':
+          description: Email already verified
+
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+
+      summary: Login user
+
+      description: >
+        Authenticates a user using their email and password.
+        Successful authentication sets access and refresh token cookies.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+
+      responses:
+
+        '200':
+          description: Login successful. Access and refresh token cookies are set.
+
+        '400':
+          description: Validation failed
+
+        '401':
+          description: Invalid email or password
+
+        '403':
+          description: Verify your email
+
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+
+      summary: Logout user
+
+      description: >
+        Logs out the authenticated user, removes the stored refresh
+        token, and clears the access and refresh token cookies.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+
+        '200':
+          description: Logout successful. Authentication cookies are cleared.
+
+        '401':
+          description: You are not authorized
+
+
+  /auth/refresh-token:
+    post:
+      tags:
+        - Authentication
+
+      summary: Refresh authentication tokens
+
+      description: >
+        Validates the refresh token stored in the refreshToken cookie
+        and issues a new access token and refresh token.
+
+      security:
+        - refreshTokenCookie: []
+
+      responses:
+
+        '200':
+          description: Token refreshed successfully. New access and refresh token cookies are set.
+
+        '401':
+          description: You are not authorized
+
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+
+      summary: Request password reset
+
+      description: >
+        Sends a password reset link to the provided email address.
+        The endpoint intentionally returns the same success response
+        whether or not the email exists.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRequest'
+
+      responses:
+
+        '200':
+          description: Successfully sent a password reset link to email, if it exists
+
+        '400':
+          description: Validation failed
+
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+
+      summary: Reset password
+
+      description: >
+        Resets the user's password using a valid password reset token.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+
+      responses:
+
+        '200':
+          description: Password reset successfully, please login with your new password
+
+        '400':
+          description: |
+            Possible messages:
+            - Validation failed
+            - Invalid or expired password reset link
+
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+
+      summary: Get current authenticated user
+
+      description: >
+        Returns the authenticated user's account and profile data.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+
+        '200':
+          description: User fetched successfully
+
+        '401':
+          description: You are not authorized
+
+
+components:
+
+  # ============================================================
+  # SECURITY SCHEMES
+  # ============================================================
+
+  securitySchemes:
+
+    accessTokenCookie:
+      type: apiKey
+      in: cookie
+      name: accessToken
+
+    refreshTokenCookie:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+
+
+  # ============================================================
+  # SCHEMAS
+  # ============================================================
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+
+      required:
+        - displayName
+        - username
+        - email
+        - password
+
+      properties:
+
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 30
+          description: User's display name.
+          example: Hasanur Ali
+
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-z][a-z0-9_]*$'
+          description: >
+            Username must start with a lowercase letter and can contain
+            lowercase letters, numbers, and underscores.
+          example: hasanur_ali
+
+        email:
+          type: string
+          format: email
+          description: User's email address.
+          example: hasanur@example.com
+
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 100
+          description: >
+            Password must contain at least one uppercase letter,
+            one lowercase letter, one number, and one special character
+            from @$!%*?&.
+          example: StrongPassword123!
+
+
+    VerifyEmailRequest:
+      type: object
+
+      required:
+        - email
+        - otp
+
+      properties:
+
+        email:
+          type: string
+          format: email
+          description: Email address used during registration.
+          example: hasanur@example.com
+
+        otp:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: '^[0-9]{6}$'
+          description: Six-digit verification OTP.
+          example: '123456'
+
+
+    EmailRequest:
+      type: object
+
+      required:
+        - email
+
+      properties:
+
+        email:
+          type: string
+          format: email
+          description: User's email address.
+          example: hasanur@example.com
+
+
+    LoginRequest:
+      type: object
+
+      required:
+        - email
+        - password
+
+      properties:
+
+        email:
+          type: string
+          format: email
+          description: User's registered email address.
+          example: hasanur@example.com
+
+        password:
+          type: string
+          format: password
+          description: User's account password.
+          example: StrongPassword123!
+
+
+    ResetPasswordRequest:
+      type: object
+
+      required:
+        - password
+        - token
+
+      properties:
+
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 100
+          description: >
+            New password. Must contain at least one uppercase letter,
+            one lowercase letter, one number, and one special character
+            from @$!%*?&.
+          example: NewStrongPassword123!
+
+        token:
+          type: string
+          description: Password reset token.
+          example: reset-token-from-email-link
