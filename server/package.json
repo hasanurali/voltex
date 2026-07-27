@@ -26,6 +26,6 @@
     "nodemon": "^3.1.14",
     "resend": "^6.17.2",
     "swagger-ui-express": "^5.0.1",
-    "yamljs": "^0.2.7"
+    "yaml": "^2.9.0"
   }
 }

@@ -1,7 +1,10 @@
+import fs from "fs";
+import YAML from "yaml";
 import swaggerUi from "swagger-ui-express";
-import YAML from "yamljs";
 
-const swaggerDocument = YAML.load("./docs/openapi.yaml");
+const swaggerDocument = YAML.parse(
+    fs.readFileSync("./docs/openapi.yaml", "utf8")
+);
 
 const setupSwagger = (app) => {
     app.use("/api-docs",
