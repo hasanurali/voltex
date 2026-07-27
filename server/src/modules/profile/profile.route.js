@@ -7,6 +7,8 @@ import * as validations from "./profile.validation.js";
 
 
 profileRoutes.get("/username/check",
+    validations.checkUsernameValidation,
+    middlewares.validationResultMiddleware,
     controllers.checkUsernameController,
 );
 

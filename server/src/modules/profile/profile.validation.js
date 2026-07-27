@@ -1,4 +1,17 @@
-import { body } from "express-validator";
+import { body, query } from "express-validator";
+
+export const checkUsernameValidation = [
+
+    // Username
+    query("username")
+        .trim()
+        .notEmpty().withMessage("Username is required")
+        .toLowerCase()
+        .isLength({ min: 3, max: 30 }).withMessage("Username must be between 3 and 30 characters")
+        .matches(/^[a-z][a-z0-9_]*$/).withMessage(
+            "Username must start with a letter and can only contain lowercase letters, numbers, and underscores"
+        ),
+];
 
 export const updateUsernameValidation = [
 
