@@ -49,7 +49,7 @@ export const markEmailVerified = async (userId) => {
         $set: {
             isEmailVerified: true
         }
-    }, { new: true });
+    }, { returnDocument: "after" });
 
     return updatedUser;
 };
@@ -71,7 +71,7 @@ export const setNewOtp = async ({ email, otp }) => {
         },
         {
             upsert: true,
-            new: true
+            returnDocument: "after"
         });
 };
 
@@ -134,4 +134,31 @@ export const resetPassword = async (userId, password) => {
             }
         }
     );
+};
+
+export const findUserByUsername = async (username, select = "") => {
+
+    const user = await userModel.findOne({ username }).select(select);
+
+    return user;
+};
+
+export const updateUserByUserId = async (userId, userData) => {
+
+    const updatedUser = await userModel.findByIdAndUpdate(userId,
+        {
+            $set: userData
+        },
+        {
+            returnDocument: "after"
+        });
+
+    return updatedUser;
+};
+
+export const checkUserExists = async (username) => {
+
+    const isUserExists = await userModel.exists({ username })
+
+    return isUserExists;
 };

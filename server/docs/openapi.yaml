@@ -1,0 +1,812 @@
+openapi: 3.1.0
+
+info:
+  title: Voltex API
+  description: REST API for the Voltex social media platform
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: Authentication and account management
+
+  - name: Profile
+    description: User profile management
+
+  - name: User
+    description: User management
+
+  - name: Follow
+    description: User follow management
+
+  - name: Post
+    description: Post management
+
+  - name: Comment
+    description: Comment management
+
+  - name: Reaction
+    description: Post and comment reactions
+
+  - name: Notification
+    description: Notification management
+
+  - name: Conversation
+    description: Conversation management
+
+  - name: Message
+    description: Messaging
+
+  - name: Setting
+    description: User settings
+
+  - name: Block
+    description: User blocking
+
+
+paths:
+
+  # ============================================================
+  # AUTHENTICATION
+  # ============================================================
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+
+      summary: Register a new user
+
+      description: >
+        Creates a new user account and profile and sends an email
+        verification OTP.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+
+      responses:
+
+        '201':
+          description: Registration successful
+
+        '400':
+          description: Validation failed
+
+        '409':
+          description: Email or username already exists
+
+
+  /auth/verify-email:
+    post:
+      tags:
+        - Authentication
+
+      summary: Verify email address
+
+      description: >
+        Verifies the user's email address using the OTP sent to their
+        email. On successful verification, access and refresh token
+        cookies are issued.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailRequest'
+
+      responses:
+
+        '200':
+          description: Email verified successfully. Access and refresh token cookies are set.
+
+        '400':
+          description: |
+            Possible messages:
+            - Verification session expired. Please login again
+            - Invalid OTP
+
+        '409':
+          description: Email already verified
+
+
+  /auth/resend-otp:
+    post:
+      tags:
+        - Authentication
+
+      summary: Resend verification OTP
+
+      description: >
+        Generates a new verification OTP and sends it to the user's
+        email address.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRequest'
+
+      responses:
+
+        '200':
+          description: OTP sent successfully
+
+        '400':
+          description: Verification session expired. Please login again
+
+        '409':
+          description: Email already verified
+
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+
+      summary: Login user
+
+      description: >
+        Authenticates a user using their email and password.
+        Successful authentication sets access and refresh token cookies.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+
+      responses:
+
+        '200':
+          description: Login successful. Access and refresh token cookies are set.
+
+        '400':
+          description: Validation failed
+
+        '401':
+          description: Invalid email or password
+
+        '403':
+          description: Verify your email
+
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+
+      summary: Logout user
+
+      description: >
+        Logs out the authenticated user, removes the stored refresh
+        token, and clears the access and refresh token cookies.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+
+        '200':
+          description: Logout successful. Authentication cookies are cleared.
+
+        '401':
+          description: You are not authorized
+
+
+  /auth/refresh-token:
+    post:
+      tags:
+        - Authentication
+
+      summary: Refresh authentication tokens
+
+      description: >
+        Validates the refresh token stored in the refreshToken cookie
+        and issues a new access token and refresh token.
+
+      security:
+        - refreshTokenCookie: []
+
+      responses:
+
+        '200':
+          description: Token refreshed successfully. New access and refresh token cookies are set.
+
+        '401':
+          description: You are not authorized
+
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Authentication
+
+      summary: Request password reset
+
+      description: >
+        Sends a password reset link to the provided email address.
+        The endpoint intentionally returns the same success response
+        whether or not the email exists.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailRequest'
+
+      responses:
+
+        '200':
+          description: Successfully sent a password reset link to email, if it exists
+
+        '400':
+          description: Validation failed
+
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Authentication
+
+      summary: Reset password
+
+      description: >
+        Resets the user's password using a valid password reset token.
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+
+      responses:
+
+        '200':
+          description: Password reset successfully, please login with your new password
+
+        '400':
+          description: |
+            Possible messages:
+            - Validation failed
+            - Invalid or expired password reset link
+
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+
+      summary: Get current authenticated user
+
+      description: >
+        Returns the authenticated user's account and profile data.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+
+        '200':
+          description: User fetched successfully
+
+        '401':
+          description: You are not authorized
+  
+
+  # ============================================================
+  # PROFILE
+  # ============================================================
+
+  /profile/username/check:
+    get:
+      tags:
+        - Profile
+
+      summary: Check username availability
+      description: Checks whether a username is available.
+
+      parameters:
+        - name: username
+          in: query
+          required: true
+          description: Username to check.
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 30
+            pattern: '^[a-z][a-z0-9_]*$'
+          example: hasanur_ali
+
+      responses:
+        '200':
+          description: Username availability result.
+
+        '400':
+          description: Validation failed.
+
+  /profile/{username}:
+    get:
+      tags:
+        - Profile
+
+      summary: Get public profile
+      description: >
+        Returns the public user and profile information for the specified
+        username. Sensitive user fields and internal image public IDs
+        are not exposed.
+
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Public username of the user.
+          schema:
+            type: string
+          example: hasanur_ali
+
+      responses:
+        '200':
+          description: Profile fetched successfully.
+
+        '404':
+          description: Profile not found.
+
+  /profile/username:
+    patch:
+      tags:
+        - Profile
+
+      summary: Update username
+      description: Updates the authenticated user's username.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUsernameRequest'
+
+      responses:
+        '200':
+          description: Username updated successfully.
+
+        '400':
+          description: Validation failed.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+        '409':
+          description: Username already exists.
+
+  /profile:
+    patch:
+      tags:
+        - Profile
+
+      summary: Update profile
+      description: >
+        Updates the authenticated user's profile. Only fields provided
+        in the request are updated.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+
+      responses:
+        '200':
+          description: Profile updated successfully.
+
+        '400':
+          description: Validation failed.
+
+        '401':
+          description: You are not authorized.
+
+  /profile/avatar:
+    patch:
+      tags:
+        - Profile
+
+      summary: Update avatar
+      description: >
+        Updates the authenticated user's avatar. The image is uploaded
+        client-side and the resulting URL and Cloudinary public ID are
+        sent to the API.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAvatarRequest'
+
+      responses:
+        '200':
+          description: Avatar changed successfully.
+
+        '400':
+          description: >
+            Validation failed or avatar upload failed.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+
+    delete:
+      tags:
+        - Profile
+
+      summary: Remove avatar
+      description: >
+        Removes the authenticated user's custom avatar and restores
+        the default avatar.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+        '200':
+          description: Avatar removed successfully.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+  /profile/cover-image:
+    patch:
+      tags:
+        - Profile
+
+      summary: Update cover image
+      description: >
+        Updates the authenticated user's cover image. The image is
+        uploaded client-side and the resulting URL and Cloudinary
+        public ID are sent to the API.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCoverImageRequest'
+
+      responses:
+        '200':
+          description: Cover image changed successfully.
+
+        '400':
+          description: >
+            Validation failed or cover image upload failed.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+
+    delete:
+      tags:
+        - Profile
+
+      summary: Remove cover image
+      description: >
+        Removes the authenticated user's custom cover image and
+        restores the default cover image.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+        '200':
+          description: Cover image removed successfully.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+
+components:
+
+  # ============================================================
+  # SECURITY SCHEMES
+  # ============================================================
+
+  securitySchemes:
+
+    accessTokenCookie:
+      type: apiKey
+      in: cookie
+      name: accessToken
+
+    refreshTokenCookie:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+
+
+  # ============================================================
+  # SCHEMAS
+  # ============================================================
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+
+      required:
+        - displayName
+        - username
+        - email
+        - password
+
+      properties:
+
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 30
+          description: User's display name.
+          example: Hasanur Ali
+
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-z][a-z0-9_]*$'
+          description: >
+            Username must start with a lowercase letter and can contain
+            lowercase letters, numbers, and underscores.
+          example: hasanur_ali
+
+        email:
+          type: string
+          format: email
+          description: User's email address.
+          example: hasanur@example.com
+
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 100
+          description: >
+            Password must contain at least one uppercase letter,
+            one lowercase letter, one number, and one special character
+            from @$!%*?&.
+          example: StrongPassword123!
+
+
+    VerifyEmailRequest:
+      type: object
+
+      required:
+        - email
+        - otp
+
+      properties:
+
+        email:
+          type: string
+          format: email
+          description: Email address used during registration.
+          example: hasanur@example.com
+
+        otp:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: '^[0-9]{6}$'
+          description: Six-digit verification OTP.
+          example: '123456'
+
+
+    EmailRequest:
+      type: object
+
+      required:
+        - email
+
+      properties:
+
+        email:
+          type: string
+          format: email
+          description: User's email address.
+          example: hasanur@example.com
+
+
+    LoginRequest:
+      type: object
+
+      required:
+        - email
+        - password
+
+      properties:
+
+        email:
+          type: string
+          format: email
+          description: User's registered email address.
+          example: hasanur@example.com
+
+        password:
+          type: string
+          format: password
+          description: User's account password.
+          example: StrongPassword123!
+
+
+    ResetPasswordRequest:
+      type: object
+
+      required:
+        - password
+        - token
+
+      properties:
+
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 100
+          description: >
+            New password. Must contain at least one uppercase letter,
+            one lowercase letter, one number, and one special character
+            from @$!%*?&.
+          example: NewStrongPassword123!
+
+        token:
+          type: string
+          description: Password reset token.
+          example: reset-token-from-email-link
+
+
+    # ============================================================
+    # PROFILE SCHEMAS
+    # ============================================================
+
+    UpdateUsernameRequest:
+      type: object
+
+      required:
+        - username
+
+      properties:
+
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-z][a-z0-9_]*$'
+          description: >
+            Username must start with a lowercase letter and can contain
+            lowercase letters, numbers, and underscores.
+          example: hasanur_ali
+
+
+    UpdateProfileRequest:
+      type: object
+
+      properties:
+
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 30
+          description: Display name containing letters and spaces.
+          example: Hasanur Ali
+
+        bio:
+          type: string
+          maxLength: 160
+          description: User biography.
+          example: MERN Stack Developer
+
+        website:
+          type: string
+          format: uri
+          description: User's website URL.
+          example: https://example.com
+
+        location:
+          type: string
+          maxLength: 100
+          description: User's location.
+          example: India
+
+
+    UpdateAvatarRequest:
+      type: object
+
+      required:
+        - url
+        - publicId
+
+      properties:
+
+        url:
+          type: string
+          format: uri
+          description: URL of the uploaded avatar.
+          example: https://res.cloudinary.com/demo/image/upload/avatar.jpg
+
+        publicId:
+          type: string
+          description: >
+            Cloudinary public ID used internally by the server to manage
+            the uploaded avatar.
+          example: voltex/avatars/user123
+
+
+    UpdateCoverImageRequest:
+      type: object
+
+      required:
+        - url
+        - publicId
+
+      properties:
+
+        url:
+          type: string
+          format: uri
+          description: URL of the uploaded cover image.
+          example: https://res.cloudinary.com/demo/image/upload/cover.jpg
+
+        publicId:
+          type: string
+          description: >
+            Cloudinary public ID used internally by the server to manage
+            the uploaded cover image.
+          example: voltex/covers/user123

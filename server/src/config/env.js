@@ -6,7 +6,11 @@ const requiredEnv = [
     "JWT_REFRESH_KEY",
     "JWT_ACCESS_KEY",
     "RESEND_API_KEY",
-    "EMAIL_FROM"
+    "EMAIL_FROM",
+    "DEFAULT_COVER_IMAGE",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_APY_KEY",
+    "CLOUDINARY_APY_SECRET"
 ];
 
 // Check Required Environment Variable Is Present
@@ -36,6 +40,12 @@ const env = Object.freeze({
     ACCESS_COOKIE_MAX_AGE: Number(process.env.ACCESS_COOKIE_MAX_AGE) || 10 * 60 * 1000,
 
     CLIENT_URL: process.env.CLIENT_URL || "http://localhost:5173",
+
+    DEFAULT_COVER_IMAGE: process.env.DEFAULT_COVER_IMAGE,
+
+    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+    CLOUDINARY_APY_KEY: process.env.CLOUDINARY_APY_KEY,
+    CLOUDINARY_APY_SECRET: process.env.CLOUDINARY_APY_SECRET
 });
 
 export default env;

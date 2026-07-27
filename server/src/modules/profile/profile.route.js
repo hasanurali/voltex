@@ -1,0 +1,58 @@
+import express from "express";
+const profileRoutes = express.Router();
+
+import * as controllers from "./profile.controller.js";
+import * as middlewares from "../../middlewares/index.js";
+import * as validations from "./profile.validation.js";
+
+
+profileRoutes.get("/username/check",
+    validations.checkUsernameValidation,
+    middlewares.validationResultMiddleware,
+    controllers.checkUsernameController,
+);
+
+profileRoutes.get("/:username",
+    controllers.userPublicProfileController,
+);
+
+profileRoutes.patch("/username",
+    middlewares.authMiddleware,
+    validations.updateUsernameValidation,
+    middlewares.validationResultMiddleware,
+    controllers.updateUsernameController,
+);
+
+profileRoutes.patch("/",
+    middlewares.authMiddleware,
+    validations.updateProfileValidation,
+    middlewares.validationResultMiddleware,
+    controllers.updateProfileController,
+);
+
+profileRoutes.patch("/avatar",
+    middlewares.authMiddleware,
+    validations.updateAvatarValidation,
+    middlewares.validationResultMiddleware,
+    controllers.updateAvatarController,
+);
+
+profileRoutes.patch("/cover-image",
+    middlewares.authMiddleware,
+    validations.updateCoverImageValidation,
+    middlewares.validationResultMiddleware,
+    controllers.updateCoverImageController,
+);
+
+profileRoutes.delete("/avatar",
+    middlewares.authMiddleware,
+    controllers.deleteAvatarController,
+);
+
+profileRoutes.delete("/cover-image",
+    middlewares.authMiddleware,
+    controllers.deleteCoverImageController,
+);
+
+
+export default profileRoutes;

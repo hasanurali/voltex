@@ -1,7 +1,7 @@
 {
-  "name": "social-media",
+  "name": "voltex",
   "version": "1.0.0",
-  "description": "A production-ready MERN Social Media platform with authentication, real-time messaging, notifications, media uploads and scalable architecture",
+  "description": "A production-ready MERN social media platform with authentication, real-time messaging, notifications, media uploads, and scalable architecture",
   "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,6 +14,7 @@
   "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -23,6 +24,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.4",
     "nodemon": "^3.1.14",
-    "resend": "^6.17.2"
+    "resend": "^6.17.2",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.2.7"
   }
 }

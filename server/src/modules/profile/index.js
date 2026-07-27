@@ -1,0 +1,1 @@
+export * as profileRepository from "./profile.repository.js";

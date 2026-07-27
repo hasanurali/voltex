@@ -7,11 +7,14 @@ import * as mailService from "../../shared/mail/mail.service.js";
 import { AUTH_MESSAGES } from "../../shared/constants/messages/index.js";
 import JWT_CONFIG from "../../config/jwt.js";
 import env from "../../config/env.js";
+import { profileRepository } from "../profile/index.js";
 
 
 export const registerService = async (userData) => {
 
     const user = await authRepository.createUser(userData);
+
+    const profile = await profileRepository.createProfile({ user: user._id });
 
     const otp = otpGenerator();
 
@@ -19,7 +22,10 @@ export const registerService = async (userData) => {
 
     await mailService.sendOtp(user.email, user.displayName, otp);
 
-    return user;
+    return {
+        user,
+        profile
+    };
 };
 
 export const verifyEmailService = async ({ email, otp }) => {
@@ -45,14 +51,20 @@ export const verifyEmailService = async ({ email, otp }) => {
     const refreshToken = user.generateRefreshToken();
     const accessToken = user.generateAccessToken();
 
-    const [updatedUser] = await Promise.all([
-        authRepository.markEmailVerified(user._id),
-        authRepository.deleteOtpByEmail(email)
+    const verifiedUser = await authRepository.markEmailVerified(user._id);
+
+    const [profile] = await Promise.all([
+        profileRepository.getProfileByUserId(verifiedUser._id),
+        verifiedUser.setRefreshTokenWithHash(refreshToken),
+        authRepository.deleteOtpByEmail(email),
     ]);
 
-    await updatedUser.setRefreshTokenWithHash(refreshToken);
-
-    return { user: updatedUser, refreshToken, accessToken };
+    return {
+        user: verifiedUser,
+        profile,
+        refreshToken,
+        accessToken
+    };
 };
 
 export const resendOtpService = async (email) => {
@@ -102,9 +114,17 @@ export const loginService = async ({ email, password }) => {
     const refreshToken = user.generateRefreshToken();
     const accessToken = user.generateAccessToken();
 
-    await user.setRefreshTokenWithHash(refreshToken);
+    const [profile] = await Promise.all([
+        profileRepository.getProfileByUserId(user._id),
+        user.setRefreshTokenWithHash(refreshToken)
+    ]);
 
-    return { user, refreshToken, accessToken };
+    return {
+        user,
+        profile,
+        refreshToken,
+        accessToken
+    };
 };
 
 export const logoutService = async (userId) => {
@@ -139,7 +159,10 @@ export const refreshTokenService = async (refreshToken) => {
 
     await user.setRefreshTokenWithHash(newRefreshToken);
 
-    return { newRefreshToken, newAccessToken };
+    return {
+        newRefreshToken,
+        newAccessToken
+    };
 };
 
 export const forgotPasswordService = async (email) => {
@@ -180,5 +203,10 @@ export const currentUserService = async (userId) => {
         throw new ApiError(StatusCodes.UNAUTHORIZED, AUTH_MESSAGES.UNAUTHORIZED);
     };
 
-    return user;
+    const profile = await profileRepository.getProfileByUserId(user._id);
+
+    return {
+        user,
+        profile
+    };
 };

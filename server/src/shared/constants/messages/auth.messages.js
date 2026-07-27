@@ -11,7 +11,7 @@ const AUTH_MESSAGES = Object.freeze({
     VERIFICATION_SESSION_EXPIRED: "Verification session expired Please login again",
     EMAIL_VERIFIED: "Email verified successfully",
     EMAIL_ALREADY_VERIFIED: "Email already verified",
-    OTP_SENT_SUCCESS: "Otp sent successfully",
+    OTP_SENT_SUCCESS: "OTP sent successfully",
     VERIFY_YOUR_EMAIL: "Verify your email",
 
     UNAUTHORIZED: "You are not authorized",
