@@ -309,6 +309,249 @@ paths:
 
         '401':
           description: You are not authorized
+  
+
+  # ============================================================
+  # PROFILE
+  # ============================================================
+
+  /profile/username/check:
+    get:
+      tags:
+        - Profile
+
+      summary: Check username availability
+      description: Checks whether a username is available.
+
+      parameters:
+        - name: username
+          in: query
+          required: true
+          description: Username to check.
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 30
+            pattern: '^[a-z][a-z0-9_]*$'
+          example: hasanur_ali
+
+      responses:
+        '200':
+          description: Username availability result.
+
+        '400':
+          description: Validation failed.
+
+  /profile/{username}:
+    get:
+      tags:
+        - Profile
+
+      summary: Get public profile
+      description: >
+        Returns the public user and profile information for the specified
+        username. Sensitive user fields and internal image public IDs
+        are not exposed.
+
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Public username of the user.
+          schema:
+            type: string
+          example: hasanur_ali
+
+      responses:
+        '200':
+          description: Profile fetched successfully.
+
+        '404':
+          description: Profile not found.
+
+  /profile/username:
+    patch:
+      tags:
+        - Profile
+
+      summary: Update username
+      description: Updates the authenticated user's username.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUsernameRequest'
+
+      responses:
+        '200':
+          description: Username updated successfully.
+
+        '400':
+          description: Validation failed.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+        '409':
+          description: Username already exists.
+
+  /profile:
+    patch:
+      tags:
+        - Profile
+
+      summary: Update profile
+      description: >
+        Updates the authenticated user's profile. Only fields provided
+        in the request are updated.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+
+      responses:
+        '200':
+          description: Profile updated successfully.
+
+        '400':
+          description: Validation failed.
+
+        '401':
+          description: You are not authorized.
+
+  /profile/avatar:
+    patch:
+      tags:
+        - Profile
+
+      summary: Update avatar
+      description: >
+        Updates the authenticated user's avatar. The image is uploaded
+        client-side and the resulting URL and Cloudinary public ID are
+        sent to the API.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAvatarRequest'
+
+      responses:
+        '200':
+          description: Avatar changed successfully.
+
+        '400':
+          description: >
+            Validation failed or avatar upload failed.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+
+    delete:
+      tags:
+        - Profile
+
+      summary: Remove avatar
+      description: >
+        Removes the authenticated user's custom avatar and restores
+        the default avatar.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+        '200':
+          description: Avatar removed successfully.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+  /profile/cover-image:
+    patch:
+      tags:
+        - Profile
+
+      summary: Update cover image
+      description: >
+        Updates the authenticated user's cover image. The image is
+        uploaded client-side and the resulting URL and Cloudinary
+        public ID are sent to the API.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCoverImageRequest'
+
+      responses:
+        '200':
+          description: Cover image changed successfully.
+
+        '400':
+          description: >
+            Validation failed or cover image upload failed.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
+
+
+    delete:
+      tags:
+        - Profile
+
+      summary: Remove cover image
+      description: >
+        Removes the authenticated user's custom cover image and
+        restores the default cover image.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+        '200':
+          description: Cover image removed successfully.
+
+        '401':
+          description: You are not authorized.
+
+        '404':
+          description: Profile not found.
 
 
 components:
@@ -467,3 +710,103 @@ components:
           type: string
           description: Password reset token.
           example: reset-token-from-email-link
+
+
+    # ============================================================
+    # PROFILE SCHEMAS
+    # ============================================================
+
+    UpdateUsernameRequest:
+      type: object
+
+      required:
+        - username
+
+      properties:
+
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-z][a-z0-9_]*$'
+          description: >
+            Username must start with a lowercase letter and can contain
+            lowercase letters, numbers, and underscores.
+          example: hasanur_ali
+
+
+    UpdateProfileRequest:
+      type: object
+
+      properties:
+
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 30
+          description: Display name containing letters and spaces.
+          example: Hasanur Ali
+
+        bio:
+          type: string
+          maxLength: 160
+          description: User biography.
+          example: MERN Stack Developer
+
+        website:
+          type: string
+          format: uri
+          description: User's website URL.
+          example: https://example.com
+
+        location:
+          type: string
+          maxLength: 100
+          description: User's location.
+          example: India
+
+
+    UpdateAvatarRequest:
+      type: object
+
+      required:
+        - url
+        - publicId
+
+      properties:
+
+        url:
+          type: string
+          format: uri
+          description: URL of the uploaded avatar.
+          example: https://res.cloudinary.com/demo/image/upload/avatar.jpg
+
+        publicId:
+          type: string
+          description: >
+            Cloudinary public ID used internally by the server to manage
+            the uploaded avatar.
+          example: voltex/avatars/user123
+
+
+    UpdateCoverImageRequest:
+      type: object
+
+      required:
+        - url
+        - publicId
+
+      properties:
+
+        url:
+          type: string
+          format: uri
+          description: URL of the uploaded cover image.
+          example: https://res.cloudinary.com/demo/image/upload/cover.jpg
+
+        publicId:
+          type: string
+          description: >
+            Cloudinary public ID used internally by the server to manage
+            the uploaded cover image.
+          example: voltex/covers/user123
