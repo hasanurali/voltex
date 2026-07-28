@@ -2,6 +2,12 @@ import userModel from "./user.model.js";
 import otpModel from "./otp.model.js";
 
 
+const validUserQuery = {
+    isEmailVerified: true,
+    status: "active",
+    isDeleted: false
+};
+
 export const createUser = async (userData) => {
 
     const hashedPassword = await userModel.hashPassword(userData.password);
@@ -88,7 +94,7 @@ export const removeRefreshToken = async (userId) => {
 
 export const findUserById = async (userId, select = "") => {
 
-    const user = await userModel.findById(userId).select(select);
+    const user = await userModel.findOne({ _id: userId, ...validUserQuery }).select(select);
 
     return user;
 };
@@ -138,7 +144,7 @@ export const resetPassword = async (userId, password) => {
 
 export const findUserByUsername = async (username, select = "") => {
 
-    const user = await userModel.findOne({ username }).select(select);
+    const user = await userModel.findOne({ username, ...validUserQuery }).select(select);
 
     return user;
 };
@@ -158,7 +164,7 @@ export const updateUserByUserId = async (userId, userData) => {
 
 export const checkUserExists = async (username) => {
 
-    const isUserExists = await userModel.exists({ username })
+    const isUserExists = await userModel.exists({ username, ...validUserQuery })
 
     return isUserExists;
 };
