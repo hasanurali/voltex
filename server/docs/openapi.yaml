@@ -554,6 +554,59 @@ paths:
           description: Profile not found.
 
 
+  # ============================================================
+  # USERS
+  # ============================================================
+
+  /users:
+    get:
+      tags:
+        - User
+
+      summary: Search users
+
+      description: >
+        Returns a paginated list of verified, active, and non-deleted users.
+        Users can be searched by username or display name, with username
+        matches receiving higher relevance.
+
+      parameters:
+
+        - in: query
+          name: page
+          required: false
+          description: Page number.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+
+        - in: query
+          name: limit
+          required: false
+          description: Number of users per page. Maximum 50.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+            example: 20
+
+        - in: query
+          name: search
+          required: false
+          description: Search by username or display name.
+          schema:
+            type: string
+            example: hasan
+
+      responses:
+
+        '200':
+          description: Users fetched successfully
+
+
 components:
 
   # ============================================================
