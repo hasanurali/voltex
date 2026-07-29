@@ -607,6 +607,144 @@ paths:
           description: Users fetched successfully
 
 
+  # ============================================================
+  # FOLLOW
+  # ============================================================
+
+  /follows/{username}:
+    post:
+      tags:
+        - Follow
+
+      summary: Follow a user
+
+      description: >
+        Creates a follow relationship between the authenticated user
+        and the specified user.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Username of the user to follow
+          schema:
+            type: string
+          example: hasanur003
+
+      responses:
+
+        '201':
+          description: User followed successfully
+
+        '400':
+          description: User cannot follow themselves
+
+        '401':
+          description: Authentication required
+
+        '404':
+          description: User not found
+
+        '409':
+          description: User is already followed
+
+
+    delete:
+      tags:
+        - Follow
+
+      summary: Unfollow a user
+
+      description: >
+        Removes the follow relationship between the authenticated user
+        and the specified user.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Username of the user to unfollow
+          schema:
+            type: string
+          example: hasanur003
+
+      responses:
+
+        '200':
+          description: User unfollowed successfully
+
+        '401':
+          description: Authentication required
+
+        '404':
+          description: User not found
+
+        '409':
+          description: User is not currently followed
+
+
+  /follows/followers/{username}:
+    get:
+      tags:
+        - Follow
+
+      summary: Get user's followers
+
+      description: >
+        Retrieves the users who follow the specified user.
+
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Username of the user whose followers should be retrieved
+          schema:
+            type: string
+          example: hasanur003
+
+      responses:
+
+        '200':
+          description: Followers fetched successfully
+
+        '404':
+          description: User not found
+
+
+  /follows/following/{username}:
+    get:
+      tags:
+        - Follow
+
+      summary: Get users followed by specified user
+
+      description: >
+        Retrieves the users that the specified user follows.
+
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Username of the user whose following list should be retrieved
+          schema:
+            type: string
+          example: hasanur003
+
+      responses:
+
+        '200':
+          description: Following users fetched successfully
+
+        '404':
+          description: User not found        
+
+
 components:
 
   # ============================================================

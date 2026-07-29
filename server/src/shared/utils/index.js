@@ -5,3 +5,4 @@ export { default as ApiResponse } from "./ApiResponse.js";
 export { default as otpGenerator } from "./otpGenerator.js";
 export { default as resetPasswordTokenGenerator } from "./resetPasswordTokenGenerator.js";
 export { default as hashToken } from "./hashToken.js";
+export { default as withTransaction } from "./withTransaction.js";
