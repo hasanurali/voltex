@@ -18,7 +18,9 @@ const AUTH_MESSAGES = Object.freeze({
 
     INVALID_CREDENTIALS: "Invalid email or password",
     INVALID_OTP: "Invalid OTP",
-    INVALID_OR_EXPIRED_LINK: "Invalid or expired password reset link"
+    INVALID_OR_EXPIRED_LINK: "Invalid or expired password reset link",
+
+    NOT_FOUND: "User not found"
 });
 
 export default AUTH_MESSAGES;

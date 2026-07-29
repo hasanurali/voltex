@@ -168,3 +168,21 @@ export const checkUserExists = async (username) => {
 
     return isUserExists;
 };
+
+export const incrementFollower = async (userId, session) => {
+
+    await userModel.findByIdAndUpdate(userId, {
+        $inc: {
+            followersCount: 1
+        }
+    }, { session });
+};
+
+export const incrementFollowing = async (userId, session) => {
+
+    await userModel.findByIdAndUpdate(userId, {
+        $inc: {
+            followingCount: 1
+        }
+    }, { session });
+};
