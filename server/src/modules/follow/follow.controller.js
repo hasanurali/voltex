@@ -35,3 +35,15 @@ export const fetchFollowingsController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(FOLLOW_MESSAGES.FOLLOWING_FETCH_SUCCESS, followings));
 });
+
+export const unfollowUserController = asyncHandler(async (req, res) => {
+
+    const username = req.params.username;
+
+    const userId = req.user.id;
+
+    await services.unfollowUserService(userId, username);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(FOLLOW_MESSAGES.UNFOLLOW_SUCCESS));
+});

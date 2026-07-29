@@ -186,3 +186,21 @@ export const incrementFollowing = async (userId, session) => {
         }
     }, { session });
 };
+
+export const decrementFollower = async (userId, session) => {
+
+    await userModel.findByIdAndUpdate(userId, {
+        $inc: {
+            followersCount: -1
+        }
+    }, { session });
+};
+
+export const decrementFollowing = async (userId, session) => {
+
+    await userModel.findByIdAndUpdate(userId, {
+        $inc: {
+            followingCount: -1
+        }
+    }, { session });
+};

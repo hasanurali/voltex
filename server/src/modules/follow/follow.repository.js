@@ -129,3 +129,11 @@ export const fetchFollowings = async (userId) => {
 
     return followings;
 };
+
+export const unfollowUser = async (follower, following, session) => {
+
+    await followModel.deleteOne({
+        follower,
+        following
+    }, { session });
+};

@@ -18,4 +18,9 @@ followRoutes.get("/following/:username",
     controllers.fetchFollowingsController
 );
 
+followRoutes.delete("/:username",
+    middlewares.authMiddleware,
+    controllers.unfollowUserController
+);
+
 export default followRoutes;
