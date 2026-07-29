@@ -30,3 +30,15 @@ export const followUserService = async (userId, username) => {
         await authRepository.incrementFollowing(userId, session);
     });
 };
+
+export const fetchFollowersService = async (username) => {
+
+    const user = await authRepository.checkUserExists(username);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, AUTH_MESSAGES.NOT_FOUND);
+    };
+
+    const followers = await followRepository.fetchFollowers(user._id);
+
+    return followers;
+};

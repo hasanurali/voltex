@@ -10,4 +10,8 @@ followRoutes.post("/:username",
     controllers.followUserController
 );
 
+followRoutes.get("/followers/:username",
+    controllers.fetchFollowersController
+);
+
 export default followRoutes;
