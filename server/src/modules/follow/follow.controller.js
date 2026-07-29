@@ -12,7 +12,7 @@ export const followUserController = asyncHandler(async (req, res) => {
 
     await services.followUserService(userId, username);
 
-    return res.status(StatusCodes.OK)
+    return res.status(StatusCodes.CREATED)
         .json(new ApiResponse(FOLLOW_MESSAGES.FOLLOW_SUCCESS));
 });
 
