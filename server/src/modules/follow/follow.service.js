@@ -42,3 +42,15 @@ export const fetchFollowersService = async (username) => {
 
     return followers;
 };
+
+export const fetchFollowingsService = async (username) => {
+
+    const user = await authRepository.checkUserExists(username);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, AUTH_MESSAGES.NOT_FOUND);
+    };
+
+    const followings = await followRepository.fetchFollowings(user._id);
+
+    return followings;
+};

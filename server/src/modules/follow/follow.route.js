@@ -14,4 +14,8 @@ followRoutes.get("/followers/:username",
     controllers.fetchFollowersController
 );
 
+followRoutes.get("/following/:username",
+    controllers.fetchFollowingsController
+);
+
 export default followRoutes;

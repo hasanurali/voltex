@@ -73,3 +73,59 @@ export const fetchFollowers = async (userId) => {
 
     return followers;
 };
+
+export const fetchFollowings = async (userId) => {
+
+    const followings = await followModel.aggregate([
+        {
+            $match: {
+                follower: userId
+            }
+        },
+
+        {
+            $sort: {
+                createdAt: -1
+            }
+        },
+
+        {
+            $lookup: {
+                from: "users",
+                localField: "following",
+                foreignField: "_id",
+                as: "user"
+            }
+        },
+
+        {
+            $unwind: "$user"
+        },
+
+        {
+            $lookup: {
+                from: "profiles",
+                localField: "user._id",
+                foreignField: "user",
+                as: "profile"
+            }
+        },
+
+        {
+            $unwind: "$profile"
+        },
+
+        {
+            $project: {
+                _id: "$user._id",
+                displayName: "$user.displayName",
+                username: "$user.username",
+                avatar: {
+                    url: "$profile.avatar.url"
+                }
+            }
+        }
+    ]);
+
+    return followings;
+};

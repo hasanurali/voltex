@@ -25,3 +25,13 @@ export const fetchFollowersController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(FOLLOW_MESSAGES.FOLLOWERS_FETCH_SUCCESS, followers));
 });
+
+export const fetchFollowingsController = asyncHandler(async (req, res) => {
+
+    const username = req.params.username;
+
+    const followings = await services.fetchFollowingsService(username);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(FOLLOW_MESSAGES.FOLLOWING_FETCH_SUCCESS, followings));
+});
