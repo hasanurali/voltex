@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 
 import * as profileRepository from "./profile.repository.js";
-import { ApiError } from "../../shared/utils/index.js";
+import { ApiError, whitelistInput } from "../../shared/utils/index.js";
 import { PROFILE_MESSAGES } from "../../shared/constants/messages/index.js";
 import { authRepository } from "../auth/index.js";
 import * as cloudinary from "../../shared/cloudinary/cloudinary.service.js";
@@ -61,8 +61,11 @@ export const updateProfileService = async (userId, profileData) => {
         updatedUser = await authRepository.updateUserByUserId(userId, { displayName });
     };
 
-    const updatedProfile = Object.keys(profileFields).length ?
-        await profileRepository.updateProfileByUserId(userId, profileFields)
+    const allowedFields = ['bio', 'website', 'location'];
+    const whitelistedData = whitelistInput(profileFields, allowedFields);
+
+    const updatedProfile = Object.keys(whitelistedData).length ?
+        await profileRepository.updateProfileByUserId(userId, whitelistedData)
         :
         null;
 
