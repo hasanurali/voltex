@@ -16,3 +16,15 @@ export const createPostController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.CREATED)
         .json(new ApiResponse(POST_MESSAGES.POST_CREATE_SUCCESS, post));
 });
+
+export const fetchPostsController = asyncHandler(async (req, res) => {
+
+    const cursor = req.params.cursor;
+
+    const userId = req.user?.id;
+
+    const { posts, nextCursor } = await services.fetchPostsService(userId, cursor);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(POST_MESSAGES.POST_FETCH_SUCCESS, { posts, nextCursor }));
+});

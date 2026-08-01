@@ -137,3 +137,23 @@ export const unfollowUser = async (follower, following, session) => {
         following
     }, { session });
 };
+
+export const fetchUserFollowingIds = async (userId) => {
+
+    const followingIds = await followModel.find({
+        follower: userId
+    });
+
+    return followingIds;
+};
+
+export const fetchUsersFollowingIds = async (userIds) => {
+
+    const followingIds = await followModel.find({
+        follower: {
+            $in: userIds
+        }
+    });
+
+    return followingIds;
+};

@@ -13,4 +13,9 @@ postRoutes.post("/",
     controllers.createPostController
 );
 
+postRoutes.get("/",
+    middlewares.optionalMiddleware,
+    controllers.fetchPostsController
+);
+
 export default postRoutes;
