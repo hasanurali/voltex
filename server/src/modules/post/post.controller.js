@@ -19,7 +19,7 @@ export const createPostController = asyncHandler(async (req, res) => {
 
 export const fetchPostsController = asyncHandler(async (req, res) => {
 
-    const cursor = req.params.cursor;
+    const { cursor } = req.query;
 
     const userId = req.user?.id;
 

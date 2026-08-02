@@ -48,7 +48,7 @@ export const fetchPostsService = async (userId, cursor) => {
     if (userId) {
 
         const followingIds = await followRepository.fetchUserFollowingIds(userId);
-        userFollowingIds = userFollowingIds.map(doc => doc.following);
+        userFollowingIds = followingIds.map(doc => doc.following);
 
         const followersFollowingIds = await followRepository.fetchUsersFollowingIds(userFollowingIds);
         suggestedFollowingIds = [
