@@ -2,7 +2,7 @@ import { body } from "express-validator";
 
 import { MEDIA_TYPE, VISIBILITY_TYPE } from "../../shared/constants/enums/index.js";
 
-export const createPostValidation = [
+const postValidationRules = [
 
     // Content
     body("content")
@@ -43,3 +43,7 @@ export const createPostValidation = [
         .optional()
         .isIn([VISIBILITY_TYPE.PUBLIC, VISIBILITY_TYPE.FOLLOWERS]).withMessage("Invalid visibility")
 ];
+
+export const createPostValidation = [...postValidationRules];
+
+export const updatePostValidation = [...postValidationRules];

@@ -509,3 +509,19 @@ export const fetchUserPosts = async (userId, limit, skip) => {
 
     return userPostsData;
 };
+
+export const findPost = async (postId) => {
+
+    const post = await postModel.findById(postId);
+
+    return post;
+};
+
+export const updatePost = async (postId, whitelistedData) => {
+
+    const updatedPost = await postModel.findByIdAndUpdate(postId, {
+        ...whitelistedData
+    }, { returnDocument: "after" });
+
+    return updatedPost;
+};

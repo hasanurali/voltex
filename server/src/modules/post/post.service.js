@@ -138,3 +138,38 @@ export const fetchUserPostsService = async (username, page = 1, limit = 10) => {
         }
     };
 };
+
+export const updatePostService = async (userId, postId, postData) => {
+
+    const { media = [] } = postData;
+
+    const objectId = convertToObjectId(postId);
+    if (!objectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID)
+    };
+
+    const post = await postRepository.findPost(objectId);
+    if (!post) {
+        throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
+    };
+
+    if (post.author.toString() !== userId.toString()) {
+        throw new ApiError(StatusCodes.FORBIDDEN, POST_MESSAGES.NOT_OWNER)
+    };
+
+    const isValidPublicIds = media?.every(({ publicId }) => publicId?.trim());
+    if (!isValidPublicIds) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL)
+    };
+
+    const allowedFields = ['content', 'media', 'hashtags', 'visibility'];
+    const whitelistedData = whitelistInput(postData, allowedFields);
+
+    if (!Object.keys(whitelistedData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL);
+    };
+
+    const updatedPost = await postRepository.updatePost(objectId, whitelistedData);
+
+    return updatedPost;
+};

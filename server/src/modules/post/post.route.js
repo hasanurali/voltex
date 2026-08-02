@@ -26,4 +26,11 @@ postRoutes.get("/user/:username",
     controllers.fetchUserPostsController
 );
 
+postRoutes.patch("/:postId",
+    middlewares.authMiddleware,
+    validation.updatePostValidation,
+    middlewares.validationResultMiddleware,
+    controllers.updatePostController
+);
+
 export default postRoutes;

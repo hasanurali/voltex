@@ -50,3 +50,17 @@ export const fetchUserPostsController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(POST_MESSAGES.USER_POST_FETCH_SUCCESS, userPosts));
 });
+
+export const updatePostController = asyncHandler(async (req, res) => {
+
+    const postId = req.params.postId;
+
+    const postData = req.body;
+
+    const userId = req.user.id;
+
+    const updatedPost = await services.updatePostService(userId, postId, postData);
+
+    return res.status(StatusCodes.CREATED)
+        .json(new ApiResponse(POST_MESSAGES.POST_UPDATE_SUCCESS, updatedPost));
+});
