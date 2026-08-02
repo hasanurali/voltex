@@ -79,4 +79,17 @@ postSchema.index({ visibility: 1, createdAt: -1 });
 postSchema.index({ hashtags: 1 });
 
 
+postSchema.methods.toJSON = function () {
+    const obj = this.toObject();
+
+    if (Array.isArray(obj.media)) {
+        obj.media.forEach(item => {
+            if (item) delete item.publicId;
+        });
+    }
+
+    return obj;
+};
+
+
 export default mongoose.model("Post", postSchema);
