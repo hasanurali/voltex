@@ -22,4 +22,8 @@ postRoutes.get("/:postId",
     controllers.fetchPostDetailsController
 );
 
+postRoutes.get("/user/:username",
+    controllers.fetchUserPostsController
+);
+
 export default postRoutes;

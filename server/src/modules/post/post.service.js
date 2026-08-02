@@ -5,7 +5,7 @@ import * as postRepository from "./post.repository.js";
 import * as authRepository from "../auth/auth.repository.js";
 import * as followRepository from "../follow/follow.repository.js";
 import { ApiError, whitelistInput, withTransaction, encodeCursor, decodeCursor, convertToObjectId } from "../../shared/utils/index.js";
-import { POST_MESSAGES } from "../../shared/constants/messages/index.js";
+import { POST_MESSAGES, AUTH_MESSAGES, USER_MESSAGES } from "../../shared/constants/messages/index.js";
 
 export const createPostService = async (userId, postData) => {
 
@@ -91,4 +91,50 @@ export const fetchPostDetailsService = async (postId) => {
     };
 
     return detailedPost;
+};
+
+export const fetchUserPostsService = async (username, page = 1, limit = 10) => {
+
+    if (!username?.trim()) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.INVALID_USERNAME);
+    };
+
+    const user = await authRepository.checkUserExists(username);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, USER_MESSAGES.NOT_FOUND);
+    };
+
+    const parsedPage = Number(page);
+    const parsedLimit = Number(limit);
+
+    const safePage = Number.isFinite(parsedPage) ?
+        Math.max(Math.floor(parsedPage), 1)
+        :
+        1;
+
+    const safeLimit = Number.isFinite(parsedLimit) ?
+        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
+        :
+        10;
+
+    const skip = (safePage - 1) * safeLimit;
+
+    const [result] = await postRepository.fetchUserPosts(user._id, safeLimit, skip);
+
+    const posts = result?.data ?? [];
+    const total = result?.metadata?.[0]?.total ?? 0;
+
+    const totalPages = Math.ceil(total / safeLimit);
+
+    return {
+        posts,
+        pagination: {
+            total,
+            page: safePage,
+            limit: safeLimit,
+            totalPages,
+            hasNextPage: safePage < totalPages,
+            hasPrevPage: safePage > 1
+        }
+    };
 };

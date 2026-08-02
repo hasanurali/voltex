@@ -38,3 +38,15 @@ export const fetchPostDetailsController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(POST_MESSAGES.POST_DETAILS_FETCH_SUCCESS, detailedPost));
 });
+
+export const fetchUserPostsController = asyncHandler(async (req, res) => {
+
+    const username = req.params.username;
+
+    const { page, limit } = req.query;
+
+    const userPosts = await services.fetchUserPostsService(username, page, limit);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(POST_MESSAGES.USER_POST_FETCH_SUCCESS, userPosts));
+});
