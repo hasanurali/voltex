@@ -33,4 +33,9 @@ postRoutes.patch("/:postId",
     controllers.updatePostController
 );
 
+postRoutes.delete("/:postId",
+    middlewares.authMiddleware,
+    controllers.deletePostController
+);
+
 export default postRoutes;

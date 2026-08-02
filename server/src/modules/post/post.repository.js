@@ -512,7 +512,10 @@ export const fetchUserPosts = async (userId, limit, skip) => {
 
 export const findPost = async (postId) => {
 
-    const post = await postModel.findById(postId);
+    const post = await postModel.findOne({
+        _id: postId,
+        isDeleted: false
+    });
 
     return post;
 };
@@ -524,4 +527,15 @@ export const updatePost = async (postId, whitelistedData) => {
     }, { returnDocument: "after" });
 
     return updatedPost;
+};
+
+export const softDeletePost = async (postId, userId, session) => {
+
+    await postModel.findByIdAndUpdate(postId, {
+        $set: {
+            isDeleted: true,
+            deletedBy: userId,
+            deletedAt: new Date()
+        }
+    }, { session });
 };

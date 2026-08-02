@@ -61,6 +61,18 @@ export const updatePostController = asyncHandler(async (req, res) => {
 
     const updatedPost = await services.updatePostService(userId, postId, postData);
 
-    return res.status(StatusCodes.CREATED)
+    return res.status(StatusCodes.OK)
         .json(new ApiResponse(POST_MESSAGES.POST_UPDATE_SUCCESS, updatedPost));
+});
+
+export const deletePostController = asyncHandler(async (req, res) => {
+
+    const postId = req.params.postId;
+
+    const userId = req.user.id;
+
+    await services.deletePostService(userId, postId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(POST_MESSAGES.POST_DELETE_SUCCESS));
 });

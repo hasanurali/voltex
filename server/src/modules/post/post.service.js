@@ -173,3 +173,27 @@ export const updatePostService = async (userId, postId, postData) => {
 
     return updatedPost;
 };
+
+export const deletePostService = async (userId, postId) => {
+
+    const objectId = convertToObjectId(postId);
+    if (!objectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID)
+    };
+
+    const post = await postRepository.findPost(objectId);
+    if (!post) {
+        throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
+    };
+
+    if (post.author.toString() !== userId.toString()) {
+        throw new ApiError(StatusCodes.FORBIDDEN, POST_MESSAGES.NOT_OWNER)
+    };
+
+    await withTransaction(async (session) => {
+
+        await postRepository.softDeletePost(objectId, userId, session);
+
+        await authRepository.decrementPost(userId, session);
+    });
+};
