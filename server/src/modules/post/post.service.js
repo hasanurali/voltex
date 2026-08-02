@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import * as postRepository from "./post.repository.js";
 import * as authRepository from "../auth/auth.repository.js";
 import * as followRepository from "../follow/follow.repository.js";
-import { ApiError, whitelistInput, withTransaction, encodeCursor, decodeCursor } from "../../shared/utils/index.js";
+import { ApiError, whitelistInput, withTransaction, encodeCursor, decodeCursor, convertToObjectId } from "../../shared/utils/index.js";
 import { POST_MESSAGES } from "../../shared/constants/messages/index.js";
 
 export const createPostService = async (userId, postData) => {
@@ -75,4 +75,20 @@ export const fetchPostsService = async (userId, cursor) => {
         posts: sanitizedPosts,
         nextCursor
     };
+};
+
+export const fetchPostDetailsService = async (postId) => {
+
+    const objectId = convertToObjectId(postId);
+    if (!objectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID);
+    };
+
+    const [detailedPost] = await postRepository.fetchPostDetails(objectId);
+
+    if (!detailedPost) {
+        throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
+    };
+
+    return detailedPost;
 };

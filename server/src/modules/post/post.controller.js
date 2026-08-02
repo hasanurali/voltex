@@ -28,3 +28,13 @@ export const fetchPostsController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(POST_MESSAGES.POST_FETCH_SUCCESS, { posts, nextCursor }));
 });
+
+export const fetchPostDetailsController = asyncHandler(async (req, res) => {
+
+    const postId = req.params.postId;
+
+    const detailedPost = await services.fetchPostDetailsService(postId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(POST_MESSAGES.POST_DETAILS_FETCH_SUCCESS, detailedPost));
+});

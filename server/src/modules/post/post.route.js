@@ -18,4 +18,8 @@ postRoutes.get("/",
     controllers.fetchPostsController
 );
 
+postRoutes.get("/:postId",
+    controllers.fetchPostDetailsController
+);
+
 export default postRoutes;

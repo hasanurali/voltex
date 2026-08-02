@@ -339,3 +339,75 @@ export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingI
 
     return feedPosts;
 };
+
+export const fetchPostDetails = async (postId) => {
+
+    const detailedPost = await postModel.aggregate([
+        {
+            $match: {
+                _id: postId,
+                isDeleted: false
+            }
+        },
+
+        {
+            $lookup: {
+                from: "users",
+                localField: "author",
+                foreignField: "_id",
+                as: "user"
+            }
+        },
+
+        {
+            $unwind: "$user"
+        },
+
+        {
+            $lookup: {
+                from: "profiles",
+                localField: "author",
+                foreignField: "user",
+                as: "profile"
+            }
+        },
+
+        {
+            $unwind: "$profile"
+        },
+
+        {
+            $project: {
+                _id: 1,
+                author: {
+                    _id: "$user._id",
+                    displayName: "$user.displayName",
+                    username: "$user.username",
+                    avatar: {
+                        url: "$profile.avatar.url"
+                    }
+                },
+                content: 1,
+                media: {
+                    $map: {
+                        input: "$media",
+                        as: "item",
+                        in: {
+                            mediaType: "$$item.mediaType",
+                            url: "$$item.url"
+                        }
+                    }
+                },
+                hashtags: 1,
+                commentsCount: 1,
+                likesCount: 1,
+                visibility: 1,
+                isEdited: 1,
+                createdAt: 1,
+                finalScore: 1
+            }
+        }
+    ]);
+
+    return detailedPost;
+}

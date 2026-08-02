@@ -9,3 +9,4 @@ export { default as withTransaction } from "./withTransaction.js";
 export { default as whitelistInput } from "./whitelistInput.js";
 export { default as decodeCursor } from "./decodeCursor.js";
 export { default as encodeCursor } from "./encodeCursor.js";
+export { default as convertToObjectId } from "./convertToObjectId.js";
