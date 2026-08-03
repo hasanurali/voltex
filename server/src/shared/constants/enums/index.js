@@ -1,2 +1,4 @@
 export { default as USER_ROLES } from "./roles.enum..js";
 export { default as USER_STATUS } from "./status.enum.js";
+export { default as MEDIA_TYPE } from "./media.enum.js";
+export { default as VISIBILITY_TYPE } from "./visibility.enum.js";

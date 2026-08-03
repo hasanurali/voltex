@@ -204,3 +204,21 @@ export const decrementFollowing = async (userId, session) => {
         }
     }, { session });
 };
+
+export const incrementPost = async (userId, session) => {
+
+    await userModel.findByIdAndUpdate(userId, {
+        $inc: {
+            postsCount: 1
+        }
+    }, { session });
+};
+
+export const decrementPost = async (userId, session) => {
+
+    await userModel.findByIdAndUpdate(userId, {
+        $inc: {
+            postsCount: -1
+        }
+    }, { session });
+};

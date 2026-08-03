@@ -745,6 +745,174 @@ paths:
           description: User not found        
 
 
+  # ============================================================
+  # POST
+  # ============================================================
+
+  /api/v1/posts:
+    post:
+      tags:
+        - Post
+      summary: Create Post
+      description: Create a new post.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePostRequest"
+      responses:
+        '201':
+          description: Post created successfully
+        '400':
+          description: Validation failed
+        '401':
+          description: Unauthorized
+
+    get:
+      tags:
+        - Post
+      summary: Fetch Home Feed
+      description: >
+        Fetch the personalized home feed.
+
+        For authenticated users, the feed includes:
+        - Following users posts
+        - Suggested users posts
+        - Popular public posts
+
+        For guest users, only popular public posts are returned.
+
+        Supports cursor-based pagination.
+      parameters:
+        - in: query
+          name: cursor
+          required: false
+          schema:
+            type: string
+          description: Encoded cursor returned from the previous request.
+      responses:
+        '200':
+          description: Posts fetched successfully
+
+
+  /api/v1/posts/{postId}:
+    get:
+      tags:
+        - Post
+      summary: Fetch Post Details
+      description: Fetch a single post by post ID.
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Post details fetched successfully
+        '400':
+          description: Invalid post ID
+        '404':
+          description: Post not found
+
+    patch:
+      tags:
+        - Post
+      summary: Update Post
+      description: Update an existing post.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePostRequest"
+      responses:
+        '200':
+          description: Post updated successfully
+        '400':
+          description: Validation failed
+        '401':
+          description: Unauthorized
+        '403':
+          description: Only the post owner can perform this action
+        '404':
+          description: Post not found
+
+    delete:
+      tags:
+        - Post
+      summary: Delete Post
+      description: Soft delete a post.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Post deleted successfully
+        '400':
+          description: Invalid post ID
+        '401':
+          description: Unauthorized
+        '403':
+          description: Only the post owner can perform this action
+        '404':
+          description: Post not found
+
+
+  /api/v1/posts/user/{username}:
+    get:
+      tags:
+        - Post
+      summary: Fetch User Posts
+      description: Fetch paginated posts of a user.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            default: 1
+
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+
+      responses:
+        '200':
+          description: User posts fetched successfully
+        '400':
+          description: Invalid username
+        '404':
+          description: User not found
+  
+  
+
 components:
 
   # ============================================================
@@ -769,6 +937,10 @@ components:
   # ============================================================
 
   schemas:
+
+    # ============================================================
+    # AUTH SCHEMAS
+    # ============================================================ 
 
     RegisterRequest:
       type: object
@@ -975,8 +1147,8 @@ components:
         publicId:
           type: string
           description: >
-            Cloudinary public ID used internally by the server to manage
-            the uploaded avatar.
+            Cloudinary public ID returned after avatar upload and sent by the client.
+            Used by the server to manage the uploaded avatar.
           example: voltex/avatars/user123
 
 
@@ -998,6 +1170,90 @@ components:
         publicId:
           type: string
           description: >
-            Cloudinary public ID used internally by the server to manage
-            the uploaded cover image.
+            Cloudinary public ID returned after cover image upload and sent by the client.
+            Used by the server to manage the uploaded cover image.
           example: voltex/covers/user123
+
+
+    # ============================================================
+    # POST SCHEMAS
+    # ============================================================        
+
+    CreatePostRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 2000
+          example: Hello Voltex
+
+        media:
+          type: array
+          items:
+            $ref: "#/components/schemas/PostMedia"
+
+        hashtags:
+          type: array
+          items:
+            type: string
+          example:
+            - react
+            - nodejs
+
+        visibility:
+          type: string
+          enum:
+            - public
+            - followers
+          example: public
+
+    UpdatePostRequest:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 2000
+          example: Updated post content
+
+        media:
+          type: array
+          items:
+            $ref: "#/components/schemas/PostMedia"
+
+        hashtags:
+          type: array
+          items:
+            type: string
+          example:
+            - react
+            - nodejs
+
+        visibility:
+          type: string
+          enum:
+            - public
+            - followers
+          example: followers
+
+    PostMedia:
+      type: object
+      required:
+        - mediaType
+        - url
+      properties:
+        mediaType:
+          type: string
+          enum:
+            - image
+            - video
+
+        url:
+          type: string
+          format: uri       
+
+        publicId:
+          type: string
+          description: >
+             Cloudinary public ID returned after media upload and sent by the client.
+             Used internally by the server to manage the uploaded media.
+          example: voltex/posts/abc123xyz 

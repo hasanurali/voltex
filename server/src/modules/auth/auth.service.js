@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
 
 import * as authRepository from "./auth.repository.js";
-import { ApiError, otpGenerator, resetPasswordTokenGenerator, hashToken } from "../../shared/utils/index.js";
+import { ApiError, otpGenerator, resetPasswordTokenGenerator, hashToken, whitelistInput } from "../../shared/utils/index.js";
 import * as mailService from "../../shared/mail/mail.service.js";
 import { AUTH_MESSAGES } from "../../shared/constants/messages/index.js";
 import JWT_CONFIG from "../../config/jwt.js";
@@ -12,7 +12,10 @@ import { profileRepository } from "../profile/index.js";
 
 export const registerService = async (userData) => {
 
-    const user = await authRepository.createUser(userData);
+    const allowedFields = ['displayName', 'username', 'email', 'password'];
+    const whitelistedData = whitelistInput(userData, allowedFields);
+
+    const user = await authRepository.createUser(whitelistedData);
 
     const profile = await profileRepository.createProfile({ user: user._id });
 

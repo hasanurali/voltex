@@ -8,7 +8,8 @@ import setupSwagger from "./config/swagger.js";
 import authRoutes from "./modules/auth/auth.route.js";
 import profileRoutes from "./modules/profile/profile.route.js";
 import userRoutes from "./modules/user/user.route.js";
-import followRoutes from "./modules/follow/follow.route.js"
+import followRoutes from "./modules/follow/follow.route.js";
+import postRoutes from "./modules/post/post.route.js";
 
 
 const app = express();
@@ -34,6 +35,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/follows", followRoutes);
+app.use("/api/v1/posts", postRoutes);
 
 
 // Swagger Docs
