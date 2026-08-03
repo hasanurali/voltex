@@ -539,3 +539,12 @@ export const softDeletePost = async (postId, userId, session) => {
         }
     }, { session });
 };
+
+export const incrementPostComment = async (postId, session) => {
+
+    await postModel.findByIdAndUpdate(postId, {
+        $inc: {
+            commentsCount: 1
+        }
+    }, { session });
+};
