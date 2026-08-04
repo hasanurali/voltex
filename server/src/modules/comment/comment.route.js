@@ -13,5 +13,9 @@ commentRoutes.post("/",
     controllers.createCommentController
 );
 
+commentRoutes.get("/post/:postId",
+    controllers.fetchCommentController
+);
+
 
 export default commentRoutes;

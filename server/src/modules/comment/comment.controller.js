@@ -16,3 +16,15 @@ export const createCommentController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.CREATED)
         .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_CREATE_SUCCESS, comment));
 });
+
+export const fetchCommentController = asyncHandler(async (req, res) => {
+
+    const postId = req.params.postId;
+
+    const { page, limit } = req.query;
+
+    const comments = await services.fetchCommentService(postId, page, limit);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_FETCH_SUCCESS, comments));
+});

@@ -62,3 +62,50 @@ export const createCommentService = async (userId, commentData) => {
 
     return comment;
 };
+
+export const fetchCommentService = async (postId, page = 1, limit = 10) => {
+
+    const postObjectId = convertToObjectId(postId);
+    if (!postObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID);
+    };
+
+    const post = await postRepository.findPost(postObjectId);
+    if (!post) {
+        throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
+    };
+
+    const parsedPage = Number(page);
+    const parsedLimit = Number(limit);
+
+    const safePage = Number.isFinite(parsedPage) ?
+        Math.max(Math.floor(parsedPage), 1)
+        :
+        1;
+
+    const safeLimit = Number.isFinite(parsedLimit) ?
+        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
+        :
+        10;
+
+    const skip = (safePage - 1) * safeLimit;
+
+    const result = await commentRepository.fetchComment(postObjectId, skip, safeLimit);
+
+    const comments = result?.data ?? [];
+    const total = result?.metadata?.[0]?.total ?? 0;
+
+    const totalPages = Math.ceil(total / safeLimit);
+
+    return {
+        data: comments,
+        pagination: {
+            total,
+            page: safePage,
+            limit: safeLimit,
+            totalPages,
+            hasNextPage: safePage < totalPages,
+            hasPrevPage: safePage > 1
+        }
+    };
+};

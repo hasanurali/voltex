@@ -25,3 +25,43 @@ export const incrementRepliesCount = async (commentId, session) => {
         }
     }, { session });
 };
+
+export const fetchComment = async (postId, skip, safeLimit) => {
+
+    const [result] = await commentModel.aggregate([
+        {
+            $match: {
+                post: postId,
+                parentComment: null,
+                isDeleted: false
+            },
+        },
+
+        {
+            $sort: {
+                createdAt: -1
+            }
+        },
+
+        {
+            $facet: {
+                data: [
+                    {
+                        $skip: skip
+                    },
+                    {
+                        $limit: safeLimit
+                    }
+                ],
+
+                metadata: [
+                    {
+                        $count: "total"
+                    }
+                ]
+            }
+        }
+    ]);
+
+    return result;
+};
