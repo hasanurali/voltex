@@ -150,3 +150,27 @@ export const updateCommentService = async (userId, commentId, commentData) => {
 
     return updatedComment;
 };
+
+export const deleteCommentService = async (userId, commentId) => {
+
+    const commentObjectId = convertToObjectId(commentId);
+    if (!commentObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
+    };
+
+    const comment = await commentRepository.findComment(commentObjectId);
+    if (!comment) {
+        throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
+    };
+
+    if (comment.author.toString() !== userId.toString()) {
+        throw new ApiError(StatusCodes.FORBIDDEN, COMMENT_MESSAGES.NOT_OWNER);
+    };
+
+    await withTransaction(async (session) => {
+
+        const commentCount = await commentRepository.softDeleteCommentAndReplies(userId, commentObjectId, session);
+
+        await postRepository.decrementPostComment(comment.post, commentCount, session);
+    });
+};

@@ -548,3 +548,12 @@ export const incrementPostComment = async (postId, session) => {
         }
     }, { session });
 };
+
+export const decrementPostComment = async (postId, decrementCount, session) => {
+
+    await postModel.findByIdAndUpdate(postId, {
+        $inc: {
+            commentsCount: -decrementCount
+        }
+    }, { session });
+};

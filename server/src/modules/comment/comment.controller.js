@@ -52,3 +52,15 @@ export const updateCommentController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_UPDATE_SUCCESS, updatedComment));
 });
+
+export const deleteCommentController = asyncHandler(async (req, res) => {
+
+    const commentId = req.params.commentId;
+
+    const userId = req.user.id;
+
+    await services.deleteCommentService(userId, commentId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_DELETE_SUCCESS));
+});

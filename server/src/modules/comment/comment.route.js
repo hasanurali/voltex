@@ -28,5 +28,10 @@ commentRoutes.patch("/:commentId",
     controllers.updateCommentController
 );
 
+commentRoutes.delete("/:commentId",
+    middlewares.authMiddleware,
+    controllers.deleteCommentController
+);
+
 
 export default commentRoutes;
