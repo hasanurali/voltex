@@ -74,11 +74,6 @@ const postSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-postSchema.index({ author: 1, createdAt: -1 });
-postSchema.index({ visibility: 1, createdAt: -1 });
-postSchema.index({ hashtags: 1 });
-
-
 postSchema.methods.toJSON = function () {
     const obj = this.toObject();
 

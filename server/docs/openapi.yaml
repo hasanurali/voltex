@@ -756,7 +756,7 @@ paths:
       summary: Create Post
       description: Create a new post.
       security:
-        - cookieAuth: []
+        - accessTokenCookie: []
       requestBody:
         required: true
         content:
@@ -824,7 +824,7 @@ paths:
       summary: Update Post
       description: Update an existing post.
       security:
-        - cookieAuth: []
+        - accessTokenCookie: []
       parameters:
         - in: path
           name: postId
@@ -855,7 +855,7 @@ paths:
       summary: Delete Post
       description: Soft delete a post.
       security:
-        - cookieAuth: []
+        - accessTokenCookie: []
       parameters:
         - in: path
           name: postId
@@ -910,7 +910,153 @@ paths:
           description: Invalid username
         '404':
           description: User not found
-  
+
+
+
+  # ============================================================
+  # COMMENT
+  # ============================================================
+
+  /api/v1/comments:
+    post:
+      tags:
+        - Comment
+      summary: Create Comment
+      description: Create a new comment or reply to an existing comment.
+      security:
+        - accessTokenCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentRequest"
+      responses:
+        '201':
+          description: Comment created successfully
+        '400':
+          description: Invalid post ID or comment ID or parent comment does not belong to this post
+        '401':
+          description: Unauthorized
+        '404':
+          description: Post or parent comment not found
+
+
+  /api/v1/comments/post/{postId}:
+    get:
+      tags:
+        - Comment
+      summary: Fetch Post Comments
+      description: Fetch paginated comments of a post.
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            default: 1
+
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+
+      responses:
+        '200':
+          description: Comment fetched successfully
+        '400':
+          description: Invalid post ID
+        '404':
+          description: Post not found
+
+
+  /api/v1/comments/{commentId}/replies:
+    get:
+      tags:
+        - Comment
+      summary: Fetch Comment Replies
+      description: Fetch replies of a comment.
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Comment replies fetched successfully
+        '400':
+          description: Invalid comment ID
+        '404':
+          description: Comment not found
+
+
+  /api/v1/comments/{commentId}:
+    patch:
+      tags:
+        - Comment
+      summary: Update Comment
+      description: Update an existing comment.
+      security:
+        - accessTokenCookie: []
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCommentRequest"
+      responses:
+        '200':
+          description: Comment updated successfully
+        '400':
+          description: Validation failed
+        '401':
+          description: Unauthorized
+        '403':
+          description: Only the comment owner can perform this action
+        '404':
+          description: Comment not found
+
+    delete:
+      tags:
+        - Comment
+      summary: Delete Comment
+      description: Soft delete a comment and its nested replies.
+      security:
+        - accessTokenCookie: []
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comment deleted successfully
+        '400':
+          description: Invalid comment ID
+        '401':
+          description: Unauthorized
+        '403':
+          description: Only the comment owner can perform this action
+        '404':
+          description: Comment not found
   
 
 components:
@@ -1257,3 +1403,51 @@ components:
              Cloudinary public ID returned after media upload and sent by the client.
              Used internally by the server to manage the uploaded media.
           example: voltex/posts/abc123xyz 
+
+
+  
+    # ============================================================
+    # COMMENT SCHEMAS
+    # ============================================================
+
+    CreateCommentRequest:
+      type: object
+
+      required:
+        - post
+        - content
+
+      properties:
+
+        post:
+          type: string
+          description: ID of the post where the comment is created.
+          example: 67a1b2c3d4e5f67890123456
+
+        parentComment:
+          type: string
+          description: >
+            ID of the parent comment when creating a reply.
+            Omit this field when creating a top-level comment.
+          example: 67b1c2d3e4f5a67890123456
+
+        content:
+          type: string
+          maxLength: 1000
+          description: Comment content.
+          example: This is a great post
+
+
+    UpdateCommentRequest:
+      type: object
+
+      required:
+        - content
+
+      properties:
+
+        content:
+          type: string
+          maxLength: 1000
+          description: Updated comment content.
+          example: This is an updated comment        

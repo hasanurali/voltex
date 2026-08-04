@@ -523,7 +523,8 @@ export const findPost = async (postId) => {
 export const updatePost = async (postId, whitelistedData) => {
 
     const updatedPost = await postModel.findByIdAndUpdate(postId, {
-        ...whitelistedData
+        ...whitelistedData,
+        isEdited: true
     }, { returnDocument: "after" });
 
     return updatedPost;
@@ -536,6 +537,24 @@ export const softDeletePost = async (postId, userId, session) => {
             isDeleted: true,
             deletedBy: userId,
             deletedAt: new Date()
+        }
+    }, { session });
+};
+
+export const incrementPostComment = async (postId, session) => {
+
+    await postModel.findByIdAndUpdate(postId, {
+        $inc: {
+            commentsCount: 1
+        }
+    }, { session });
+};
+
+export const decrementPostComment = async (postId, decrementCount, session) => {
+
+    await postModel.findByIdAndUpdate(postId, {
+        $inc: {
+            commentsCount: -decrementCount
         }
     }, { session });
 };
