@@ -75,3 +75,12 @@ export const fetchCommentReplies = async (commentId) => {
 
     return commentReplies;
 };
+
+export const updateComment = async (commentId, whitelistedData) => {
+
+    const updatedComment = await commentModel.findByIdAndUpdate(commentId, {
+        $set: whitelistedData
+    }, { returnDocument: "after" });
+
+    return updatedComment;
+};

@@ -21,5 +21,12 @@ commentRoutes.get("/:commentId/replies",
     controllers.fetchCommentRepliesController
 );
 
+commentRoutes.patch("/:commentId",
+    middlewares.authMiddleware,
+    validations.updateCommentValidation,
+    middlewares.validationResultMiddleware,
+    controllers.updateCommentController
+);
+
 
 export default commentRoutes;

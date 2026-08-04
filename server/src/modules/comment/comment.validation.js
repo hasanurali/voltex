@@ -1,6 +1,6 @@
 import { body } from "express-validator";
 
-export const createCommentValidation = [
+const commentValidationRule = [
 
     // Content
     body("content")
@@ -9,3 +9,7 @@ export const createCommentValidation = [
         .notEmpty().withMessage("Content is required")
         .isLength({ max: 1000 }).withMessage("Content cannot exceed 1000 characters")
 ];
+
+export const createCommentValidation = [...commentValidationRule];
+
+export const updateCommentValidation = [...commentValidationRule];
