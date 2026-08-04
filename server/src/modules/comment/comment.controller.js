@@ -28,3 +28,13 @@ export const fetchCommentController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_FETCH_SUCCESS, comments));
 });
+
+export const fetchCommentRepliesController = asyncHandler(async (req, res) => {
+
+    const commentId = req.params.commentId;
+
+    const commentReplies = await services.fetchCommentRepliesService(commentId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_REPLIES_FETCH_SUCCESS, commentReplies));
+});

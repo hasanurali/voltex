@@ -1,6 +1,7 @@
 const COMMENT_MESSAGES = {
     COMMENT_CREATE_SUCCESS: "Comment created successfully",
     COMMENT_FETCH_SUCCESS: "Comment fetched successfully",
+    COMMENT_REPLIES_FETCH_SUCCESS: "Comment replies fetched successfully",
     COMMENT_UPDATE_SUCCESS: "Comment updated successfully",
     COMMENT_DELETE_SUCCESS: "Comment deleted successfully",
 

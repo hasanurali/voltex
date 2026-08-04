@@ -17,5 +17,9 @@ commentRoutes.get("/post/:postId",
     controllers.fetchCommentController
 );
 
+commentRoutes.get("/:commentId/replies",
+    controllers.fetchCommentRepliesController
+);
+
 
 export default commentRoutes;

@@ -109,3 +109,22 @@ export const fetchCommentService = async (postId, page = 1, limit = 10) => {
         }
     };
 };
+
+export const fetchCommentRepliesService = async (commentId) => {
+
+    const commentObjectId = convertToObjectId(commentId);
+    if (!commentObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
+    };
+
+    const comment = await commentRepository.findComment(commentObjectId);
+    if (!comment) {
+        throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
+    };
+
+    const commentReplies = await commentRepository.fetchCommentReplies(commentObjectId);
+
+    return {
+        commentReplies
+    };
+};

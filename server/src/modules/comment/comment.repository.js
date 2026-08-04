@@ -65,3 +65,13 @@ export const fetchComment = async (postId, skip, safeLimit) => {
 
     return result;
 };
+
+export const fetchCommentReplies = async (commentId) => {
+
+    const commentReplies = await commentModel.find({
+        parentComment: commentId,
+        isDeleted: false
+    }).sort({ createdAt: 1 });
+
+    return commentReplies;
+};
