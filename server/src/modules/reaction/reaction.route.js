@@ -10,5 +10,10 @@ reactionRoutes.post("/",
     controllers.createReactionController
 );
 
+reactionRoutes.delete("/",
+    middlewares.authMiddleware,
+    controllers.deleteReactionController
+);
+
 
 export default reactionRoutes;

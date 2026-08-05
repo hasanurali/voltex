@@ -567,3 +567,12 @@ export const incrementLikeCount = async (postId, session) => {
         }
     }, { session });
 };
+
+export const decrementLikeCount = async (postId, session) => {
+
+    await postModel.findByIdAndUpdate(postId, {
+        $inc: {
+            likesCount: -1
+        }
+    }, { session });
+};

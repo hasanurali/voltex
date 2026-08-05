@@ -144,3 +144,12 @@ export const incrementLikeCount = async (commentId, session) => {
         }
     }, { session });
 };
+
+export const decrementLikeCount = async (commentId, session) => {
+
+    await commentModel.findByIdAndUpdate(commentId, {
+        $inc: {
+            likesCount: -1
+        }
+    }, { session });
+};

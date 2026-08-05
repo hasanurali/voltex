@@ -11,3 +11,8 @@ export const createReaction = async (reactionData, session) => {
 
     await reactionModel.create([reactionData], { session });
 };
+
+export const deleteReaction = async (reactionData, session) => {
+
+    await reactionModel.deleteOne(reactionData, { session });
+};

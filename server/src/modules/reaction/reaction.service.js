@@ -54,3 +54,51 @@ export const createReactionService = async (userId, reactionData) => {
 
     return targetType;
 };
+
+export const deleteReactionService = async (userId, reactionData) => {
+
+    const { targetType, targetId } = reactionData;
+
+    if (!targetType || !Object.values(REACTION_TARGET_TYPE).includes(targetType)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, REACTION_MESSAGES.INVALID_TARGET_TYPE);
+    };
+
+    const targetObjectId = convertToObjectId(targetId);
+    if (!targetObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, REACTION_MESSAGES.INVALID_TARGET_ID(targetType))
+    };
+
+    const isTargetExists = await (
+
+        targetType === REACTION_TARGET_TYPE.POST ?
+            postRepository.findPost(targetObjectId)
+            :
+            commentRepository.findComment(targetObjectId)
+    );
+
+    if (!isTargetExists) {
+        throw new ApiError(StatusCodes.NOT_FOUND, REACTION_MESSAGES.TARGET_NOT_FOUND(targetType));
+    };
+
+    const reaction = await reactionRepository.findReaction({ user: userId, targetId: targetObjectId, targetType });
+    if (!reaction) {
+        throw new ApiError(StatusCodes.CONFLICT, REACTION_MESSAGES.NOT_REACTED(targetType))
+    };
+
+    const decrementTarget = (
+
+        targetType === REACTION_TARGET_TYPE.POST ?
+            postRepository.decrementLikeCount
+            :
+            commentRepository.decrementLikeCount
+    );
+
+    await withTransaction(async (session) => {
+
+        await reactionRepository.deleteReaction({ user: userId, targetId: targetObjectId, targetType }, session);
+
+        await decrementTarget(targetObjectId, session);
+    });
+
+    return targetType;
+};
