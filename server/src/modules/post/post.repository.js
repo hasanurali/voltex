@@ -558,3 +558,12 @@ export const decrementPostComment = async (postId, decrementCount, session) => {
         }
     }, { session });
 };
+
+export const incrementLikeCount = async (postId, session) => {
+
+    await postModel.findByIdAndUpdate(postId, {
+        $inc: {
+            likesCount: 1
+        }
+    }, { session });
+};

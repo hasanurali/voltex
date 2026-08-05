@@ -4,4 +4,5 @@ export { default as PROFILE_MESSAGES } from "./profile.messages.js";
 export { default as USER_MESSAGES } from "./user.messages.js";
 export { default as FOLLOW_MESSAGES } from "./follow.messages.js";
 export { default as POST_MESSAGES } from "./post.messages.js";
-export { default as COMMENT_MESSAGES } from "./comment.message.js";
+export { default as COMMENT_MESSAGES } from "./comment.messages.js";
+export { default as REACTION_MESSAGES } from "./reaction.messages.js";

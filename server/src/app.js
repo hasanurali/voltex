@@ -11,6 +11,7 @@ import userRoutes from "./modules/user/user.route.js";
 import followRoutes from "./modules/follow/follow.route.js";
 import postRoutes from "./modules/post/post.route.js";
 import commentRoutes from "./modules/comment/comment.route.js";
+import reactionRoutes from "./modules/reaction/reaction.route.js";
 
 
 const app = express();
@@ -38,6 +39,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/follows", followRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/comments", commentRoutes);
+app.use("/api/v1/reactions", reactionRoutes);
 
 
 // Swagger Docs
