@@ -1059,6 +1059,96 @@ paths:
           description: Comment not found
   
 
+
+  # ============================================================
+  # REACTION
+  # ============================================================
+
+  /api/v1/reactions:
+    post:
+      tags:
+        - Reaction
+
+      summary: React to a post or comment
+
+      description: >
+        Creates a reaction for the authenticated user on the specified
+        post or comment.
+
+        The target type determines whether the target ID belongs to a
+        post or a comment.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReactionRequest"
+
+      responses:
+
+        '201':
+          description: Post or comment reacted successfully
+
+        '400':
+          description: Invalid target type or target ID
+
+        '401':
+          description: Unauthorized
+
+        '404':
+          description: Post or comment not found
+
+        '409':
+          description: User has already reacted to this target
+
+
+    delete:
+      tags:
+        - Reaction
+
+      summary: Remove reaction from a post or comment
+
+      description: >
+        Removes the authenticated user's reaction from the specified
+        post or comment.
+
+        The target type determines whether the target ID belongs to a
+        post or a comment.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteReactionRequest"
+
+      responses:
+
+        '200':
+          description: Post or comment reaction removed successfully
+
+        '400':
+          description: Invalid target type or target ID
+
+        '401':
+          description: Unauthorized
+
+        '404':
+          description: Post or comment not found
+
+        '409':
+          description: User has not reacted to this target
+
+
 components:
 
   # ============================================================
@@ -1450,4 +1540,55 @@ components:
           type: string
           maxLength: 1000
           description: Updated comment content.
-          example: This is an updated comment        
+          example: This is an updated comment 
+
+
+
+    # ============================================================
+    # REACTION SCHEMAS
+    # ============================================================
+
+    CreateReactionRequest:
+      type: object
+
+      required:
+        - targetType
+        - targetId
+
+      properties:
+
+        targetType:
+          type: string
+          enum:
+            - post
+            - comment
+          description: Type of target to react to.
+          example: post
+
+        targetId:
+          type: string
+          description: ID of the post or comment to react to.
+          example: 665f1a2b3c4d5e6f78901234
+
+
+    DeleteReactionRequest:
+      type: object
+
+      required:
+        - targetType
+        - targetId
+
+      properties:
+
+        targetType:
+          type: string
+          enum:
+            - post
+            - comment
+          description: Type of target from which the reaction should be removed.
+          example: post
+
+        targetId:
+          type: string
+          description: ID of the post or comment from which the reaction should be removed.
+          example: 665f1a2b3c4d5e6f78901234       

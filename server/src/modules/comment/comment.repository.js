@@ -135,3 +135,21 @@ export const softDeleteCommentAndReplies = async (userId, commentId, session) =>
 
     return allTargetIds.length;
 };
+
+export const incrementLikeCount = async (commentId, session) => {
+
+    await commentModel.findByIdAndUpdate(commentId, {
+        $inc: {
+            likesCount: 1
+        }
+    }, { session });
+};
+
+export const decrementLikeCount = async (commentId, session) => {
+
+    await commentModel.findByIdAndUpdate(commentId, {
+        $inc: {
+            likesCount: -1
+        }
+    }, { session });
+};
