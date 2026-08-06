@@ -167,9 +167,16 @@ export const deleteCommentService = async (userId, commentId) => {
         throw new ApiError(StatusCodes.FORBIDDEN, COMMENT_MESSAGES.NOT_OWNER);
     };
 
+    const parentComment = comment.parentComment;
+
     await withTransaction(async (session) => {
 
         const commentCount = await commentRepository.softDeleteCommentAndReplies(userId, commentObjectId, session);
+
+        (
+            parentComment &&
+            await commentRepository.decrementRepliesCount(parentComment, session)
+        );
 
         await postRepository.decrementPostComment(comment.post, commentCount, session);
     });
