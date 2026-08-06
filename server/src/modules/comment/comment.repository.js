@@ -29,6 +29,15 @@ export const incrementRepliesCount = async (commentId, session) => {
     }, { session });
 };
 
+export const decrementRepliesCount = async (commentId, session) => {
+
+    await commentModel.findByIdAndUpdate(commentId, {
+        $inc: {
+            repliesCount: -1
+        }
+    }, { session });
+};
+
 export const fetchComment = async (postId, skip, safeLimit) => {
 
     const [result] = await commentModel.aggregate([
