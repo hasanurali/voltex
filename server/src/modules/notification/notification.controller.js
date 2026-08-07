@@ -37,3 +37,15 @@ export const markAllNotificationAsReadController = asyncHandler(async (req, res)
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(NOTIFICATION_MESSAGES.NOTIFICATIONS_MARK_READ_ALL_SUCCESS));
 });
+
+export const deleteNotificationController = asyncHandler(async (req, res) => {
+
+    const notificationId = req.params.notificationId;
+
+    const userId = req.user.id;
+
+    await services.deleteNotificationService(userId, notificationId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(NOTIFICATION_MESSAGES.NOTIFICATION_DELETE_SUCCESS));
+});

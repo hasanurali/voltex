@@ -117,3 +117,22 @@ export const markAllNotificationAsReadService = async (userId) => {
 
     await notificationRepository.markAllNotificationAsRead(userId);
 };
+
+export const deleteNotificationService = async (userId, notificationId) => {
+
+    const notificationObjectId = convertToObjectId(notificationId);
+    if (!notificationObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, NOTIFICATION_MESSAGES.INVALID_NOTIFICATION_ID);
+    };
+
+    const notification = await notificationRepository.findNotification(notificationObjectId);
+    if (!notification) {
+        throw new ApiError(StatusCodes.NOT_FOUND, NOTIFICATION_MESSAGES.NOT_FOUND);
+    };
+
+    if (notification.user.toString() !== userId.toString()) {
+        throw new ApiError(StatusCodes.FORBIDDEN, NOTIFICATION_MESSAGES.NOT_OWNER);
+    };
+
+    await notificationRepository.deleteNotification(notificationObjectId);
+};

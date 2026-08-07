@@ -20,5 +20,10 @@ notificationRoutes.patch("/notifications/read-all",
     controllers.markAllNotificationAsReadController
 );
 
+notificationRoutes.delete("/:notificationId",
+    middlewares.authMiddleware,
+    controllers.deleteNotificationController
+);
+
 
 export default notificationRoutes;

@@ -74,3 +74,8 @@ export const markAllNotificationAsRead = async (userId) => {
         }
     });
 };
+
+export const deleteNotification = async (notificationId) => {
+
+    await notificationModel.findByIdAndDelete(notificationId);
+};
