@@ -36,7 +36,12 @@ export const fetchNotifications = async (userId, skip, safeLimit) => {
                 metadata: [
                     {
                         $count: "total"
-                    }
+                    },
+                ],
+
+                totalMarked: [
+                    { $match: { isRead: true } },
+                    { $count: "totalMarked" }
                 ]
             }
         }
@@ -45,5 +50,18 @@ export const fetchNotifications = async (userId, skip, safeLimit) => {
     return result;
 };
 
+export const findNotification = async (notificationId) => {
 
+    const notification = await notificationModel.findById(notificationId);
 
+    return notification;
+};
+
+export const markNotificationAsRead = async (notificationId) => {
+
+    await notificationModel.findByIdAndUpdate(notificationId, {
+        $set: {
+            isRead: true
+        }
+    });
+};

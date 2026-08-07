@@ -1,6 +1,9 @@
+import { StatusCodes } from "http-status-codes";
+
 import * as notificationRepository from "./notification.repository.js";
-import { convertToObjectId, log } from "../../shared/utils/index.js";
+import { ApiError, convertToObjectId, log } from "../../shared/utils/index.js";
 import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
+import { NOTIFICATION_MESSAGES } from "../../shared/constants/messages/index.js"
 
 export const createNotification = async ({ user, triggeredBy, entityId, entityType, type, metadata = null }) => {
 
@@ -69,11 +72,13 @@ export const fetchNotificationService = async (userId, page = 1, limit = 10) => 
 
     const notifications = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
+    const totalMarked = result?.totalMarked?.[0]?.totalMarked ?? 0;
 
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
         data: notifications,
+        totalMarked,
         pagination: {
             total,
             page: safePage,
@@ -83,4 +88,23 @@ export const fetchNotificationService = async (userId, page = 1, limit = 10) => 
             hasPrevPage: safePage > 1
         }
     };
+};
+
+export const markNotificationAsReadService = async (userId, notificationId) => {
+
+    const notificationObjectId = convertToObjectId(notificationId);
+    if (!notificationObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, NOTIFICATION_MESSAGES.INVALID_NOTIFICATION_ID);
+    };
+
+    const notification = await notificationRepository.findNotification(notificationObjectId);
+    if (!notification) {
+        throw new ApiError(StatusCodes.NOT_FOUND, NOTIFICATION_MESSAGES.NOT_FOUND);
+    };
+
+    if (notification.user.toString() !== userId.toString()) {
+        throw new ApiError(StatusCodes.FORBIDDEN, NOTIFICATION_MESSAGES.NOT_OWNER);
+    };
+
+    await notificationRepository.markNotificationAsRead(notificationObjectId);
 };

@@ -15,3 +15,15 @@ export const fetchNotificationController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(NOTIFICATION_MESSAGES.NOTIFICATION_FETCH_SUCCESS, notifications));
 });
+
+export const markNotificationAsReadController = asyncHandler(async (req, res) => {
+
+    const notificationId = req.params.notificationId;
+
+    const userId = req.user.id;
+
+    await services.markNotificationAsReadService(userId, notificationId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(NOTIFICATION_MESSAGES.NOTIFICATION_MARK_READ_SUCCESS));
+});
