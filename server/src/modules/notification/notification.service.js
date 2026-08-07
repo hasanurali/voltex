@@ -72,13 +72,13 @@ export const fetchNotificationService = async (userId, page = 1, limit = 10) => 
 
     const notifications = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
-    const totalMarked = result?.totalMarked?.[0]?.totalMarked ?? 0;
+    const unreadCount = result?.unread?.[0]?.unreadCount ?? 0;
 
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
         data: notifications,
-        totalMarked,
+        unreadCount,
         pagination: {
             total,
             page: safePage,

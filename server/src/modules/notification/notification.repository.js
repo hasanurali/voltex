@@ -39,9 +39,9 @@ export const fetchNotifications = async (userId, skip, safeLimit) => {
                     },
                 ],
 
-                totalMarked: [
-                    { $match: { isRead: true } },
-                    { $count: "totalMarked" }
+                unread: [
+                    { $match: { isRead: false } },
+                    { $count: "unreadCount" }
                 ]
             }
         }
