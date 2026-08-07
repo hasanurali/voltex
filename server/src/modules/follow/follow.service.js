@@ -4,6 +4,8 @@ import * as authRepository from "../auth/auth.repository.js";
 import * as followRepository from "./follow.repository.js";
 import { ApiError, withTransaction } from "../../shared/utils/index.js";
 import { USER_MESSAGES, FOLLOW_MESSAGES } from "../../shared/constants/messages/index.js";
+import { createNotification } from "../notification/index.js";
+import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
 
 export const followUserService = async (userId, username) => {
 
@@ -28,6 +30,14 @@ export const followUserService = async (userId, username) => {
         await authRepository.incrementFollower(user._id, session);
 
         await authRepository.incrementFollowing(userId, session);
+    });
+
+    void createNotification({
+        user: user._id,
+        triggeredBy: userId,
+        entityId: user._id,
+        entityType: NOTIFICATION_TARGET_TYPE.USER,
+        type: NOTIFICATION_TYPE.FOLLOW
     });
 };
 

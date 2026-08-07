@@ -4,18 +4,20 @@ import * as postRepository from "../post/post.repository.js";
 import * as commentRepository from "./comment.repository.js";
 import { ApiError, whitelistInput, withTransaction, convertToObjectId } from "../../shared/utils/index.js";
 import { POST_MESSAGES, COMMENT_MESSAGES } from "../../shared/constants/messages/index.js";
+import { createNotification } from "../notification/index.js";
+import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
 
 export const createCommentService = async (userId, commentData) => {
 
-    const { post, parentComment } = commentData;
+    const { post: postId, parentComment } = commentData;
 
-    const postObjectId = convertToObjectId(post);
+    const postObjectId = convertToObjectId(postId);
     if (!postObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID);
     };
 
-    const isPostExists = await postRepository.findPost(postObjectId);
-    if (!isPostExists) {
+    const post = await postRepository.findPost(postObjectId);
+    if (!post) {
         throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
     };
 
@@ -58,6 +60,31 @@ export const createCommentService = async (userId, commentData) => {
             parentCommentId &&
             await commentRepository.incrementRepliesCount(parentCommentId, session)
         );
+    });
+
+    void createNotification({
+        user: (
+            parentCommentId ?
+                fetchedParentComment.author
+                :
+                post.author
+        ),
+        triggeredBy: userId,
+        entityId: (
+            parentCommentId || post._id
+        ),
+        entityType: (
+            parentCommentId ?
+                NOTIFICATION_TARGET_TYPE.COMMENT
+                :
+                NOTIFICATION_TARGET_TYPE.POST
+        ),
+        type: (
+            parentCommentId ?
+                NOTIFICATION_TYPE.COMMENT_REPLY
+                :
+                NOTIFICATION_TYPE.POST_COMMENT
+        )
     });
 
     return comment;

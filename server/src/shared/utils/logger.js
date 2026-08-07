@@ -1,4 +1,4 @@
-const log = (type = "Error", message) => {
+const log = (message, type = "Error") => {
     console.log(`[${type}]: ${message}`)
 };
 
