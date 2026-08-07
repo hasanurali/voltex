@@ -44,4 +44,43 @@ export const createNotification = async ({ user, triggeredBy, entityId, entityTy
     } catch (error) {
         log(`Notification creation failed: ${error.message}`);
     };
-}; 
+};
+
+export const fetchNotificationService = async (userId, page = 1, limit = 10) => {
+
+    const userObjectId = convertToObjectId(userId);
+
+    const parsedPage = Number(page);
+    const parsedLimit = Number(limit);
+
+    const safePage = Number.isFinite(parsedPage) ?
+        Math.max(Math.floor(parsedPage), 1)
+        :
+        1;
+
+    const safeLimit = Number.isFinite(parsedLimit) ?
+        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
+        :
+        10;
+
+    const skip = (safePage - 1) * safeLimit;
+
+    const result = await notificationRepository.fetchNotifications(userObjectId, skip, safeLimit);
+
+    const notifications = result?.data ?? [];
+    const total = result?.metadata?.[0]?.total ?? 0;
+
+    const totalPages = Math.ceil(total / safeLimit);
+
+    return {
+        data: notifications,
+        pagination: {
+            total,
+            page: safePage,
+            limit: safeLimit,
+            totalPages,
+            hasNextPage: safePage < totalPages,
+            hasPrevPage: safePage > 1
+        }
+    };
+};
