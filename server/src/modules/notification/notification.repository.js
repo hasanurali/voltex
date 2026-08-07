@@ -65,3 +65,12 @@ export const markNotificationAsRead = async (notificationId) => {
         }
     });
 };
+
+export const markAllNotificationAsRead = async (userId) => {
+
+    await notificationModel.updateMany({ user: userId, isRead: false }, {
+        $set: {
+            isRead: true
+        }
+    });
+};

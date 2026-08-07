@@ -15,5 +15,10 @@ notificationRoutes.patch("/:notificationId/read",
     controllers.markNotificationAsReadController
 );
 
+notificationRoutes.patch("/notifications/read-all",
+    middlewares.authMiddleware,
+    controllers.markAllNotificationAsReadController
+);
+
 
 export default notificationRoutes;

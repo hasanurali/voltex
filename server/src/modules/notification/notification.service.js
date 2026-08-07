@@ -106,5 +106,14 @@ export const markNotificationAsReadService = async (userId, notificationId) => {
         throw new ApiError(StatusCodes.FORBIDDEN, NOTIFICATION_MESSAGES.NOT_OWNER);
     };
 
+    if (notification.isRead) {
+        return;
+    };
+
     await notificationRepository.markNotificationAsRead(notificationObjectId);
+};
+
+export const markAllNotificationAsReadService = async (userId) => {
+
+    await notificationRepository.markAllNotificationAsRead(userId);
 };

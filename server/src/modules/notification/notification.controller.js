@@ -27,3 +27,13 @@ export const markNotificationAsReadController = asyncHandler(async (req, res) =>
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(NOTIFICATION_MESSAGES.NOTIFICATION_MARK_READ_SUCCESS));
 });
+
+export const markAllNotificationAsReadController = asyncHandler(async (req, res) => {
+
+    const userId = req.user.id;
+
+    await services.markAllNotificationAsReadService(userId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(NOTIFICATION_MESSAGES.NOTIFICATIONS_MARK_READ_ALL_SUCCESS));
+});
