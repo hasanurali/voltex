@@ -6,3 +6,4 @@ export { default as FOLLOW_MESSAGES } from "./follow.messages.js";
 export { default as POST_MESSAGES } from "./post.messages.js";
 export { default as COMMENT_MESSAGES } from "./comment.messages.js";
 export { default as REACTION_MESSAGES } from "./reaction.messages.js";
+export { default as NOTIFICATION_MESSAGES } from "./notifications.messages.js";

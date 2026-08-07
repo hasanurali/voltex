@@ -5,7 +5,8 @@ import * as postRepository from "../post/post.repository.js";
 import * as commentRepository from "../comment/comment.repository.js";
 import { ApiError, withTransaction, convertToObjectId } from "../../shared/utils/index.js";
 import { REACTION_MESSAGES } from "../../shared/constants/messages/index.js";
-import { REACTION_TARGET_TYPE } from "../../shared/constants/enums/index.js";
+import { createNotification } from "../notification/index.js";
+import { REACTION_TARGET_TYPE, NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
 
 export const createReactionService = async (userId, reactionData) => {
 
@@ -20,7 +21,7 @@ export const createReactionService = async (userId, reactionData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, REACTION_MESSAGES.INVALID_TARGET_ID(targetType))
     };
 
-    const isTargetExists = await (
+    const target = await (
 
         targetType === REACTION_TARGET_TYPE.POST ?
             postRepository.findPost(targetObjectId)
@@ -28,7 +29,7 @@ export const createReactionService = async (userId, reactionData) => {
             commentRepository.findComment(targetObjectId)
     );
 
-    if (!isTargetExists) {
+    if (!target) {
         throw new ApiError(StatusCodes.NOT_FOUND, REACTION_MESSAGES.TARGET_NOT_FOUND(targetType));
     };
 
@@ -50,6 +51,26 @@ export const createReactionService = async (userId, reactionData) => {
         await reactionRepository.createReaction({ user: userId, targetId: targetObjectId, targetType }, session);
 
         await incrementTarget(targetObjectId, session);
+    });
+
+    const isPostTarget = targetType === REACTION_TARGET_TYPE.POST;
+
+    void createNotification({
+        user: target.author,
+        triggeredBy: userId,
+        entityId: targetObjectId,
+        entityType: (
+            isPostTarget ?
+                NOTIFICATION_TARGET_TYPE.POST
+                :
+                NOTIFICATION_TARGET_TYPE.COMMENT
+        ),
+        type: (
+            isPostTarget ?
+                NOTIFICATION_TYPE.POST_LIKE
+                :
+                NOTIFICATION_TYPE.COMMENT_LIKE
+        )
     });
 
     return targetType;

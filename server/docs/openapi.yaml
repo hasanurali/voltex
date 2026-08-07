@@ -342,6 +342,7 @@ paths:
         '400':
           description: Validation failed.
 
+
   /profile/{username}:
     get:
       tags:
@@ -368,6 +369,7 @@ paths:
 
         '404':
           description: Profile not found.
+
 
   /profile/username:
     patch:
@@ -404,6 +406,7 @@ paths:
         '409':
           description: Username already exists.
 
+
   /profile:
     patch:
       tags:
@@ -434,6 +437,7 @@ paths:
 
         '401':
           description: You are not authorized.
+
 
   /profile/avatar:
     patch:
@@ -493,6 +497,7 @@ paths:
 
         '404':
           description: Profile not found.
+
 
   /profile/cover-image:
     patch:
@@ -749,7 +754,7 @@ paths:
   # POST
   # ============================================================
 
-  /api/v1/posts:
+  /posts:
     post:
       tags:
         - Post
@@ -798,7 +803,7 @@ paths:
           description: Posts fetched successfully
 
 
-  /api/v1/posts/{postId}:
+  /posts/{postId}:
     get:
       tags:
         - Post
@@ -875,7 +880,7 @@ paths:
           description: Post not found
 
 
-  /api/v1/posts/user/{username}:
+  /posts/user/{username}:
     get:
       tags:
         - Post
@@ -917,7 +922,7 @@ paths:
   # COMMENT
   # ============================================================
 
-  /api/v1/comments:
+  /comments:
     post:
       tags:
         - Comment
@@ -942,7 +947,7 @@ paths:
           description: Post or parent comment not found
 
 
-  /api/v1/comments/post/{postId}:
+  /comments/post/{postId}:
     get:
       tags:
         - Comment
@@ -979,7 +984,7 @@ paths:
           description: Post not found
 
 
-  /api/v1/comments/{commentId}/replies:
+  /comments/{commentId}/replies:
     get:
       tags:
         - Comment
@@ -1001,7 +1006,7 @@ paths:
           description: Comment not found
 
 
-  /api/v1/comments/{commentId}:
+  /comments/{commentId}:
     patch:
       tags:
         - Comment
@@ -1064,7 +1069,7 @@ paths:
   # REACTION
   # ============================================================
 
-  /api/v1/reactions:
+  /reactions:
     post:
       tags:
         - Reaction
@@ -1147,6 +1152,170 @@ paths:
 
         '409':
           description: User has not reacted to this target
+
+
+
+  # ============================================================
+  # NOTIFICATION
+  # ============================================================
+
+  /notifications:
+    get:
+      tags:
+        - Notification
+
+      summary: Fetch Notifications
+
+      description: >
+        Retrieves the authenticated user's notifications.
+
+        Supports page-based pagination and returns the total number
+        of notifications along with the total number of unread
+        notifications.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+
+        - name: page
+          in: query
+          required: false
+          description: Page number.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+
+        - name: limit
+          in: query
+          required: false
+          description: Number of notifications to return per page.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          example: 10
+
+      responses:
+
+        '200':
+          description: Notifications fetched successfully
+
+        '401':
+          description: Authentication required
+
+
+  /notifications/{notificationId}/read:
+    patch:
+      tags:
+        - Notification
+
+      summary: Mark Notification as Read
+
+      description: >
+        Marks a specific notification as read.
+
+        Only the owner of the notification can perform this action.
+        If the notification is already read, no update is performed.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+
+        - name: notificationId
+          in: path
+          required: true
+          description: ID of the notification to mark as read.
+          schema:
+            type: string
+          example: 665f1a2b3c4d5e6f78901234
+
+      responses:
+
+        '200':
+          description: Notification marked as read successfully
+
+        '400':
+          description: Invalid notification ID
+
+        '401':
+          description: Authentication required
+
+        '403':
+          description: Only the notification owner can perform this action
+
+        '404':
+          description: Notification not found
+
+
+  /notifications/read-all:
+    patch:
+      tags:
+        - Notification
+
+      summary: Mark All Notifications as Read
+
+      description: >
+        Marks all unread notifications belonging to the authenticated
+        user as read.
+
+      security:
+        - accessTokenCookie: []
+
+      responses:
+
+        '200':
+          description: All notifications marked as read successfully
+
+        '401':
+          description: Authentication required
+
+
+  /notifications/{notificationId}:
+    delete:
+      tags:
+        - Notification
+
+      summary: Delete Notification
+
+      description: >
+        Deletes a notification belonging to the authenticated user.
+
+        Only the owner of the notification can perform this action.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+
+        - name: notificationId
+          in: path
+          required: true
+          description: ID of the notification to delete.
+          schema:
+            type: string
+          example: 665f1a2b3c4d5e6f78901234
+
+      responses:
+
+        '200':
+          description: Notification deleted successfully
+
+        '400':
+          description: Invalid notification ID
+
+        '401':
+          description: Authentication required
+
+        '403':
+          description: Only the notification owner can perform this action
+
+        '404':
+          description: Notification not found
 
 
 components:
