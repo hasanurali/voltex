@@ -4,8 +4,8 @@ const NOTIFICATION_MESSAGES = {
     NOTIFICATIONS_MARK_READ_ALL_SUCCESS: "All notifications marked as read successfully",
     NOTIFICATION_DELETE_SUCCESS: "Notification deleted successfully",
 
-    NOT_OWNER: "Only the Notification owner can perform this action",
-    INVALID_NOTIFICATION_ID: "Invalid Notification ID",
+    NOT_OWNER: "Only the notification owner can perform this action",
+    INVALID_NOTIFICATION_ID: "Invalid notification ID",
     NOT_FOUND: "Notification not found"
 };
 
