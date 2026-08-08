@@ -1318,6 +1318,99 @@ paths:
           description: Notification not found
 
 
+
+  # ============================================================
+  # CONVERSATION
+  # ============================================================
+  
+  /conversations:
+    get:
+      tags:
+        - Conversation
+
+      summary: Fetch User Conversations
+
+      description: >
+        Fetch conversations belonging to the authenticated user.
+
+        Supports pagination using page and limit query parameters.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+
+        - name: page
+          in: query
+          required: false
+          description: Page number.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+
+        - name: limit
+          in: query
+          required: false
+          description: Number of conversations to fetch per page.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          example: 10
+
+      responses:
+
+        '200':
+          description: Conversation fetched successfully
+
+        '401':
+          description: Authentication required
+
+
+  /conversations/{conversationId}:
+    get:
+      tags:
+        - Conversation
+
+      summary: Fetch Conversation Details
+
+      description: >
+        Fetch detailed information about a specific conversation.
+
+        The authenticated user must be a participant in the conversation.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+
+        - name: conversationId
+          in: path
+          required: true
+          description: ID of the conversation to fetch.
+          schema:
+            type: string
+          example: 665f1a2b3c4d5e6f78901234
+
+      responses:
+
+        '200':
+          description: Conversation details fetched successfully
+
+        '400':
+          description: Invalid conversation ID
+
+        '401':
+          description: Authentication required
+
+        '404':
+          description: Conversation not found 
+
+
+
 components:
 
   # ============================================================
