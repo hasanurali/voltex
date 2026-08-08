@@ -10,5 +10,10 @@ conversationRoutes.get("/",
     controllers.fetchConversationsController
 );
 
+conversationRoutes.get("/:conversationId",
+    middlewares.authMiddleware,
+    controllers.fetchConversationDetailsController
+);
+
 
 export default conversationRoutes;

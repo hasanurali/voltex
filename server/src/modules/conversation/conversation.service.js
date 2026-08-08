@@ -1,5 +1,7 @@
+import { StatusCodes } from "http-status-codes";
+
 import * as conversationRepository from "./conversation.repository.js";
-import { convertToObjectId } from "../../shared/utils/index.js";
+import { ApiError, convertToObjectId } from "../../shared/utils/index.js";
 import { CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
 
 
@@ -40,4 +42,21 @@ export const fetchConversationsService = async (userId, page = 1, limit = 10) =>
             hasPrevPage: safePage > 1
         }
     };
+};
+
+export const fetchConversationDetailsService = async (userId, conversationId) => {
+
+    const userObjectId = convertToObjectId(userId);
+
+    const conversationObjectId = convertToObjectId(conversationId);
+    if (!conversationObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
+    };
+
+    const conversationDetails = await conversationRepository.fetchConversationDetails(userObjectId, conversationObjectId);
+    if (!conversationDetails) {
+        throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND);
+    };
+
+    return conversationDetails;
 };

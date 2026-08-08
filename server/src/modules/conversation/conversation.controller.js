@@ -16,3 +16,15 @@ export const fetchConversationsController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(CONVERSATION_MESSAGES.CONVERSATION_FETCH_SUCCESS, conversations));
 });
+
+export const fetchConversationDetailsController = asyncHandler(async (req, res) => {
+
+    const conversationId = req.params.conversationId;
+
+    const userId = req.user.id;
+
+    const conversationDetails = await services.fetchConversationDetailsService(userId, conversationId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(CONVERSATION_MESSAGES.CONVERSATION_DETAILS_FETCH_SUCCESS, conversationDetails));
+});

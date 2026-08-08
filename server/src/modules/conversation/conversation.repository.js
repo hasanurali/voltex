@@ -103,3 +103,76 @@ export const fetchConversation = async (userId, skip, limit) => {
 
     return result;
 };
+
+export const fetchConversationDetails = async (userId, conversationId) => {
+
+    const [conversationDetails] = await conversationModel.aggregate([
+        {
+            $match: {
+                _id: conversationId,
+                participants: userId
+            },
+        },
+        {
+            $unwind: "$participants"
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "participants",
+                foreignField: "_id",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 1,
+                            displayName: 1,
+                            username: 1,
+                        }
+                    }
+                ],
+                as: "user"
+            }
+        },
+        {
+            $unwind: "$user"
+        },
+        {
+            $lookup: {
+                from: "profiles",
+                localField: "user._id",
+                foreignField: "user",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 0,
+                            avatar: 1
+                        }
+                    }
+                ],
+                as: "profile"
+            }
+        },
+        {
+            $unwind: "$profile"
+        },
+        {
+            $group: {
+                _id: "$_id",
+                name: { $first: "$name" },
+                lastMessage: { $first: "$lastMessage" },
+                participants: {
+                    $push: {
+                        _id: "$user._id",
+                        displayName: "$user.displayName",
+                        username: "$user.username",
+                        avatar: {
+                            url: "$profile.avatar.url"
+                        }
+                    }
+                }
+            }
+        }
+    ]);
+
+    return conversationDetails;
+}
