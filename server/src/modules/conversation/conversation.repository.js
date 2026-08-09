@@ -74,10 +74,31 @@ export const fetchConversation = async (userId, skip, limit) => {
                         $unwind: "$profile"
                     },
                     {
+
+                        $lookup: {
+                            from: "messages",
+                            localField: "lastMessage",
+                            foreignField: "_id",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        _id: 0,
+                                        content: 1,
+                                        createdAt: 1,
+                                    }
+                                }
+                            ],
+                            as: "message"
+                        }
+
+                    },
+                    {
+                        $unwind: "$message"
+                    },
+                    {
                         $group: {
                             _id: "$_id",
                             name: { $first: "$name" },
-                            lastMessage: { $first: "$lastMessage" },
                             participant: {
                                 $first: {
                                     _id: "$user._id",
@@ -87,7 +108,8 @@ export const fetchConversation = async (userId, skip, limit) => {
                                         url: "$profile.avatar.url"
                                     }
                                 }
-                            }
+                            },
+                            lastMessage: { $first: "$message" },
                         }
                     },
                 ],

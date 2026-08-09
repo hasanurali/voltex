@@ -2,9 +2,9 @@ import messageModel from "./message.model.js";
 
 export const createMessage = async (messageData, session) => {
 
-    const message = await messageModel.create([messageData], { session });
+    const [message] = await messageModel.create([messageData], { session });
 
-    return messageData;
+    return message;
 };
 
 export const findAllConversationMessages = async (conversationId, skip, limit) => {

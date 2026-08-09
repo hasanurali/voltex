@@ -32,7 +32,7 @@ export const fetchConversationsService = async (userId, page = 1, limit = 10) =>
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
-        conversations,
+        data: conversations,
         pagination: {
             total,
             page: safePage,
