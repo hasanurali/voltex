@@ -221,3 +221,14 @@ export const findConversation = async (conversationId, userId) => {
 
     return conversation;
 };
+
+export const setLastMessage = async (conversationId, lastMessageId, session) => {
+
+    await conversationModel.findByIdAndUpdate(conversationId,
+        {
+            $set: {
+                lastMessage: lastMessageId
+            }
+        }, { session }
+    );
+};

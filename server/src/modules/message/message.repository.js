@@ -1,8 +1,8 @@
 import messageModel from "./message.model.js";
 
-export const createMessage = async (messageData) => {
+export const createMessage = async (messageData, session) => {
 
-    const message = await messageModel.create(messageData);
+    const message = await messageModel.create([messageData], { session });
 
     return messageData;
 };

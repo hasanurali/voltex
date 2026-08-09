@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import * as messageRepository from "./message.repository.js";
 import { conversationRepository } from "../conversation/index.js";
 import { authRepository } from "../auth/index.js";
-import { ApiError, whitelistInput, convertToObjectId } from "../../shared/utils/index.js";
+import { ApiError, whitelistInput, convertToObjectId, withTransaction } from "../../shared/utils/index.js";
 import { MESSAGE_MESSAGES, USER_MESSAGES, CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
 
 export const createMessageService = async (userId, messageData) => {
@@ -41,11 +41,18 @@ export const createMessageService = async (userId, messageData) => {
     const allowedFields = ['content', 'media'];
     const whitelistedData = whitelistInput(messageData, allowedFields);
 
-    const message = await messageRepository.createMessage({
-        conversation: conversation._id,
-        sender: userId,
-        ...whitelistedData
-    });
+    let message;
+
+    await withTransaction(async (session) => {
+
+        message = await messageRepository.createMessage({
+            conversation: conversation._id,
+            sender: userId,
+            ...whitelistedData
+        }, session);
+
+        await conversationRepository.setLastMessage(conversation._id, message._id, session);
+    })
 
     return message;
 };
