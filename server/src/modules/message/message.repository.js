@@ -131,3 +131,23 @@ export const softDeleteMessage = async (messageId) => {
         }
     );
 };
+
+export const markMessagesAsRead = async (conversationId, userId) => {
+
+    await messageModel.updateMany(
+        {
+            conversation: conversationId,
+            sender: {
+                $ne: userId
+            },
+            isDeleted: false,
+            isSeen: false
+        },
+        {
+            $set: {
+                isSeen: true,
+                seenAt: new Date()
+            }
+        }
+    );
+};

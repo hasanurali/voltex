@@ -28,3 +28,15 @@ export const fetchConversationDetailsController = asyncHandler(async (req, res) 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(CONVERSATION_MESSAGES.CONVERSATION_DETAILS_FETCH_SUCCESS, conversationDetails));
 });
+
+export const markConversationMessagesAsReadController = asyncHandler(async (req, res) => {
+
+    const conversationId = req.params.conversationId;
+
+    const userId = req.user.id;
+
+    await services.markConversationMessagesAsReadService(userId, conversationId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(CONVERSATION_MESSAGES.CONVERSATION_MESSAGES_MARK_READ_ALL_SUCCESS));
+});
