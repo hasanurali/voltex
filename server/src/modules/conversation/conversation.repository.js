@@ -211,3 +211,13 @@ export const createConversation = async (conversationId, participants) => {
 
     return conversation;
 };
+
+export const findConversation = async (conversationId, userId) => {
+
+    const conversation = await conversationModel.findOne({
+        _id: conversationId,
+        participants: userId
+    });
+
+    return conversation;
+};

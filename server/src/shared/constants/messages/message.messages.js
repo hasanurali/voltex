@@ -1,6 +1,6 @@
 const MESSAGE_MESSAGES = {
     MESSAGE_CREATE_SUCCESS: "Message created successfully",
-    MESSAGE_FETCH_SUCCESS: "Message fetched successfully",
+    MESSAGES_FETCH_SUCCESS: "Messages fetched successfully",
     MESSAGE_DELETE_SUCCESS: "Message deleted successfully",
 
     CONTENT_OR_MEDIA_REQUIRED: "Message content or media is required",

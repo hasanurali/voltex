@@ -16,3 +16,17 @@ export const createMessageController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.CREATED)
         .json(new ApiResponse(MESSAGE_MESSAGES.MESSAGE_CREATE_SUCCESS, message));
 });
+
+export const fetchConversationMessagesController = asyncHandler(async (req, res) => {
+
+    const conversationId = req.params.conversationId;
+
+    const { page, limit } = req.query;
+
+    const userId = req.user.id;
+
+    const messagesData = await services.fetchConversationMessagesService(userId, conversationId, page, limit);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(MESSAGE_MESSAGES.MESSAGES_FETCH_SUCCESS, messagesData));
+});

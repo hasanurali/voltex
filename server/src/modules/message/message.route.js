@@ -13,5 +13,10 @@ messageRoutes.post("/",
     controllers.createMessageController
 );
 
+messageRoutes.get("/:conversationId",
+    middlewares.authMiddleware,
+    controllers.fetchConversationMessagesController
+);
+
 
 export default messageRoutes;

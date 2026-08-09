@@ -49,3 +49,50 @@ export const createMessageService = async (userId, messageData) => {
 
     return message;
 };
+
+export const fetchConversationMessagesService = async (userId, conversationId, page = 1, limit = 10) => {
+
+    const conversationObjectId = convertToObjectId(conversationId);
+    if (!conversationObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
+    };
+
+    const conversation = await conversationRepository.findConversation(conversationObjectId, userId);
+    if (!conversation) {
+        throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND)
+    };
+
+    const parsedPage = Number(page);
+    const parsedLimit = Number(limit);
+
+    const safePage = Number.isFinite(parsedPage) ?
+        Math.max(Math.floor(parsedPage), 1)
+        :
+        1;
+
+    const safeLimit = Number.isFinite(parsedLimit) ?
+        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
+        :
+        10;
+
+    const skip = (safePage - 1) * safeLimit;
+
+    const result = await messageRepository.findAllConversationMessages(conversationObjectId, skip, safeLimit);
+
+    const messages = result?.data ?? [];
+    const total = result?.metadata?.[0]?.total ?? 0;
+
+    const totalPages = Math.ceil(total / safeLimit);
+
+    return {
+        data: messages,
+        pagination: {
+            total,
+            page: safePage,
+            limit: safeLimit,
+            totalPages,
+            hasNextPage: safePage < totalPages,
+            hasPrevPage: safePage > 1
+        }
+    };
+};
