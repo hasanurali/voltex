@@ -18,5 +18,10 @@ messageRoutes.get("/:conversationId",
     controllers.fetchConversationMessagesController
 );
 
+messageRoutes.delete("/:messageId",
+    middlewares.authMiddleware,
+    controllers.deleteMessageController
+);
+
 
 export default messageRoutes;

@@ -105,3 +105,29 @@ export const findAllConversationMessages = async (conversationId, skip, limit) =
 
     return result;
 };
+
+export const findMessage = async (messageId) => {
+
+    const message = await messageModel.findOne({
+        _id: messageId,
+        isDeleted: false
+    });
+
+    return message;
+};
+
+export const softDeleteMessage = async (messageId) => {
+
+    await messageModel.findOneAndUpdate(
+        {
+            _id: messageId,
+            isDeleted: false
+        },
+        {
+            $set: {
+                isDeleted: true,
+                deletedAt: new Date()
+            }
+        }
+    );
+};

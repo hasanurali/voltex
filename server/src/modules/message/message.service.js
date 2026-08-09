@@ -96,3 +96,22 @@ export const fetchConversationMessagesService = async (userId, conversationId, p
         }
     };
 };
+
+export const deleteMessageService = async (userId, messageId) => {
+
+    const messageObjectId = convertToObjectId(messageId);
+    if (!messageObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.INVALID_MESSAGE_ID)
+    };
+
+    const message = await messageRepository.findMessage(messageObjectId);
+    if (!message) {
+        throw new ApiError(StatusCodes.NOT_FOUND, MESSAGE_MESSAGES.NOT_FOUND);
+    };
+
+    if (message.sender.toString() !== userId.toString()) {
+        throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.NOT_OWNER);
+    };
+
+    await messageRepository.softDeleteMessage(messageObjectId);
+};

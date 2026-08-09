@@ -30,3 +30,15 @@ export const fetchConversationMessagesController = asyncHandler(async (req, res)
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(MESSAGE_MESSAGES.MESSAGES_FETCH_SUCCESS, messagesData));
 });
+
+export const deleteMessageController = asyncHandler(async (req, res) => {
+
+    const messageId = req.params.messageId;
+
+    const userId = req.user.id;
+
+    await services.deleteMessageService(userId, messageId);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(MESSAGE_MESSAGES.MESSAGE_DELETE_SUCCESS));
+});
