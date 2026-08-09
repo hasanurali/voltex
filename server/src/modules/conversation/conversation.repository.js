@@ -175,4 +175,39 @@ export const fetchConversationDetails = async (userId, conversationId) => {
     ]);
 
     return conversationDetails;
-}
+};
+
+export const createConversation = async (conversationId, participants) => {
+
+    const conversationExists = await (
+        conversationId && conversationModel.findById(conversationId)
+    );
+    if (conversationExists) {
+        return conversationExists;
+    };
+
+    const isValidParticipants = participants.every(Boolean);
+    if (!isValidParticipants) {
+        return null;
+    };
+
+    const name = [...participants].sort().join("-");
+
+    const conversation = await conversationModel.findOneAndUpdate(
+        {
+            name
+        },
+        {
+            $setOnInsert: {
+                name,
+                participants
+            }
+        },
+        {
+            upsert: true,
+            returnDocument: "after"
+        },
+    );
+
+    return conversation;
+};
