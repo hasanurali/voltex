@@ -15,3 +15,20 @@ export const fetchSetting = async (userId) => {
 
     return setting;
 };
+
+export const updateSetting = async (userId, updateData) => {
+
+    const updatedSetting = await settingModel.findOneAndUpdate(
+        {
+            user: userId
+        },
+        {
+            $set: updateData
+        },
+        {
+            returnDocument: "after"
+        }
+    );
+
+    return updatedSetting;
+};

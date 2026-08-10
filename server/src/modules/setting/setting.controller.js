@@ -14,3 +14,15 @@ export const fetchSettingController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(SETTING_MESSAGES.SETTING_FETCH_SUCCESS, setting));
 });
+
+export const updateSettingController = asyncHandler(async (req, res) => {
+
+    const settingData = req.body;
+
+    const userId = req.user.id;
+
+    const updatedSetting = await services.updateSettingService(userId, settingData);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(SETTING_MESSAGES.SETTING_UPDATE_SUCCESS, updatedSetting));
+});
