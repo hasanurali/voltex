@@ -1409,6 +1409,48 @@ paths:
         '404':
           description: Conversation not found 
 
+  
+  /conversations/{conversationId}/read:
+    patch:
+      tags:
+        - Conversation
+
+      summary: Mark All Conversation Messages as Read
+
+      description: >
+        Marks all unread messages in a conversation as read.
+
+        Only messages sent by other participants are marked as read.
+
+        The authenticated user must be a participant in the conversation.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+
+        - name: conversationId
+          in: path
+          required: true
+          description: ID of the conversation whose messages should be marked as read.
+          schema:
+            type: string
+          example: 665f1a2b3c4d5e6f78901234
+
+      responses:
+
+        '200':
+          description: All conversation messages marked as read successfully
+
+        '400':
+          description: Invalid conversation ID
+
+        '401':
+          description: Authentication required
+
+        '404':
+          description: Conversation not found
+
 
 
   # ============================================================
