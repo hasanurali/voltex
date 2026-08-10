@@ -1411,6 +1411,163 @@ paths:
 
 
 
+  # ============================================================
+  # MESSAGE
+  # ============================================================
+
+  /messages:
+    post:
+      tags:
+        - Message
+
+      summary: Create Message
+
+      description: >
+        Creates a new message in a conversation.
+
+        For the first message, provide a participant ID to create or reuse
+        the conversation. After the conversation is created, use the returned
+        conversation ID when sending subsequent messages.
+
+        The message supports text content, image media, or video media.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMessageRequest'
+
+      responses:
+
+        '201':
+          description: Message created successfully
+
+        '400':
+          description: >
+            Message content or media is required, conversation or participant
+            is required, or message media data is invalid.
+
+        '401':
+          description: Authentication required
+
+        '404':
+          description: User or conversation not found
+
+
+  /messages/{conversationId}:
+    get:
+      tags:
+        - Message
+
+      summary: Fetch Conversation Messages
+
+      description: >
+        Fetch messages belonging to a specific conversation.
+
+        The authenticated user must be a participant in the conversation.
+
+        Supports pagination using page and limit query parameters.
+
+        Messages are returned from oldest to newest.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+
+        - name: conversationId
+          in: path
+          required: true
+          description: ID of the conversation whose messages should be fetched.
+          schema:
+            type: string
+          example: 665f1a2b3c4d5e6f78901234
+
+        - name: page
+          in: query
+          required: false
+          description: Page number.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          example: 1
+
+        - name: limit
+          in: query
+          required: false
+          description: Number of messages to fetch per page.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          example: 10
+
+      responses:
+
+        '200':
+          description: Messages fetched successfully
+
+        '400':
+          description: Invalid conversation ID
+
+        '401':
+          description: Authentication required
+
+        '404':
+          description: Conversation not found
+
+
+  /messages/{messageId}:
+    delete:
+      tags:
+        - Message
+
+      summary: Delete Message
+
+      description: >
+        Soft deletes a message belonging to the authenticated user.
+
+        Only the owner of the message can perform this action.
+
+      security:
+        - accessTokenCookie: []
+
+      parameters:
+
+        - name: messageId
+          in: path
+          required: true
+          description: ID of the message to delete.
+          schema:
+            type: string
+          example: 665f1a2b3c4d5e6f78901234
+
+      responses:
+
+        '200':
+          description: Message deleted successfully
+
+        '400':
+          description: Invalid message ID
+
+        '401':
+          description: Authentication required
+
+        '403':
+          description: Only the message owner can perform this action
+
+        '404':
+          description: Message not found         
+
+
+
 components:
 
   # ============================================================
@@ -1854,3 +2011,53 @@ components:
           type: string
           description: ID of the post or comment from which the reaction should be removed.
           example: 665f1a2b3c4d5e6f78901234       
+
+
+
+    # ============================================================
+    # MESSAGE SCHEMAS
+    # ============================================================
+
+    CreateMessageRequest:
+      type: object
+
+      properties:
+
+        conversation:
+          type: string
+          description: ID of the existing conversation.
+          example: 665f1a2b3c4d5e6f78901234
+
+        participant:
+          type: string
+          description: ID of the participant when creating or reusing a conversation.
+          example: 665f1a2b3c4d5e6f78905678
+
+        content:
+          type: string
+          maxLength: 500
+          description: Text content of the message.
+          example: Hello, how are you?
+
+        media:
+          type: array
+          description: Optional image or video attachments.
+          items:
+            type: object
+            properties:
+
+              mediaType:
+                type: string
+                enum:
+                  - image
+                  - video
+                example: image
+
+              url:
+                type: string
+                format: uri
+                example: https://example.com/image.jpg
+
+              publicId:
+                type: string
+                example: voltex/messages/image123
