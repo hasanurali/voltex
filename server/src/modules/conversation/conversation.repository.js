@@ -74,10 +74,31 @@ export const fetchConversation = async (userId, skip, limit) => {
                         $unwind: "$profile"
                     },
                     {
+
+                        $lookup: {
+                            from: "messages",
+                            localField: "lastMessage",
+                            foreignField: "_id",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        _id: 0,
+                                        content: 1,
+                                        createdAt: 1,
+                                    }
+                                }
+                            ],
+                            as: "message"
+                        }
+
+                    },
+                    {
+                        $unwind: "$message"
+                    },
+                    {
                         $group: {
                             _id: "$_id",
                             name: { $first: "$name" },
-                            lastMessage: { $first: "$lastMessage" },
                             participant: {
                                 $first: {
                                     _id: "$user._id",
@@ -87,7 +108,8 @@ export const fetchConversation = async (userId, skip, limit) => {
                                         url: "$profile.avatar.url"
                                     }
                                 }
-                            }
+                            },
+                            lastMessage: { $first: "$message" },
                         }
                     },
                 ],
@@ -175,4 +197,60 @@ export const fetchConversationDetails = async (userId, conversationId) => {
     ]);
 
     return conversationDetails;
-}
+};
+
+export const createConversation = async (conversationId, participants) => {
+
+    const conversationExists = await (
+        conversationId && conversationModel.findById(conversationId)
+    );
+    if (conversationExists) {
+        return conversationExists;
+    };
+
+    const isValidParticipants = participants.every(Boolean);
+    if (!isValidParticipants) {
+        return null;
+    };
+
+    const name = [...participants].sort().join("-");
+
+    const conversation = await conversationModel.findOneAndUpdate(
+        {
+            name
+        },
+        {
+            $setOnInsert: {
+                name,
+                participants
+            }
+        },
+        {
+            upsert: true,
+            returnDocument: "after"
+        },
+    );
+
+    return conversation;
+};
+
+export const findConversation = async (conversationId, userId) => {
+
+    const conversation = await conversationModel.findOne({
+        _id: conversationId,
+        participants: userId
+    });
+
+    return conversation;
+};
+
+export const setLastMessage = async (conversationId, lastMessageId, session) => {
+
+    await conversationModel.findByIdAndUpdate(conversationId,
+        {
+            $set: {
+                lastMessage: lastMessageId
+            }
+        }, { session }
+    );
+};

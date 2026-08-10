@@ -15,5 +15,10 @@ conversationRoutes.get("/:conversationId",
     controllers.fetchConversationDetailsController
 );
 
+conversationRoutes.patch("/:conversationId/read",
+    middlewares.authMiddleware,
+    controllers.markConversationMessagesAsReadController
+);
+
 
 export default conversationRoutes;

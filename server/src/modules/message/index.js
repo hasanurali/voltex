@@ -1,0 +1,1 @@
+export * as messageRepository from "./message.repository.js";

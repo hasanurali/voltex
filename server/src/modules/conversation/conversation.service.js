@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 
 import * as conversationRepository from "./conversation.repository.js";
+import { messageRepository } from "../message/index.js";
 import { ApiError, convertToObjectId } from "../../shared/utils/index.js";
 import { CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
 
@@ -32,7 +33,7 @@ export const fetchConversationsService = async (userId, page = 1, limit = 10) =>
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
-        conversations,
+        data: conversations,
         pagination: {
             total,
             page: safePage,
@@ -59,4 +60,21 @@ export const fetchConversationDetailsService = async (userId, conversationId) =>
     };
 
     return conversationDetails;
+};
+
+export const markConversationMessagesAsReadService = async (userId, conversationId) => {
+
+    const userObjectId = convertToObjectId(userId);
+
+    const conversationObjectId = convertToObjectId(conversationId);
+    if (!conversationObjectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
+    };
+
+    const conversation = await conversationRepository.findConversation(conversationId, userId);
+    if (!conversation) {
+        throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND);
+    };
+
+    await messageRepository.markMessagesAsRead(conversationObjectId, userObjectId);
 };
