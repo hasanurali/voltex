@@ -6,3 +6,12 @@ export const createSetting = async (userId) => {
         user: userId
     });
 };
+
+export const fetchSetting = async (userId) => {
+
+    const setting = await settingModel.findOne({
+        user: userId
+    });
+
+    return setting;
+};

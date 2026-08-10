@@ -9,3 +9,4 @@ export { default as REACTION_MESSAGES } from "./reaction.messages.js";
 export { default as NOTIFICATION_MESSAGES } from "./notifications.messages.js";
 export { default as CONVERSATION_MESSAGES } from "./conversation.messages.js";
 export { default as MESSAGE_MESSAGES } from "./message.messages.js";
+export { default as SETTING_MESSAGES } from "./setting.messages.js";
