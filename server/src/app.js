@@ -15,6 +15,7 @@ import reactionRoutes from "./modules/reaction/reaction.route.js";
 import notificationRoutes from "./modules/notification/notification.routes.js";
 import conversationRoutes from "./modules/conversation/conversation.route.js";
 import messageRoutes from "./modules/message/message.route.js";
+import settingRoutes from "./modules/setting/setting.route.js";
 
 
 const app = express();
@@ -46,6 +47,7 @@ app.use("/api/v1/reactions", reactionRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/conversations", conversationRoutes);
 app.use("/api/v1/messages", messageRoutes);
+app.use("/api/v1/settings", settingRoutes);
 
 
 // Swagger Docs

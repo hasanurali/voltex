@@ -1,0 +1,1 @@
+export * as settingRepository from "./setting.repository.js";

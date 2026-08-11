@@ -1610,6 +1610,59 @@ paths:
 
 
 
+  # ============================================================
+  # SETTING
+  # ============================================================
+
+  /api/v1/settings:
+    get:
+      tags:
+        - Settings
+      summary: Fetch user settings
+      description: >
+        Fetch the settings of the authenticated user.
+
+      security:
+        - cookieAuth: []
+
+      responses:
+        '200':
+          description: Setting fetched successfully
+
+        '401':
+          description: Unauthorized
+
+    patch:
+      tags:
+        - Settings
+      summary: Update user settings
+      description: >
+        Updates the authenticated user's privacy and notification settings.
+
+        Supports partial updates, allowing the user to update only the
+        settings they want to change.
+
+      security:
+        - cookieAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSettingRequest"
+
+      responses:
+        '200':
+          description: Setting updated successfully
+
+        '400':
+          description: Invalid setting data
+
+        '401':
+          description: Unauthorized
+
+
 components:
 
   # ============================================================
@@ -2103,3 +2156,50 @@ components:
               publicId:
                 type: string
                 example: voltex/messages/image123
+
+
+
+    # ============================================================
+    # MESSAGE SCHEMAS
+    # ============================================================             
+
+    UpdateSettingRequest:
+      type: object
+
+      properties:
+
+        privacy:
+          type: object
+          properties:
+            profileVisibility:
+              type: string
+              enum:
+                - public
+                - private
+              example: private
+
+            messagePermission:
+              type: string
+              enum:
+                - everyone
+                - follower
+              example: follower
+
+        notifications:
+          type: object
+          properties:
+            likes:
+              type: boolean
+              example: true
+
+            comments:
+              type: boolean
+              example: true
+
+            follows:
+              type: boolean
+              example: false
+
+            messages:
+              type: boolean
+              example: true
