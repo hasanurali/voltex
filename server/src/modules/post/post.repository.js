@@ -3,7 +3,7 @@ import { VISIBILITY_TYPE } from "../../shared/constants/enums/index.js"
 
 export const createPost = async (postData, session) => {
 
-    const post = await postModel.create([postData], { session });
+    const [post] = await postModel.create([postData], { session });
 
     return post;
 };
@@ -522,10 +522,14 @@ export const findPost = async (postId) => {
 
 export const updatePost = async (postId, whitelistedData) => {
 
-    const updatedPost = await postModel.findByIdAndUpdate(postId, {
-        ...whitelistedData,
-        isEdited: true
-    }, { returnDocument: "after" });
+    const updatedPost = await postModel.findByIdAndUpdate(postId,
+        {
+            $set: {
+                ...whitelistedData,
+                isEdited: true
+            }
+        },
+        { returnDocument: "after" });
 
     return updatedPost;
 };

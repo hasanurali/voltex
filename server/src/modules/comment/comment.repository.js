@@ -2,7 +2,7 @@ import commentModel from "./comment.model.js";
 
 export const createComment = async (commentData, session) => {
 
-    const comment = await commentModel.create(
+    const [comment] = await commentModel.create(
         [commentData],
         { session }
     );
