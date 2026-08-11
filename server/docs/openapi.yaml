@@ -1614,10 +1614,10 @@ paths:
   # SETTING
   # ============================================================
 
-  /api/v1/settings:
+  /settings:
     get:
       tags:
-        - Settings
+        - Setting
       summary: Fetch user settings
       description: >
         Fetch the settings of the authenticated user.
@@ -1634,7 +1634,7 @@ paths:
 
     patch:
       tags:
-        - Settings
+        - Setting
       summary: Update user settings
       description: >
         Updates the authenticated user's privacy and notification settings.
@@ -1661,6 +1661,104 @@ paths:
 
         '401':
           description: Unauthorized
+
+
+
+  # ============================================================
+  # BLOCK
+  # ============================================================
+
+  /blocks:
+    post:
+      tags:
+        - Block
+      summary: Block a user
+      description: >
+        Blocks a user by username for the authenticated user.
+
+        The authenticated user cannot block themselves, and an existing
+        block relationship cannot be created again.
+
+      security:
+        - cookieAuth: []
+
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+          example: john_doe
+
+      responses:
+        "201":
+          description: User blocked successfully
+
+        "400":
+          description: Invalid username or attempting to block yourself
+
+        "401":
+          description: Unauthorized
+
+        "404":
+          description: User not found
+
+        "409":
+          description: User already blocked
+
+    delete:
+      tags:
+        - Block
+      summary: Unblock a user
+      description: >
+        Removes an existing block relationship for the authenticated user.
+
+        The user must currently be blocked before they can be unblocked.
+
+      security:
+        - cookieAuth: []
+
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+          example: john_doe
+
+      responses:
+        "200":
+          description: User unblocked successfully
+
+        "400":
+          description: Invalid username
+
+        "401":
+          description: Unauthorized
+
+        "404":
+          description: User not found or user is not blocked
+
+    get:
+      tags:
+        - Block
+      summary: Fetch blocked users
+      description: >
+        Fetch all users blocked by the authenticated user.
+
+        The response includes the blocked user's display name, username,
+        and profile avatar.
+
+      security:
+        - cookieAuth: []
+
+      responses:
+        "200":
+          description: Blocked users fetched successfully
+
+        "401":
+          description: Unauthorized
+
 
 
 components:
