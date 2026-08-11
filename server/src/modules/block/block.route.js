@@ -15,4 +15,10 @@ blockRoutes.delete("/:username",
     controllers.unblockUserController,
 );
 
+blockRoutes.get("/",
+    middlewares.authMiddleware,
+    controllers.fetchBlockedUsersController,
+);
+
+
 export default blockRoutes;

@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 
 import * as blockRepository from "./block.repository.js";
 import { authRepository } from "../auth/index.js";
-import { ApiError } from "../../shared/utils/index.js";
+import { ApiError, convertToObjectId } from "../../shared/utils/index.js";
 import { AUTH_MESSAGES, USER_MESSAGES, BLOCK_MESSAGES } from "../../shared/constants/messages/index.js";
 
 
@@ -46,4 +46,13 @@ export const unblockUserService = async (userId, username) => {
     };
 
     await blockRepository.unblockUser(userId, user._id);
+};
+
+export const fetchBlockedUsersService = async (userId) => {
+
+    const userObjectId = convertToObjectId(userId);
+
+    const blockedUsers = await blockRepository.fetchBlockedUsers(userObjectId);
+
+    return blockedUsers;
 };

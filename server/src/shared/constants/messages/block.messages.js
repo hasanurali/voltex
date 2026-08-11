@@ -1,5 +1,5 @@
 const BLOCK_MESSAGES = {
-    BLOCK_USER_FETCH_SUCCESS: "Blocked user fetched successfully",
+    BLOCKED_USERS_FETCH_SUCCESS: "Blocked users fetched successfully",
     BLOCK_USER_SUCCESS: "User blocked successfully",
     UNBLOCK_USER_SUCCESS: "User unblocked successfully",
 
