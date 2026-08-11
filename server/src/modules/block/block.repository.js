@@ -17,3 +17,11 @@ export const blockUser = async (blocker, blocked) => {
         blocked
     });
 };
+
+export const unblockUser = async (blocker, blocked) => {
+
+    await blockModel.deleteOne({
+        blocker,
+        blocked
+    });
+};

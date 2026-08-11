@@ -16,3 +16,15 @@ export const blockUserController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.CREATED)
         .json(new ApiResponse(BLOCK_MESSAGES.BLOCK_USER_SUCCESS));
 });
+
+export const unblockUserController = asyncHandler(async (req, res) => {
+
+    const username = req.params.username;
+
+    const userId = req.user.id;
+
+    await services.unblockUserService(userId, username);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(BLOCK_MESSAGES.UNBLOCK_USER_SUCCESS));
+});

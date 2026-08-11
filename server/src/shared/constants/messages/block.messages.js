@@ -4,6 +4,7 @@ const BLOCK_MESSAGES = {
     UNBLOCK_USER_SUCCESS: "User unblocked successfully",
 
     USER_ALREADY_BLOCKED: "User already blocked",
+    USER_NOT_BLOCKED: "User not blocked yet",
     CANNOT_BLOCK_SELF: "You cannot block yourself",
 };
 

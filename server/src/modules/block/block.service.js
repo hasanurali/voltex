@@ -28,3 +28,22 @@ export const blockUserService = async (userId, username) => {
 
     await blockRepository.blockUser(userId, user._id);
 };
+
+export const unblockUserService = async (userId, username) => {
+
+    if (!username) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.INVALID_USERNAME);
+    };
+
+    const user = await authRepository.findUserByUsername(username);
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, USER_MESSAGES.NOT_FOUND);
+    };
+
+    const isBlocked = await blockRepository.findBlock(userId, user._id);
+    if (!isBlocked) {
+        throw new ApiError(StatusCodes.NOT_FOUND, BLOCK_MESSAGES.USER_NOT_BLOCKED);
+    };
+
+    await blockRepository.unblockUser(userId, user._id);
+};
