@@ -156,6 +156,10 @@ export const fetchCommentRepliesService = async (commentId) => {
 
 export const updateCommentService = async (userId, commentId, commentData) => {
 
+    if (!commentData || !Object.keys(commentData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.COMMENT_UPDATE_FAIL);
+    };
+
     const commentObjectId = convertToObjectId(commentId);
     if (!commentObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
@@ -172,6 +176,10 @@ export const updateCommentService = async (userId, commentId, commentData) => {
 
     const allowedFields = ['content'];
     const whitelistedData = whitelistInput(commentData, allowedFields);
+
+    if (!Object.keys(whitelistedData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.COMMENT_UPDATE_FAIL);
+    };
 
     const updatedComment = await commentRepository.updateComment(commentObjectId, whitelistedData);
 

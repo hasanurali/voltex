@@ -6,7 +6,8 @@ const FOLLOW_MESSAGES = {
 
     INVALID_SELF_FOLLOW: "You cannot follow yourself",
     ALREADY_FOLLOWED: "You are already following this user",
-    NOT_FOLLOWED: "You are not following this user"
+    NOT_FOLLOWED: "You are not following this user",
+    CANNOT_FOLLOW_BLOCKED_USER: "You cannot follow blocked user"
 };
 
 export default FOLLOW_MESSAGES;

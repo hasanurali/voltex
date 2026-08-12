@@ -1,9 +1,9 @@
 import { StatusCodes } from "http-status-codes";
-import mongoose from "mongoose";
 
 import * as postRepository from "./post.repository.js";
 import * as authRepository from "../auth/auth.repository.js";
 import * as followRepository from "../follow/follow.repository.js";
+import { blockRepository } from "../block/index.js";
 import { ApiError, whitelistInput, withTransaction, encodeCursor, decodeCursor, convertToObjectId } from "../../shared/utils/index.js";
 import { POST_MESSAGES, AUTH_MESSAGES, USER_MESSAGES } from "../../shared/constants/messages/index.js";
 
@@ -50,13 +50,37 @@ export const fetchPostsService = async (userId, cursor) => {
         const followingIds = await followRepository.fetchUserFollowingIds(userId);
         userFollowingIds = followingIds.map(doc => doc.following);
 
+        const userFollowingIdsSet = new Set(
+            userFollowingIds.map(id => id.toString())
+        );
+
         const followersFollowingIds = await followRepository.fetchUsersFollowingIds(userFollowingIds);
         suggestedFollowingIds = [
             ...new Set(
-                followersFollowingIds.map(doc => doc.following.toString())
+                followersFollowingIds
+                    .map(doc => doc.following.toString())
+                    .filter(id => id !== userId.toString() && !userFollowingIdsSet.has(id))
             )
-        ].map(id => new mongoose.Types.ObjectId(id));
+        ].map(id => convertToObjectId(id));
     };
+
+    const [blockedByMe, blockedMe] = await Promise.all([
+        blockRepository.fetchBlockedUserIds(userId),
+        blockRepository.fetchBlockerUserIds(userId)
+    ]);
+
+    const blockedIds = new Set([
+        ...blockedByMe.map(id => id.toString()),
+        ...blockedMe.map(id => id.toString())
+    ]);
+
+    userFollowingIds = userFollowingIds.filter(
+        id => !blockedIds.has(id.toString())
+    );
+
+    suggestedFollowingIds = suggestedFollowingIds.filter(
+        id => !blockedIds.has(id.toString())
+    );
 
     const posts = await postRepository.fetchHomeFeed({ userFollowingIds, suggestedFollowingIds, cursor: decodedCursor });
 
@@ -141,7 +165,11 @@ export const fetchUserPostsService = async (username, page = 1, limit = 10) => {
 
 export const updatePostService = async (userId, postId, postData) => {
 
-    const { media = [] } = postData;
+    if (!postData || !Object.keys(postData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL);
+    };
+
+    const { media } = postData;
 
     const objectId = convertToObjectId(postId);
     if (!objectId) {
@@ -157,13 +185,26 @@ export const updatePostService = async (userId, postId, postData) => {
         throw new ApiError(StatusCodes.FORBIDDEN, POST_MESSAGES.NOT_OWNER)
     };
 
-    const isValidPublicIds = media?.every(({ publicId }) => publicId?.trim());
-    if (!isValidPublicIds) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL)
+    if (media !== undefined) {
+        const isValidPublicIds = media.every(({ publicId }) => publicId?.trim());
+        if (!isValidPublicIds) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL)
+        };
     };
 
-    const allowedFields = ['content', 'media', 'hashtags', 'visibility'];
-    const whitelistedData = whitelistInput(postData, allowedFields);
+    const allowedPostFields = ['content', 'media', 'hashtags', 'visibility'];
+    const whitelistedPostData = whitelistInput(postData, allowedPostFields);
+
+    let whitelistedMediaData;
+    if (media !== undefined) {
+        const allowedMediaFields = ['mediaType', 'url', 'publicId'];
+        whitelistedMediaData = media.map(media => whitelistInput(media, allowedMediaFields));
+    };
+
+    const whitelistedData = {
+        ...whitelistedPostData,
+        ...(whitelistedMediaData !== undefined && { media: whitelistedMediaData })
+    };
 
     if (!Object.keys(whitelistedData).length) {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL);

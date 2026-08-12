@@ -8,6 +8,7 @@ const COMMENT_MESSAGES = {
     PARENT_COMMENT_POST_MISMATCH: "Parent comment does not belong to this post",
     NOT_OWNER: "Only the comment owner can perform this action",
     INVALID_COMMENT_ID: "Invalid comment ID",
+    COMMENT_UPDATE_FAIL: "Comment update failed, please try again",
     NOT_FOUND: "Comment not found"
 };
 

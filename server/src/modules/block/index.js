@@ -1,0 +1,1 @@
+export * as blockRepository from "./block.repository.js";

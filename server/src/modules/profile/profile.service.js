@@ -48,8 +48,8 @@ export const updateUsernameService = async (userId, username) => {
 
 export const updateProfileService = async (userId, profileData) => {
 
-    if (!profileData || Object.keys(profileData).length === 0) {
-        return;
+    if (!profileData || !Object.keys(profileData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, PROFILE_MESSAGES.PROFILE_UPDATE_FAIL);
     };
 
     const { displayName, ...profileFields } = profileData;
@@ -143,13 +143,12 @@ export const deleteAvatarService = async (userId) => {
         return;
     };
 
-    await Promise.all([
-        profileRepository.updateProfileByUserId(userId, {
-            "avatar.url": DEFAULT_AVATAR(userId),
-            "avatar.publicId": null
-        }),
-        cloudinary.deleteImage(publicId)
-    ]);
+    await profileRepository.updateProfileByUserId(userId, {
+        "avatar.url": DEFAULT_AVATAR(userId),
+        "avatar.publicId": null
+    });
+
+    await cloudinary.deleteImage(publicId);
 };
 
 export const deleteCoverImageService = async (userId) => {
@@ -164,11 +163,10 @@ export const deleteCoverImageService = async (userId) => {
         return;
     };
 
-    await Promise.all([
-        profileRepository.updateProfileByUserId(userId, {
-            "coverImage.url": DEFAULT_COVER_IMAGE,
-            "coverImage.publicId": null
-        }),
-        cloudinary.deleteImage(publicId)
-    ]);
+    await profileRepository.updateProfileByUserId(userId, {
+        "coverImage.url": DEFAULT_COVER_IMAGE,
+        "coverImage.publicId": null
+    });
+
+    await cloudinary.deleteImage(publicId);
 };

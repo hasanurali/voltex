@@ -1,5 +1,6 @@
 import * as settingRepository from "./setting.repository.js";
 import { whitelistInput, buildNestedUpdateFields } from "../../shared/utils/index.js";
+import { SETTING_MESSAGES } from "../../shared/constants/messages/index.js";
 
 
 export const fetchSettingService = async (userId) => {
@@ -10,6 +11,10 @@ export const fetchSettingService = async (userId) => {
 };
 
 export const updateSettingService = async (userId, settingData) => {
+
+    if (!settingData || !Object.keys(settingData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, SETTING_MESSAGES.SETTING_UPDATE_FAIL);
+    };
 
     const { privacy = {}, notifications = {} } = settingData;
 
@@ -23,6 +28,10 @@ export const updateSettingService = async (userId, settingData) => {
     const notificationPair = buildNestedUpdateFields(whitelistedNotificationData, "notifications");
 
     const updateData = { ...privacyPair, ...notificationPair };
+
+    if (!Object.keys(updateData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, SETTING_MESSAGES.SETTING_UPDATE_FAIL);
+    };
 
     const updatedSetting = await settingRepository.updateSetting(userId, updateData);
 

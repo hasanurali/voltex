@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 
 import * as authRepository from "../auth/auth.repository.js";
 import * as followRepository from "./follow.repository.js";
+import { blockRepository } from "../block/index.js"
 import { ApiError, withTransaction } from "../../shared/utils/index.js";
 import { USER_MESSAGES, FOLLOW_MESSAGES } from "../../shared/constants/messages/index.js";
 import { createNotification } from "../notification/index.js";
@@ -16,6 +17,15 @@ export const followUserService = async (userId, username) => {
 
     if (userId.toString() === user._id.toString()) {
         throw new ApiError(StatusCodes.BAD_REQUEST, FOLLOW_MESSAGES.INVALID_SELF_FOLLOW);
+    };
+
+    const [isBlocked, isBlockedByTarget] = await Promise.all([
+        blockRepository.findBlock(userId, user._id),
+        blockRepository.findBlock(user._id, userId)
+    ]);
+
+    if (isBlocked || isBlockedByTarget) {
+        throw new ApiError(StatusCodes.FORBIDDEN, FOLLOW_MESSAGES.CANNOT_FOLLOW_BLOCKED_USER);
     };
 
     const isFollowing = await followRepository.checkFollowing(userId, user._id);

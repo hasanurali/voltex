@@ -49,6 +49,13 @@ export const fetchBlockedUsers = async (userId) => {
                 foreignField: "_id",
                 pipeline: [
                     {
+                        $match: {
+                            isEmailVerified: true,
+                            status: "active",
+                            isDeleted: false
+                        }
+                    },
+                    {
                         $project: {
                             _id: 1,
                             displayName: 1,
@@ -98,4 +105,22 @@ export const fetchBlockedUsers = async (userId) => {
     ]);
 
     return blockedUsers;
+};
+
+export const fetchBlockedUserIds = async (userId) => {
+
+    const blockedUserIds = await blockModel.find({
+        blocker: userId
+    }).select("-_id blocked");
+
+    return blockedUserIds.map(doc => doc.blocked);
+};
+
+export const fetchBlockerUserIds = async (userId) => {
+
+    const blockerUserIds = await blockModel.find({
+        blocked: userId
+    }).select("-_id blocker");
+
+    return blockerUserIds.map(doc => doc.blocker);
 };

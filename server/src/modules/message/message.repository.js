@@ -19,7 +19,7 @@ export const findAllConversationMessages = async (conversationId, skip, limit) =
 
         {
             $sort: {
-                createdAt: 1
+                createdAt: -1
             }
         },
 
@@ -38,6 +38,13 @@ export const findAllConversationMessages = async (conversationId, skip, limit) =
                             localField: "sender",
                             foreignField: "_id",
                             pipeline: [
+                                {
+                                    $match: {
+                                        isEmailVerified: true,
+                                        status: "active",
+                                        isDeleted: false
+                                    }
+                                },
                                 {
                                     $project: {
                                         _id: 1,

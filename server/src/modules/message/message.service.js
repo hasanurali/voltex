@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import * as messageRepository from "./message.repository.js";
 import { conversationRepository } from "../conversation/index.js";
 import { authRepository } from "../auth/index.js";
+import { blockRepository } from "../block/index.js";
 import { ApiError, whitelistInput, convertToObjectId, withTransaction } from "../../shared/utils/index.js";
 import { MESSAGE_MESSAGES, USER_MESSAGES, CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
 
@@ -26,16 +27,46 @@ export const createMessageService = async (userId, messageData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.CONVERSATION_OR_PARTICIPANT_REQUIRED)
     };
 
-    const isValidParticipant = await (
-        participantObjectId && authRepository.findUserById(participantObjectId)
-    );
-    if (!conversationObjectId && !isValidParticipant) {
-        throw new ApiError(StatusCodes.NOT_FOUND, USER_MESSAGES.NOT_FOUND);
-    };
+    let conversation;
 
-    const conversation = await conversationRepository.createConversation(conversationObjectId, [userId, participantObjectId]);
+    conversation = (
+        conversationObjectId &&
+        await conversationRepository.findConversation(conversationObjectId, userId)
+    );
+
     if (conversationObjectId && !conversation) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND)
+    };
+
+    if (!conversation) {
+
+        const participant = (
+            participantObjectId &&
+            await authRepository.findUserById(participantObjectId)
+        );
+
+        if (!participant) {
+            throw new ApiError(StatusCodes.NOT_FOUND, USER_MESSAGES.NOT_FOUND);
+        };
+
+        if (userId.toString() === participantObjectId.toString()) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.CANNOT_MESSAGE_SELF)
+        };
+
+        const [isBlocked, isBlockedByTarget] = await Promise.all([
+            blockRepository.findBlock(userId, participant._id),
+            blockRepository.findBlock(participant._id, userId)
+        ]);
+
+        if (isBlocked || isBlockedByTarget) {
+            throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.CANNOT_MESSAGE_BLOCKED_USER);
+        };
+
+        conversation = await conversationRepository.createConversation([userId, participantObjectId]);
+    };
+
+    if (!conversation) {
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, MESSAGE_MESSAGES.MESSAGE_CREATE_FAIL);
     };
 
     const allowedFields = ['content', 'media'];
@@ -86,7 +117,7 @@ export const fetchConversationMessagesService = async (userId, conversationId, p
 
     const result = await messageRepository.findAllConversationMessages(conversationObjectId, skip, safeLimit);
 
-    const messages = result?.data ?? [];
+    const messages = (result?.data ?? []).reverse();
     const total = result?.metadata?.[0]?.total ?? 0;
 
     const totalPages = Math.ceil(total / safeLimit);

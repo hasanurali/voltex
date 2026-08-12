@@ -38,6 +38,15 @@ export const fetchFollowers = async (userId) => {
                 from: "users",
                 localField: "follower",
                 foreignField: "_id",
+                pipeline: [
+                    {
+                        $match: {
+                            isEmailVerified: true,
+                            status: "active",
+                            isDeleted: false
+                        }
+                    },
+                ],
                 as: "user"
             }
         },
@@ -94,6 +103,15 @@ export const fetchFollowings = async (userId) => {
                 from: "users",
                 localField: "following",
                 foreignField: "_id",
+                pipeline: [
+                    {
+                        $match: {
+                            isEmailVerified: true,
+                            status: "active",
+                            isDeleted: false
+                        }
+                    },
+                ],
                 as: "user"
             }
         },
