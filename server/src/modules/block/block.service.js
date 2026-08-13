@@ -50,9 +50,7 @@ export const unblockUserService = async (userId, username) => {
 
 export const fetchBlockedUsersService = async (userId) => {
 
-    const userObjectId = convertToObjectId(userId);
-
-    const blockedUsers = await blockRepository.fetchBlockedUsers(userObjectId);
+    const blockedUsers = await blockRepository.fetchBlockedUsers(userId);
 
     return blockedUsers;
 };

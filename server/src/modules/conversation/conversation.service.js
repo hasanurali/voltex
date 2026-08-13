@@ -8,11 +8,9 @@ import { CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js"
 
 export const fetchConversationsService = async (userId, page, limit) => {
 
-    const userObjectId = convertToObjectId(userId);
-
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await conversationRepository.fetchConversations(userObjectId, skip, safeLimit);
+    const result = await conversationRepository.fetchConversations(userId, skip, safeLimit);
 
     const conversations = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -34,14 +32,12 @@ export const fetchConversationsService = async (userId, page, limit) => {
 
 export const fetchConversationDetailsService = async (userId, conversationId) => {
 
-    const userObjectId = convertToObjectId(userId);
-
     const conversationObjectId = convertToObjectId(conversationId);
     if (!conversationObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
     };
 
-    const conversationDetails = await conversationRepository.fetchConversationDetails(userObjectId, conversationObjectId);
+    const conversationDetails = await conversationRepository.fetchConversationDetails(userId, conversationObjectId);
     if (!conversationDetails) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND);
     };
@@ -51,17 +47,15 @@ export const fetchConversationDetailsService = async (userId, conversationId) =>
 
 export const markConversationMessagesAsReadService = async (userId, conversationId) => {
 
-    const userObjectId = convertToObjectId(userId);
-
     const conversationObjectId = convertToObjectId(conversationId);
     if (!conversationObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
     };
 
-    const conversation = await conversationRepository.findConversationByIdAndUser(conversationObjectId, userObjectId);
+    const conversation = await conversationRepository.findConversationByIdAndUser(conversationObjectId, userId);
     if (!conversation) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND);
     };
 
-    await messageRepository.markMessagesAsRead(conversationObjectId, userObjectId);
+    await messageRepository.markMessagesAsRead(conversationObjectId, userId);
 };

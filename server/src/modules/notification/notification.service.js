@@ -51,11 +51,9 @@ export const createNotification = async ({ user, triggeredBy, entityId, entityTy
 
 export const fetchNotificationService = async (userId, page, limit) => {
 
-    const userObjectId = convertToObjectId(userId);
-
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await notificationRepository.fetchNotificationsByUserId(userObjectId, skip, safeLimit);
+    const result = await notificationRepository.fetchNotificationsByUserId(userId, skip, safeLimit);
 
     const notifications = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
