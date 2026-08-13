@@ -1,4 +1,4 @@
-const FOLLOW_MESSAGES = {
+const FOLLOW_MESSAGES = Object.freeze({
     FOLLOW_SUCCESS: "User followed successfully",
     FOLLOWERS_FETCH_SUCCESS: "Followers fetched successfully",
     FOLLOWING_FETCH_SUCCESS: "Following users fetched successfully",
@@ -8,6 +8,6 @@ const FOLLOW_MESSAGES = {
     ALREADY_FOLLOWED: "You are already following this user",
     NOT_FOLLOWED: "You are not following this user",
     CANNOT_FOLLOW_BLOCKED_USER: "You cannot follow blocked user"
-};
+});
 
 export default FOLLOW_MESSAGES;

@@ -13,7 +13,7 @@ export const fetchNotificationController = asyncHandler(async (req, res) => {
     const notifications = await services.fetchNotificationService(userId, page, limit);
 
     return res.status(StatusCodes.OK)
-        .json(new ApiResponse(NOTIFICATION_MESSAGES.NOTIFICATION_FETCH_SUCCESS, notifications));
+        .json(new ApiResponse(NOTIFICATION_MESSAGES.NOTIFICATIONS_FETCH_SUCCESS, notifications));
 });
 
 export const markNotificationAsReadController = asyncHandler(async (req, res) => {

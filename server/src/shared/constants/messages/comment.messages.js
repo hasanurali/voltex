@@ -1,4 +1,4 @@
-const COMMENT_MESSAGES = {
+const COMMENT_MESSAGES = Object.freeze({
     COMMENT_CREATE_SUCCESS: "Comment created successfully",
     COMMENT_FETCH_SUCCESS: "Comment fetched successfully",
     COMMENT_REPLIES_FETCH_SUCCESS: "Comment replies fetched successfully",
@@ -8,8 +8,8 @@ const COMMENT_MESSAGES = {
     PARENT_COMMENT_POST_MISMATCH: "Parent comment does not belong to this post",
     NOT_OWNER: "Only the comment owner can perform this action",
     INVALID_COMMENT_ID: "Invalid comment ID",
-    COMMENT_UPDATE_FAIL: "Comment update failed, please try again",
+    COMMENT_UPDATE_FAIL: "Comment update failed. Please try again",
     NOT_FOUND: "Comment not found"
-};
+});
 
 export default COMMENT_MESSAGES;

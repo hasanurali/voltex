@@ -1,4 +1,4 @@
-const REACTION_MESSAGES = {
+const REACTION_MESSAGES = Object.freeze({
 
     REACTION_SUCCESS: (target) =>
         `${target.charAt(0).toUpperCase() + target.slice(1).toLowerCase()} reacted successfully`,
@@ -20,6 +20,6 @@ const REACTION_MESSAGES = {
 
     NOT_REACTED: (target) =>
         `You have not reacted to this ${target.toLowerCase()}`,
-};
+});
 
 export default REACTION_MESSAGES;

@@ -1,7 +1,7 @@
-const USER_MESSAGES = {
-    FETCH_SUCCESS: "User fetched successfully",
+const USER_MESSAGES = Object.freeze({
+    FETCH_SUCCESS: "Users fetched successfully",
 
     NOT_FOUND: "User not found"
-};
+});
 
 export default USER_MESSAGES;

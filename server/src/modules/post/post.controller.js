@@ -26,7 +26,7 @@ export const fetchPostsController = asyncHandler(async (req, res) => {
     const { posts, nextCursor } = await services.fetchPostsService(userId, cursor);
 
     return res.status(StatusCodes.OK)
-        .json(new ApiResponse(POST_MESSAGES.POST_FETCH_SUCCESS, { posts, nextCursor }));
+        .json(new ApiResponse(POST_MESSAGES.POSTS_FETCH_SUCCESS, { posts, nextCursor }));
 });
 
 export const fetchPostDetailsController = asyncHandler(async (req, res) => {
@@ -48,7 +48,7 @@ export const fetchUserPostsController = asyncHandler(async (req, res) => {
     const userPosts = await services.fetchUserPostsService(username, page, limit);
 
     return res.status(StatusCodes.OK)
-        .json(new ApiResponse(POST_MESSAGES.USER_POST_FETCH_SUCCESS, userPosts));
+        .json(new ApiResponse(POST_MESSAGES.USER_POSTS_FETCH_SUCCESS, userPosts));
 });
 
 export const updatePostController = asyncHandler(async (req, res) => {
