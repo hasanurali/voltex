@@ -9,6 +9,7 @@ const MESSAGE_MESSAGES = {
     INVALID_MESSAGE_ID: "Invalid message ID",
     CANNOT_MESSAGE_SELF: "You cannot message yourself",
     CANNOT_MESSAGE_BLOCKED_USER: "You cannot message blocked user",
+    MESSAGE_PERMISSION_FOLLOWER_REQUIRED: "Follow this user to send a message.",
     NOT_FOUND: "Message not found"
 };
 

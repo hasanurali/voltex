@@ -18,9 +18,9 @@ export const checkFollowing = async (follower, following) => {
     return isFollowing;
 };
 
-export const fetchFollowers = async (userId) => {
+export const fetchFollowers = async (userId, skip, limit) => {
 
-    const followers = await followModel.aggregate([
+    const [followers] = await followModel.aggregate([
         {
             $match: {
                 following: userId
@@ -69,13 +69,31 @@ export const fetchFollowers = async (userId) => {
         },
 
         {
-            $project: {
-                _id: "$user._id",
-                displayName: "$user.displayName",
-                username: "$user.username",
-                avatar: {
-                    url: "$profile.avatar.url"
-                }
+            $facet: {
+                data: [
+                    {
+                        $skip: skip
+                    },
+                    {
+                        $limit: limit
+                    },
+                    {
+                        $project: {
+                            _id: "$user._id",
+                            displayName: "$user.displayName",
+                            username: "$user.username",
+                            avatar: {
+                                url: "$profile.avatar.url"
+                            }
+                        }
+                    }
+                ],
+
+                metadata: [
+                    {
+                        $count: "total"
+                    }
+                ]
             }
         }
     ]);
@@ -83,9 +101,9 @@ export const fetchFollowers = async (userId) => {
     return followers;
 };
 
-export const fetchFollowings = async (userId) => {
+export const fetchFollowings = async (userId, skip, limit) => {
 
-    const followings = await followModel.aggregate([
+    const [followings] = await followModel.aggregate([
         {
             $match: {
                 follower: userId
@@ -134,13 +152,31 @@ export const fetchFollowings = async (userId) => {
         },
 
         {
-            $project: {
-                _id: "$user._id",
-                displayName: "$user.displayName",
-                username: "$user.username",
-                avatar: {
-                    url: "$profile.avatar.url"
-                }
+            $facet: {
+                data: [
+                    {
+                        $skip: skip
+                    },
+                    {
+                        $limit: limit
+                    },
+                    {
+                        $project: {
+                            _id: "$user._id",
+                            displayName: "$user.displayName",
+                            username: "$user.username",
+                            avatar: {
+                                url: "$profile.avatar.url"
+                            }
+                        }
+                    }
+                ],
+
+                metadata: [
+                    {
+                        $count: "total"
+                    }
+                ]
             }
         }
     ]);

@@ -1,0 +1,1 @@
+export * as followRepository from "./follow.repository.js";

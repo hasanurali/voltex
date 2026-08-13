@@ -2,28 +2,15 @@ import { StatusCodes } from "http-status-codes";
 
 import * as conversationRepository from "./conversation.repository.js";
 import { messageRepository } from "../message/index.js";
-import { ApiError, convertToObjectId } from "../../shared/utils/index.js";
+import { ApiError, convertToObjectId, pagination } from "../../shared/utils/index.js";
 import { CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
 
 
-export const fetchConversationsService = async (userId, page = 1, limit = 10) => {
+export const fetchConversationsService = async (userId, page, limit) => {
 
     const userObjectId = convertToObjectId(userId);
 
-    const parsedPage = Number(page);
-    const parsedLimit = Number(limit);
-
-    const safePage = Number.isFinite(parsedPage) ?
-        Math.max(Math.floor(parsedPage), 1)
-        :
-        1;
-
-    const safeLimit = Number.isFinite(parsedLimit) ?
-        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
-        :
-        10;
-
-    const skip = (safePage - 1) * safeLimit;
+    const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
     const result = await conversationRepository.fetchConversation(userObjectId, skip, safeLimit);
 

@@ -1,22 +1,10 @@
 import * as userRepository from "./user.repository.js";
+import { pagination } from "../../shared/utils/index.js";
 
 
-export const fetchUsersService = async (page = 1, limit = 10, search = "") => {
+export const fetchUsersService = async (page, limit, search = "") => {
 
-    const parsedPage = Number(page);
-    const parsedLimit = Number(limit);
-
-    const safePage = Number.isFinite(parsedPage) ?
-        Math.max(Math.floor(parsedPage), 1)
-        :
-        1;
-
-    const safeLimit = Number.isFinite(parsedLimit) ?
-        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
-        :
-        10;
-
-    const skip = (safePage - 1) * safeLimit;
+    const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
     const [result] = await userRepository.searchUsers(search, skip, safeLimit);
 

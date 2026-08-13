@@ -4,8 +4,11 @@ import * as messageRepository from "./message.repository.js";
 import { conversationRepository } from "../conversation/index.js";
 import { authRepository } from "../auth/index.js";
 import { blockRepository } from "../block/index.js";
-import { ApiError, whitelistInput, convertToObjectId, withTransaction } from "../../shared/utils/index.js";
+import { settingRepository } from "../setting/index.js";
+import { followRepository } from "../follow/index.js";
+import { ApiError, whitelistInput, convertToObjectId, withTransaction, pagination } from "../../shared/utils/index.js";
 import { MESSAGE_MESSAGES, USER_MESSAGES, CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
+import { MESSAGE_PERMISSION } from "../../shared/constants/enums/index.js";
 
 export const createMessageService = async (userId, messageData) => {
 
@@ -62,6 +65,15 @@ export const createMessageService = async (userId, messageData) => {
             throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.CANNOT_MESSAGE_BLOCKED_USER);
         };
 
+        const setting = await settingRepository.fetchSetting(participantObjectId);
+        if (setting.privacy.messagePermission === MESSAGE_PERMISSION.FOLLOWER) {
+
+            const isFollower = await followRepository.checkFollowing(userId, participantObjectId);
+            if (!isFollower) {
+                throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.MESSAGE_PERMISSION_FOLLOWER_REQUIRED);
+            };
+        };
+
         conversation = await conversationRepository.createConversation([userId, participantObjectId]);
     };
 
@@ -88,7 +100,7 @@ export const createMessageService = async (userId, messageData) => {
     return message;
 };
 
-export const fetchConversationMessagesService = async (userId, conversationId, page = 1, limit = 10) => {
+export const fetchConversationMessagesService = async (userId, conversationId, page, limit) => {
 
     const conversationObjectId = convertToObjectId(conversationId);
     if (!conversationObjectId) {
@@ -100,20 +112,7 @@ export const fetchConversationMessagesService = async (userId, conversationId, p
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND)
     };
 
-    const parsedPage = Number(page);
-    const parsedLimit = Number(limit);
-
-    const safePage = Number.isFinite(parsedPage) ?
-        Math.max(Math.floor(parsedPage), 1)
-        :
-        1;
-
-    const safeLimit = Number.isFinite(parsedLimit) ?
-        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
-        :
-        10;
-
-    const skip = (safePage - 1) * safeLimit;
+    const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
     const result = await messageRepository.findAllConversationMessages(conversationObjectId, skip, safeLimit);
 

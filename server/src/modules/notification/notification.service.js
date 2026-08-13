@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 
 import * as notificationRepository from "./notification.repository.js";
-import { ApiError, convertToObjectId, log } from "../../shared/utils/index.js";
+import { ApiError, convertToObjectId, log, pagination } from "../../shared/utils/index.js";
 import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
 import { NOTIFICATION_MESSAGES } from "../../shared/constants/messages/index.js"
 
@@ -49,24 +49,11 @@ export const createNotification = async ({ user, triggeredBy, entityId, entityTy
     };
 };
 
-export const fetchNotificationService = async (userId, page = 1, limit = 10) => {
+export const fetchNotificationService = async (userId, page, limit) => {
 
     const userObjectId = convertToObjectId(userId);
 
-    const parsedPage = Number(page);
-    const parsedLimit = Number(limit);
-
-    const safePage = Number.isFinite(parsedPage) ?
-        Math.max(Math.floor(parsedPage), 1)
-        :
-        1;
-
-    const safeLimit = Number.isFinite(parsedLimit) ?
-        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
-        :
-        10;
-
-    const skip = (safePage - 1) * safeLimit;
+    const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
     const result = await notificationRepository.fetchNotifications(userObjectId, skip, safeLimit);
 

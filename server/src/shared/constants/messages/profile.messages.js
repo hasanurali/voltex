@@ -12,7 +12,7 @@ const PROFILE_MESSAGES = {
     AVATAR_UPLOAD_FAIL: "Avatar upload failed, please try again",
     COVER_IMAGE_UPLOAD_FAIL: "Cover image upload failed, please try again",
     PROFILE_UPDATE_FAIL: "Profile update failed, please try again",
-
+    PRIVATE_PROFILE: "This profile is private, follow this user to view their profile",
     NOT_FOUND: "Profile not found"
 };
 
