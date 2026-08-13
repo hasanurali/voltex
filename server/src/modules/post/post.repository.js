@@ -252,7 +252,7 @@ export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingI
                             {
                                 finalScore: cursor.score,
                                 _id: {
-                                    $lt: new mongoose.Types.ObjectId(cursor.postId)
+                                    $lt: cursor.postId
                                 }
                             }
                         ]

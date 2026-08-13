@@ -41,6 +41,9 @@ export const createPostService = async (userId, postData) => {
 export const fetchPostsService = async (userId, cursor) => {
 
     const decodedCursor = decodeCursor(cursor);
+    if (decodedCursor?.postId) {
+        decodedCursor.postId = convertToObjectId(decodedCursor.postId);
+    };
 
     let userFollowingIds = [];
     let suggestedFollowingIds = [];
