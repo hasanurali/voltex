@@ -55,7 +55,7 @@ export const fetchNotificationService = async (userId, page, limit) => {
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await notificationRepository.fetchNotifications(userObjectId, skip, safeLimit);
+    const result = await notificationRepository.fetchNotificationsByUserId(userObjectId, skip, safeLimit);
 
     const notifications = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -84,7 +84,7 @@ export const markNotificationAsReadService = async (userId, notificationId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, NOTIFICATION_MESSAGES.INVALID_NOTIFICATION_ID);
     };
 
-    const notification = await notificationRepository.findNotification(notificationObjectId);
+    const notification = await notificationRepository.findNotificationById(notificationObjectId);
     if (!notification) {
         throw new ApiError(StatusCodes.NOT_FOUND, NOTIFICATION_MESSAGES.NOT_FOUND);
     };
@@ -112,7 +112,7 @@ export const deleteNotificationService = async (userId, notificationId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, NOTIFICATION_MESSAGES.INVALID_NOTIFICATION_ID);
     };
 
-    const notification = await notificationRepository.findNotification(notificationObjectId);
+    const notification = await notificationRepository.findNotificationById(notificationObjectId);
     if (!notification) {
         throw new ApiError(StatusCodes.NOT_FOUND, NOTIFICATION_MESSAGES.NOT_FOUND);
     };

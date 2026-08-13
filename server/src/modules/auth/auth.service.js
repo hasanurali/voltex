@@ -181,7 +181,7 @@ export const forgotPasswordService = async (email) => {
 
     const token = tokenGenerator();
 
-    await authRepository.setResetPasswordTokenAndExpireWithId(user._id, hashToken(token));
+    await authRepository.setResetPasswordToken(user._id, hashToken(token));
 
     const resetLink = `${env.CLIENT_URL}/auth/reset-password?token=${token}`;
 

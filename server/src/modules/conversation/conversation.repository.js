@@ -1,6 +1,6 @@
 import conversationModel from "./conversation.model.js";
 
-export const fetchConversation = async (userId, skip, limit) => {
+export const fetchConversations = async (userId, skip, limit) => {
 
     const [result] = await conversationModel.aggregate([
         {
@@ -252,7 +252,7 @@ export const createConversation = async (participants) => {
     return conversation;
 };
 
-export const findConversation = async (conversationId, userId) => {
+export const findConversationByIdAndUser = async (conversationId, userId) => {
 
     const conversation = await conversationModel.findOne({
         _id: conversationId,

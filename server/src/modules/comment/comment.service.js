@@ -26,7 +26,7 @@ export const createCommentService = async (userId, commentData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const fetchedParentComment = parentCommentObjectId && await commentRepository.findComment(parentCommentObjectId);
+    const fetchedParentComment = parentCommentObjectId && await commentRepository.findCommentById(parentCommentObjectId);
     if (parentCommentObjectId && !fetchedParentComment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
@@ -104,7 +104,7 @@ export const fetchCommentService = async (postId, page, limit) => {
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await commentRepository.fetchComment(postObjectId, skip, safeLimit);
+    const result = await commentRepository.fetchCommentsByPostId(postObjectId, skip, safeLimit);
 
     const comments = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -131,12 +131,12 @@ export const fetchCommentRepliesService = async (commentId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findComment(commentObjectId);
+    const comment = await commentRepository.findCommentById(commentObjectId);
     if (!comment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
 
-    const commentReplies = await commentRepository.fetchCommentReplies(commentObjectId);
+    const commentReplies = await commentRepository.fetchRepliesByCommentId(commentObjectId);
 
     return commentReplies;
 };
@@ -152,7 +152,7 @@ export const updateCommentService = async (userId, commentId, commentData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findComment(commentObjectId);
+    const comment = await commentRepository.findCommentById(commentObjectId);
     if (!comment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
@@ -180,7 +180,7 @@ export const deleteCommentService = async (userId, commentId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findComment(commentObjectId);
+    const comment = await commentRepository.findCommentById(commentObjectId);
     if (!comment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };

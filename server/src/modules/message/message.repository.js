@@ -7,7 +7,7 @@ export const createMessage = async (messageData, session) => {
     return message;
 };
 
-export const findAllConversationMessages = async (conversationId, skip, limit) => {
+export const fetchConversationMessages = async (conversationId, skip, limit) => {
 
     const [result] = await messageModel.aggregate([
         {
@@ -113,7 +113,7 @@ export const findAllConversationMessages = async (conversationId, skip, limit) =
     return result;
 };
 
-export const findMessage = async (messageId) => {
+export const findMessageById = async (messageId) => {
 
     const message = await messageModel.findOne({
         _id: messageId,

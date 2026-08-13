@@ -12,7 +12,7 @@ export const fetchConversationsService = async (userId, page, limit) => {
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await conversationRepository.fetchConversation(userObjectId, skip, safeLimit);
+    const result = await conversationRepository.fetchConversations(userObjectId, skip, safeLimit);
 
     const conversations = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -58,7 +58,7 @@ export const markConversationMessagesAsReadService = async (userId, conversation
         throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
     };
 
-    const conversation = await conversationRepository.findConversation(conversationId, userId);
+    const conversation = await conversationRepository.findConversationByIdAndUser(conversationObjectId, userObjectId);
     if (!conversation) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND);
     };

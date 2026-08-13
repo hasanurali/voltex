@@ -26,7 +26,7 @@ export const createReactionService = async (userId, reactionData) => {
         targetType === REACTION_TARGET_TYPE.POST ?
             postRepository.findPost(targetObjectId)
             :
-            commentRepository.findComment(targetObjectId)
+            commentRepository.findCommentById(targetObjectId)
     );
 
     if (!target) {
@@ -94,7 +94,7 @@ export const deleteReactionService = async (userId, reactionData) => {
         targetType === REACTION_TARGET_TYPE.POST ?
             postRepository.findPost(targetObjectId)
             :
-            commentRepository.findComment(targetObjectId)
+            commentRepository.findCommentById(targetObjectId)
     );
 
     if (!isTargetExists) {

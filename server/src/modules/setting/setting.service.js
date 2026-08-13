@@ -1,5 +1,7 @@
+import { StatusCodes } from "http-status-codes";
+
 import * as settingRepository from "./setting.repository.js";
-import { whitelistInput, buildNestedUpdateFields } from "../../shared/utils/index.js";
+import { ApiError, whitelistInput, buildNestedUpdateFields } from "../../shared/utils/index.js";
 import { SETTING_MESSAGES } from "../../shared/constants/messages/index.js";
 
 

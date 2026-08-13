@@ -1,6 +1,6 @@
 import blockModel from "./block.model.js";
 
-export const findBlock = async (blocker, blocked) => {
+export const findBlockByBlockerAndBlocked = async (blocker, blocked) => {
 
     const block = await blockModel.findOne({
         blocker,

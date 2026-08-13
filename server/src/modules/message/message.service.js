@@ -34,7 +34,7 @@ export const createMessageService = async (userId, messageData) => {
 
     conversation = (
         conversationObjectId &&
-        await conversationRepository.findConversation(conversationObjectId, userId)
+        await conversationRepository.findConversationByIdAndUser(conversationObjectId, userId)
     );
 
     if (conversationObjectId && !conversation) {
@@ -57,8 +57,8 @@ export const createMessageService = async (userId, messageData) => {
         };
 
         const [isBlocked, isBlockedByTarget] = await Promise.all([
-            blockRepository.findBlock(userId, participant._id),
-            blockRepository.findBlock(participant._id, userId)
+            blockRepository.findBlockByBlockerAndBlocked(userId, participant._id),
+            blockRepository.findBlockByBlockerAndBlocked(participant._id, userId)
         ]);
 
         if (isBlocked || isBlockedByTarget) {
@@ -107,14 +107,14 @@ export const fetchConversationMessagesService = async (userId, conversationId, p
         throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
     };
 
-    const conversation = await conversationRepository.findConversation(conversationObjectId, userId);
+    const conversation = await conversationRepository.findConversationByIdAndUser(conversationObjectId, userId);
     if (!conversation) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND)
     };
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await messageRepository.findAllConversationMessages(conversationObjectId, skip, safeLimit);
+    const result = await messageRepository.fetchConversationMessages(conversationObjectId, skip, safeLimit);
 
     const messages = (result?.data ?? []).reverse();
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -141,7 +141,7 @@ export const deleteMessageService = async (userId, messageId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.INVALID_MESSAGE_ID)
     };
 
-    const message = await messageRepository.findMessage(messageObjectId);
+    const message = await messageRepository.findMessageById(messageObjectId);
     if (!message) {
         throw new ApiError(StatusCodes.NOT_FOUND, MESSAGE_MESSAGES.NOT_FOUND);
     };

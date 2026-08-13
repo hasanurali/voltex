@@ -18,7 +18,7 @@ export const checkFollowing = async (follower, following) => {
     return isFollowing;
 };
 
-export const fetchFollowers = async (userId, skip, limit) => {
+export const fetchFollowersByUserId = async (userId, skip, limit) => {
 
     const [followers] = await followModel.aggregate([
         {
@@ -101,7 +101,7 @@ export const fetchFollowers = async (userId, skip, limit) => {
     return followers;
 };
 
-export const fetchFollowings = async (userId, skip, limit) => {
+export const fetchFollowingsByUserId = async (userId, skip, limit) => {
 
     const [followings] = await followModel.aggregate([
         {

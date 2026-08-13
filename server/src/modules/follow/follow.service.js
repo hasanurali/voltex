@@ -20,8 +20,8 @@ export const followUserService = async (userId, username) => {
     };
 
     const [isBlocked, isBlockedByTarget] = await Promise.all([
-        blockRepository.findBlock(userId, user._id),
-        blockRepository.findBlock(user._id, userId)
+        blockRepository.findBlockByBlockerAndBlocked(userId, user._id),
+        blockRepository.findBlockByBlockerAndBlocked(user._id, userId)
     ]);
 
     if (isBlocked || isBlockedByTarget) {
@@ -60,7 +60,7 @@ export const fetchFollowersService = async (username, page, limit) => {
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await followRepository.fetchFollowers(user._id, skip, safeLimit);
+    const result = await followRepository.fetchFollowersByUserId(user._id, skip, safeLimit);
 
     const followers = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -89,7 +89,7 @@ export const fetchFollowingsService = async (username, page, limit) => {
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await followRepository.fetchFollowings(user._id, skip, safeLimit);
+    const result = await followRepository.fetchFollowingsByUserId(user._id, skip, safeLimit);
 
     const followings = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;

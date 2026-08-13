@@ -99,7 +99,7 @@ export const findUserById = async (userId, select = "") => {
     return user;
 };
 
-export const setResetPasswordTokenAndExpireWithId = async (userId, resetToken) => {
+export const setResetPasswordToken = async (userId, resetToken) => {
 
     // 10 minutes
     const addedTime = 10 * 60 * 1000;
