@@ -3,8 +3,12 @@ import { StatusCodes } from "http-status-codes";
 import * as messageRepository from "./message.repository.js";
 import { conversationRepository } from "../conversation/index.js";
 import { authRepository } from "../auth/index.js";
-import { ApiError, whitelistInput, convertToObjectId, withTransaction } from "../../shared/utils/index.js";
+import { blockRepository } from "../block/index.js";
+import { settingRepository } from "../setting/index.js";
+import { followRepository } from "../follow/index.js";
+import { ApiError, whitelistInput, convertToObjectId, withTransaction, pagination } from "../../shared/utils/index.js";
 import { MESSAGE_MESSAGES, USER_MESSAGES, CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
+import { MESSAGE_PERMISSION } from "../../shared/constants/enums/index.js";
 
 export const createMessageService = async (userId, messageData) => {
 
@@ -26,16 +30,55 @@ export const createMessageService = async (userId, messageData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.CONVERSATION_OR_PARTICIPANT_REQUIRED)
     };
 
-    const isValidParticipant = await (
-        participantObjectId && authRepository.findUserById(participantObjectId)
-    );
-    if (!conversationObjectId && !isValidParticipant) {
-        throw new ApiError(StatusCodes.NOT_FOUND, USER_MESSAGES.NOT_FOUND);
-    };
+    let conversation;
 
-    const conversation = await conversationRepository.createConversation(conversationObjectId, [userId, participantObjectId]);
+    conversation = (
+        conversationObjectId &&
+        await conversationRepository.findConversationByIdAndUser(conversationObjectId, userId)
+    );
+
     if (conversationObjectId && !conversation) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND)
+    };
+
+    if (!conversation) {
+
+        const participant = (
+            participantObjectId &&
+            await authRepository.findUserById(participantObjectId)
+        );
+
+        if (!participant) {
+            throw new ApiError(StatusCodes.NOT_FOUND, USER_MESSAGES.NOT_FOUND);
+        };
+
+        if (userId.toString() === participantObjectId.toString()) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.CANNOT_MESSAGE_SELF)
+        };
+
+        const [isBlocked, isBlockedByTarget] = await Promise.all([
+            blockRepository.findBlockByBlockerAndBlocked(userId, participant._id),
+            blockRepository.findBlockByBlockerAndBlocked(participant._id, userId)
+        ]);
+
+        if (isBlocked || isBlockedByTarget) {
+            throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.CANNOT_MESSAGE_BLOCKED_USER);
+        };
+
+        const setting = await settingRepository.fetchSetting(participantObjectId);
+        if (setting.privacy.messagePermission === MESSAGE_PERMISSION.FOLLOWER) {
+
+            const isFollower = await followRepository.checkFollowing(userId, participantObjectId);
+            if (!isFollower) {
+                throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.MESSAGE_PERMISSION_FOLLOWER_REQUIRED);
+            };
+        };
+
+        conversation = await conversationRepository.createConversation([userId, participantObjectId]);
+    };
+
+    if (!conversation) {
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, MESSAGE_MESSAGES.MESSAGE_CREATE_FAIL);
     };
 
     const allowedFields = ['content', 'media'];
@@ -57,36 +100,23 @@ export const createMessageService = async (userId, messageData) => {
     return message;
 };
 
-export const fetchConversationMessagesService = async (userId, conversationId, page = 1, limit = 10) => {
+export const fetchConversationMessagesService = async (userId, conversationId, page, limit) => {
 
     const conversationObjectId = convertToObjectId(conversationId);
     if (!conversationObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
     };
 
-    const conversation = await conversationRepository.findConversation(conversationObjectId, userId);
+    const conversation = await conversationRepository.findConversationByIdAndUser(conversationObjectId, userId);
     if (!conversation) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND)
     };
 
-    const parsedPage = Number(page);
-    const parsedLimit = Number(limit);
+    const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const safePage = Number.isFinite(parsedPage) ?
-        Math.max(Math.floor(parsedPage), 1)
-        :
-        1;
+    const result = await messageRepository.fetchConversationMessages(conversationObjectId, skip, safeLimit);
 
-    const safeLimit = Number.isFinite(parsedLimit) ?
-        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
-        :
-        10;
-
-    const skip = (safePage - 1) * safeLimit;
-
-    const result = await messageRepository.findAllConversationMessages(conversationObjectId, skip, safeLimit);
-
-    const messages = result?.data ?? [];
+    const messages = (result?.data ?? []).reverse();
     const total = result?.metadata?.[0]?.total ?? 0;
 
     const totalPages = Math.ceil(total / safeLimit);
@@ -111,7 +141,7 @@ export const deleteMessageService = async (userId, messageId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.INVALID_MESSAGE_ID)
     };
 
-    const message = await messageRepository.findMessage(messageObjectId);
+    const message = await messageRepository.findMessageById(messageObjectId);
     if (!message) {
         throw new ApiError(StatusCodes.NOT_FOUND, MESSAGE_MESSAGES.NOT_FOUND);
     };

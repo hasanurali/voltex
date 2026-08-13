@@ -1,6 +1,6 @@
 import blockModel from "./block.model.js";
 
-export const findBlock = async (blocker, blocked) => {
+export const findBlockByBlockerAndBlocked = async (blocker, blocked) => {
 
     const block = await blockModel.findOne({
         blocker,
@@ -48,6 +48,13 @@ export const fetchBlockedUsers = async (userId) => {
                 localField: "blocked",
                 foreignField: "_id",
                 pipeline: [
+                    {
+                        $match: {
+                            isEmailVerified: true,
+                            status: "active",
+                            isDeleted: false
+                        }
+                    },
                     {
                         $project: {
                             _id: 1,
@@ -98,4 +105,22 @@ export const fetchBlockedUsers = async (userId) => {
     ]);
 
     return blockedUsers;
+};
+
+export const fetchBlockedUserIds = async (userId) => {
+
+    const blockedUserIds = await blockModel.find({
+        blocker: userId
+    }).select("-_id blocked");
+
+    return blockedUserIds.map(doc => doc.blocked);
+};
+
+export const fetchBlockerUserIds = async (userId) => {
+
+    const blockerUserIds = await blockModel.find({
+        blocked: userId
+    }).select("-_id blocker");
+
+    return blockerUserIds.map(doc => doc.blocker);
 };

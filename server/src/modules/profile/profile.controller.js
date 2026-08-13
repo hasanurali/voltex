@@ -19,11 +19,13 @@ export const checkUsernameController = asyncHandler(async (req, res) => {
         .json(new ApiResponse(message, { available }));
 });
 
-export const userPublicProfileController = asyncHandler(async (req, res) => {
+export const fetchUserProfileController = asyncHandler(async (req, res) => {
 
     const username = req.params.username;
 
-    const { user, profile } = await services.userPublicProfileService(username);
+    const userId = req.user.id;
+
+    const { user, profile } = await services.fetchUserProfileService(userId, username);
 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(PROFILE_MESSAGES.PROFILE_FETCH_SUCCESS, { user, profile }));

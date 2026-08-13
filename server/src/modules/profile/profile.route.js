@@ -13,7 +13,8 @@ profileRoutes.get("/username/check",
 );
 
 profileRoutes.get("/:username",
-    controllers.userPublicProfileController,
+    middlewares.authMiddleware,
+    controllers.fetchUserProfileController,
 );
 
 profileRoutes.patch("/username",

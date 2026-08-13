@@ -14,7 +14,7 @@ export const fetchConversationsController = asyncHandler(async (req, res) => {
     const conversations = await services.fetchConversationsService(userId, page, limit);
 
     return res.status(StatusCodes.OK)
-        .json(new ApiResponse(CONVERSATION_MESSAGES.CONVERSATION_FETCH_SUCCESS, conversations));
+        .json(new ApiResponse(CONVERSATION_MESSAGES.CONVERSATIONS_FETCH_SUCCESS, conversations));
 });
 
 export const fetchConversationDetailsController = asyncHandler(async (req, res) => {

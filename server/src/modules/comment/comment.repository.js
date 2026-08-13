@@ -2,7 +2,7 @@ import commentModel from "./comment.model.js";
 
 export const createComment = async (commentData, session) => {
 
-    const comment = await commentModel.create(
+    const [comment] = await commentModel.create(
         [commentData],
         { session }
     );
@@ -10,7 +10,7 @@ export const createComment = async (commentData, session) => {
     return comment;
 };
 
-export const findComment = async (commentId) => {
+export const findCommentById = async (commentId) => {
 
     const comment = await commentModel.findOne({
         _id: commentId,
@@ -38,7 +38,7 @@ export const decrementRepliesCount = async (commentId, session) => {
     }, { session });
 };
 
-export const fetchComment = async (postId, skip, safeLimit) => {
+export const fetchCommentsByPostId = async (postId, skip, limit) => {
 
     const [result] = await commentModel.aggregate([
         {
@@ -62,7 +62,7 @@ export const fetchComment = async (postId, skip, safeLimit) => {
                         $skip: skip
                     },
                     {
-                        $limit: safeLimit
+                        $limit: limit
                     }
                 ],
 
@@ -78,7 +78,7 @@ export const fetchComment = async (postId, skip, safeLimit) => {
     return result;
 };
 
-export const fetchCommentReplies = async (commentId) => {
+export const fetchRepliesByCommentId = async (commentId) => {
 
     const commentReplies = await commentModel.find({
         parentComment: commentId,

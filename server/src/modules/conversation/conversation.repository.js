@@ -1,6 +1,6 @@
 import conversationModel from "./conversation.model.js";
 
-export const fetchConversation = async (userId, skip, limit) => {
+export const fetchConversations = async (userId, skip, limit) => {
 
     const [result] = await conversationModel.aggregate([
         {
@@ -16,6 +16,110 @@ export const fetchConversation = async (userId, skip, limit) => {
         },
 
         {
+            $unwind: "$participants"
+        },
+
+        {
+            $match: {
+                participants: {
+                    $ne: userId
+                }
+            }
+        },
+
+        {
+            $lookup: {
+                from: "users",
+                localField: "participants",
+                foreignField: "_id",
+                pipeline: [
+                    {
+                        $match: {
+                            isEmailVerified: true,
+                            status: "active",
+                            isDeleted: false
+                        }
+                    },
+                    {
+                        $project: {
+                            _id: 1,
+                            displayName: 1,
+                            username: 1,
+                        }
+                    }
+                ],
+                as: "user"
+            }
+        },
+
+        {
+            $unwind: "$user"
+        },
+
+        {
+            $lookup: {
+                from: "profiles",
+                localField: "user._id",
+                foreignField: "user",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 0,
+                            avatar: 1
+                        }
+                    }
+                ],
+                as: "profile"
+            }
+        },
+
+        {
+            $unwind: "$profile"
+        },
+
+        {
+
+            $lookup: {
+                from: "messages",
+                localField: "lastMessage",
+                foreignField: "_id",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 0,
+                            content: 1,
+                            createdAt: 1,
+                        }
+                    }
+                ],
+                as: "message"
+            }
+
+        },
+
+        {
+            $unwind: "$message"
+        },
+
+        {
+            $group: {
+                _id: "$_id",
+                name: { $first: "$name" },
+                participant: {
+                    $first: {
+                        _id: "$user._id",
+                        displayName: "$user.displayName",
+                        username: "$user.username",
+                        avatar: {
+                            url: "$profile.avatar.url"
+                        }
+                    }
+                },
+                lastMessage: { $first: "$message" },
+            }
+        },
+
+        {
             $facet: {
                 data: [
                     {
@@ -23,94 +127,6 @@ export const fetchConversation = async (userId, skip, limit) => {
                     },
                     {
                         $limit: limit
-                    },
-                    {
-                        $unwind: "$participants"
-                    },
-                    {
-                        $match: {
-                            participants: {
-                                $ne: userId
-                            }
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: "users",
-                            localField: "participants",
-                            foreignField: "_id",
-                            pipeline: [
-                                {
-                                    $project: {
-                                        _id: 1,
-                                        displayName: 1,
-                                        username: 1,
-                                    }
-                                }
-                            ],
-                            as: "user"
-                        }
-                    },
-                    {
-                        $unwind: "$user"
-                    },
-                    {
-                        $lookup: {
-                            from: "profiles",
-                            localField: "user._id",
-                            foreignField: "user",
-                            pipeline: [
-                                {
-                                    $project: {
-                                        _id: 0,
-                                        avatar: 1
-                                    }
-                                }
-                            ],
-                            as: "profile"
-                        }
-                    },
-                    {
-                        $unwind: "$profile"
-                    },
-                    {
-
-                        $lookup: {
-                            from: "messages",
-                            localField: "lastMessage",
-                            foreignField: "_id",
-                            pipeline: [
-                                {
-                                    $project: {
-                                        _id: 0,
-                                        content: 1,
-                                        createdAt: 1,
-                                    }
-                                }
-                            ],
-                            as: "message"
-                        }
-
-                    },
-                    {
-                        $unwind: "$message"
-                    },
-                    {
-                        $group: {
-                            _id: "$_id",
-                            name: { $first: "$name" },
-                            participant: {
-                                $first: {
-                                    _id: "$user._id",
-                                    displayName: "$user.displayName",
-                                    username: "$user.username",
-                                    avatar: {
-                                        url: "$profile.avatar.url"
-                                    }
-                                }
-                            },
-                            lastMessage: { $first: "$message" },
-                        }
                     },
                 ],
 
@@ -136,14 +152,18 @@ export const fetchConversationDetails = async (userId, conversationId) => {
             },
         },
         {
-            $unwind: "$participants"
-        },
-        {
             $lookup: {
                 from: "users",
                 localField: "participants",
                 foreignField: "_id",
                 pipeline: [
+                    {
+                        $match: {
+                            isEmailVerified: true,
+                            status: "active",
+                            isDeleted: false
+                        }
+                    },
                     {
                         $project: {
                             _id: 1,
@@ -153,6 +173,16 @@ export const fetchConversationDetails = async (userId, conversationId) => {
                     }
                 ],
                 as: "user"
+            }
+        },
+        {
+            $match: {
+                $expr: {
+                    $eq: [
+                        { $size: "$user" },
+                        { $size: "$participants" }
+                    ]
+                }
             }
         },
         {
@@ -199,19 +229,7 @@ export const fetchConversationDetails = async (userId, conversationId) => {
     return conversationDetails;
 };
 
-export const createConversation = async (conversationId, participants) => {
-
-    const conversationExists = await (
-        conversationId && conversationModel.findById(conversationId)
-    );
-    if (conversationExists) {
-        return conversationExists;
-    };
-
-    const isValidParticipants = participants.every(Boolean);
-    if (!isValidParticipants) {
-        return null;
-    };
+export const createConversation = async (participants) => {
 
     const name = [...participants].sort().join("-");
 
@@ -234,7 +252,7 @@ export const createConversation = async (conversationId, participants) => {
     return conversation;
 };
 
-export const findConversation = async (conversationId, userId) => {
+export const findConversationByIdAndUser = async (conversationId, userId) => {
 
     const conversation = await conversationModel.findOne({
         _id: conversationId,

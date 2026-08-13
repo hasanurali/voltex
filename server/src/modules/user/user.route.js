@@ -8,4 +8,5 @@ userRoutes.get("/",
     controllers.fetchUsersController,
 );
 
+
 export default userRoutes;

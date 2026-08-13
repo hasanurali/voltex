@@ -7,7 +7,7 @@ export const createNotification = async (notificationData) => {
     return notification;
 };
 
-export const fetchNotifications = async (userId, skip, safeLimit) => {
+export const fetchNotificationsByUserId = async (userId, skip, safeLimit) => {
 
     const [result] = await notificationModel.aggregate([
         {
@@ -50,7 +50,7 @@ export const fetchNotifications = async (userId, skip, safeLimit) => {
     return result;
 };
 
-export const findNotification = async (notificationId) => {
+export const findNotificationById = async (notificationId) => {
 
     const notification = await notificationModel.findById(notificationId);
 

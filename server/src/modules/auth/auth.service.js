@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 import * as authRepository from "./auth.repository.js";
 import { settingRepository } from "../setting/index.js";
-import { ApiError, otpGenerator, resetPasswordTokenGenerator, hashToken, whitelistInput } from "../../shared/utils/index.js";
+import { ApiError, otpGenerator, tokenGenerator, hashToken, whitelistInput } from "../../shared/utils/index.js";
 import * as mailService from "../../shared/mail/mail.service.js";
 import { AUTH_MESSAGES } from "../../shared/constants/messages/index.js";
 import JWT_CONFIG from "../../config/jwt.js";
@@ -179,9 +179,9 @@ export const forgotPasswordService = async (email) => {
         return;
     };
 
-    const token = resetPasswordTokenGenerator();
+    const token = tokenGenerator();
 
-    await authRepository.setResetPasswordTokenAndExpireWithId(user._id, hashToken(token));
+    await authRepository.setResetPasswordToken(user._id, hashToken(token));
 
     const resetLink = `${env.CLIENT_URL}/auth/reset-password?token=${token}`;
 

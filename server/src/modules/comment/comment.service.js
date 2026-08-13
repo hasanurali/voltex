@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 
 import * as postRepository from "../post/post.repository.js";
 import * as commentRepository from "./comment.repository.js";
-import { ApiError, whitelistInput, withTransaction, convertToObjectId } from "../../shared/utils/index.js";
+import { ApiError, whitelistInput, withTransaction, convertToObjectId, pagination } from "../../shared/utils/index.js";
 import { POST_MESSAGES, COMMENT_MESSAGES } from "../../shared/constants/messages/index.js";
 import { createNotification } from "../notification/index.js";
 import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
@@ -26,7 +26,7 @@ export const createCommentService = async (userId, commentData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const fetchedParentComment = parentCommentObjectId && await commentRepository.findComment(parentCommentObjectId);
+    const fetchedParentComment = parentCommentObjectId && await commentRepository.findCommentById(parentCommentObjectId);
     if (parentCommentObjectId && !fetchedParentComment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
@@ -90,7 +90,7 @@ export const createCommentService = async (userId, commentData) => {
     return comment;
 };
 
-export const fetchCommentService = async (postId, page = 1, limit = 10) => {
+export const fetchCommentService = async (postId, page, limit) => {
 
     const postObjectId = convertToObjectId(postId);
     if (!postObjectId) {
@@ -102,22 +102,9 @@ export const fetchCommentService = async (postId, page = 1, limit = 10) => {
         throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
     };
 
-    const parsedPage = Number(page);
-    const parsedLimit = Number(limit);
+    const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const safePage = Number.isFinite(parsedPage) ?
-        Math.max(Math.floor(parsedPage), 1)
-        :
-        1;
-
-    const safeLimit = Number.isFinite(parsedLimit) ?
-        Math.min(Math.max(Math.floor(parsedLimit), 1), 50)
-        :
-        10;
-
-    const skip = (safePage - 1) * safeLimit;
-
-    const result = await commentRepository.fetchComment(postObjectId, skip, safeLimit);
+    const result = await commentRepository.fetchCommentsByPostId(postObjectId, skip, safeLimit);
 
     const comments = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -144,24 +131,28 @@ export const fetchCommentRepliesService = async (commentId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findComment(commentObjectId);
+    const comment = await commentRepository.findCommentById(commentObjectId);
     if (!comment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
 
-    const commentReplies = await commentRepository.fetchCommentReplies(commentObjectId);
+    const commentReplies = await commentRepository.fetchRepliesByCommentId(commentObjectId);
 
     return commentReplies;
 };
 
 export const updateCommentService = async (userId, commentId, commentData) => {
 
+    if (!commentData || !Object.keys(commentData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.COMMENT_UPDATE_FAIL);
+    };
+
     const commentObjectId = convertToObjectId(commentId);
     if (!commentObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findComment(commentObjectId);
+    const comment = await commentRepository.findCommentById(commentObjectId);
     if (!comment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
@@ -172,6 +163,10 @@ export const updateCommentService = async (userId, commentId, commentData) => {
 
     const allowedFields = ['content'];
     const whitelistedData = whitelistInput(commentData, allowedFields);
+
+    if (!Object.keys(whitelistedData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.COMMENT_UPDATE_FAIL);
+    };
 
     const updatedComment = await commentRepository.updateComment(commentObjectId, whitelistedData);
 
@@ -185,7 +180,7 @@ export const deleteCommentService = async (userId, commentId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findComment(commentObjectId);
+    const comment = await commentRepository.findCommentById(commentObjectId);
     if (!comment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };

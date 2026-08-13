@@ -1,4 +1,4 @@
-const PROFILE_MESSAGES = {
+const PROFILE_MESSAGES = Object.freeze({
     PROFILE_FETCH_SUCCESS: "Profile fetched successfully",
     USERNAME_AVAILABLE: "Username is available",
     USERNAME_TAKEN: "Username is already taken",
@@ -9,10 +9,11 @@ const PROFILE_MESSAGES = {
     AVATAR_DELETE_SUCCESS: "Avatar removed successfully",
     COVER_IMAGE_DELETE_SUCCESS: "Cover image removed successfully",
 
-    AVATAR_UPLOAD_FAIL: "Avatar upload failed, please try again",
-    COVER_IMAGE_UPLOAD_FAIL: "Cover image upload failed, please try again",
-
+    AVATAR_UPLOAD_FAIL: "Avatar upload failed. Please try again",
+    COVER_IMAGE_UPLOAD_FAIL: "Cover image upload failed. Please try again",
+    PROFILE_UPDATE_FAIL: "Profile update failed. Please try again",
+    PRIVATE_PROFILE: "This profile is private. Follow this user to view their profile",
     NOT_FOUND: "Profile not found"
-};
+});
 
 export default PROFILE_MESSAGES;

@@ -17,6 +17,16 @@ export const blockUserController = asyncHandler(async (req, res) => {
         .json(new ApiResponse(BLOCK_MESSAGES.BLOCK_USER_SUCCESS));
 });
 
+export const fetchBlockedUsersController = asyncHandler(async (req, res) => {
+    
+    const userId = req.user.id;
+    
+    const blockedUsers = await services.fetchBlockedUsersService(userId);
+    
+    return res.status(StatusCodes.OK)
+    .json(new ApiResponse(BLOCK_MESSAGES.BLOCKED_USERS_FETCH_SUCCESS, blockedUsers));
+});
+
 export const unblockUserController = asyncHandler(async (req, res) => {
 
     const username = req.params.username;
@@ -27,14 +37,4 @@ export const unblockUserController = asyncHandler(async (req, res) => {
 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(BLOCK_MESSAGES.UNBLOCK_USER_SUCCESS));
-});
-
-export const fetchBlockedUsersController = asyncHandler(async (req, res) => {
-
-    const userId = req.user.id;
-
-    const blockedUsers = await services.fetchBlockedUsersService(userId);
-
-    return res.status(StatusCodes.OK)
-        .json(new ApiResponse(BLOCK_MESSAGES.BLOCKED_USERS_FETCH_SUCCESS, blockedUsers));
 });

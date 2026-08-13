@@ -4,8 +4,11 @@ import * as profileRepository from "./profile.repository.js";
 import { ApiError, whitelistInput } from "../../shared/utils/index.js";
 import { PROFILE_MESSAGES } from "../../shared/constants/messages/index.js";
 import { authRepository } from "../auth/index.js";
+import { settingRepository } from "../setting/index.js";
+import { followRepository } from "../follow/index.js";
 import * as cloudinary from "../../shared/cloudinary/cloudinary.service.js";
 import { DEFAULT_AVATAR, DEFAULT_COVER_IMAGE } from "../../shared/constants/assets/default.assets.js";
+import { PROFILE_VISIBILITY } from "../../shared/constants/enums/index.js";
 
 
 export const checkUsernameService = async (username) => {
@@ -15,11 +18,20 @@ export const checkUsernameService = async (username) => {
     return !isUserExists;
 };
 
-export const userPublicProfileService = async (username) => {
+export const fetchUserProfileService = async (userId, username) => {
 
     const user = await authRepository.findUserByUsername(username, "_id displayName username isVerified createdAt postsCount followersCount followingCount");
     if (!user) {
         throw new ApiError(StatusCodes.NOT_FOUND, PROFILE_MESSAGES.NOT_FOUND)
+    };
+
+    const setting = await settingRepository.fetchSetting(user._id);
+    if (setting.privacy.profileVisibility === PROFILE_VISIBILITY.PRIVATE && userId?.toString() !== user._id.toString()) {
+
+        const isFollower = await followRepository.checkFollowing(userId, user._id);
+        if (!isFollower) {
+            throw new ApiError(StatusCodes.FORBIDDEN, PROFILE_MESSAGES.PRIVATE_PROFILE);
+        };
     };
 
     const profile = await profileRepository.getProfileByUserId(user._id, "_id avatar coverImage bio website location");
@@ -48,8 +60,8 @@ export const updateUsernameService = async (userId, username) => {
 
 export const updateProfileService = async (userId, profileData) => {
 
-    if (!profileData || Object.keys(profileData).length === 0) {
-        return;
+    if (!profileData || !Object.keys(profileData).length) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, PROFILE_MESSAGES.PROFILE_UPDATE_FAIL);
     };
 
     const { displayName, ...profileFields } = profileData;
@@ -143,13 +155,12 @@ export const deleteAvatarService = async (userId) => {
         return;
     };
 
-    await Promise.all([
-        profileRepository.updateProfileByUserId(userId, {
-            "avatar.url": DEFAULT_AVATAR(userId),
-            "avatar.publicId": null
-        }),
-        cloudinary.deleteImage(publicId)
-    ]);
+    await profileRepository.updateProfileByUserId(userId, {
+        "avatar.url": DEFAULT_AVATAR(userId),
+        "avatar.publicId": null
+    });
+
+    await cloudinary.deleteImage(publicId);
 };
 
 export const deleteCoverImageService = async (userId) => {
@@ -164,11 +175,10 @@ export const deleteCoverImageService = async (userId) => {
         return;
     };
 
-    await Promise.all([
-        profileRepository.updateProfileByUserId(userId, {
-            "coverImage.url": DEFAULT_COVER_IMAGE,
-            "coverImage.publicId": null
-        }),
-        cloudinary.deleteImage(publicId)
-    ]);
+    await profileRepository.updateProfileByUserId(userId, {
+        "coverImage.url": DEFAULT_COVER_IMAGE,
+        "coverImage.publicId": null
+    });
+
+    await cloudinary.deleteImage(publicId);
 };
