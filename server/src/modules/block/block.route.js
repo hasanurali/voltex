@@ -10,14 +10,14 @@ blockRoutes.post("/:username",
     controllers.blockUserController,
 );
 
-blockRoutes.delete("/:username",
-    middlewares.authMiddleware,
-    controllers.unblockUserController,
-);
-
 blockRoutes.get("/",
     middlewares.authMiddleware,
     controllers.fetchBlockedUsersController,
+);
+
+blockRoutes.delete("/:username",
+    middlewares.authMiddleware,
+    controllers.unblockUserController,
 );
 
 

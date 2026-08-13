@@ -29,6 +29,13 @@ export const blockUserService = async (userId, username) => {
     await blockRepository.blockUser(userId, user._id);
 };
 
+export const fetchBlockedUsersService = async (userId) => {
+    
+    const blockedUsers = await blockRepository.fetchBlockedUsers(userId);
+    
+    return blockedUsers;
+};
+
 export const unblockUserService = async (userId, username) => {
 
     if (!username) {
@@ -46,11 +53,4 @@ export const unblockUserService = async (userId, username) => {
     };
 
     await blockRepository.unblockUser(userId, user._id);
-};
-
-export const fetchBlockedUsersService = async (userId) => {
-
-    const blockedUsers = await blockRepository.fetchBlockedUsers(userId);
-
-    return blockedUsers;
 };

@@ -2,13 +2,13 @@ import express from "express";
 const postRoutes = express.Router();
 
 import * as middlewares from "../../middlewares/index.js";
-import * as validation from "./post.validation.js";
+import * as validations from "./post.validation.js";
 import * as controllers from "./post.controller.js";
 
 
 postRoutes.post("/",
     middlewares.authMiddleware,
-    validation.createPostValidation,
+    validations.createPostValidation,
     middlewares.validationResultMiddleware,
     controllers.createPostController
 );
@@ -28,7 +28,7 @@ postRoutes.get("/user/:username",
 
 postRoutes.patch("/:postId",
     middlewares.authMiddleware,
-    validation.updatePostValidation,
+    validations.updatePostValidation,
     middlewares.validationResultMiddleware,
     controllers.updatePostController
 );
@@ -37,5 +37,6 @@ postRoutes.delete("/:postId",
     middlewares.authMiddleware,
     controllers.deletePostController
 );
+
 
 export default postRoutes;
