@@ -23,7 +23,7 @@ export const fetchUserProfileController = asyncHandler(async (req, res) => {
 
     const username = req.params.username;
 
-    const userId = req.user._id
+    const userId = req.user.id;
 
     const { user, profile } = await services.fetchUserProfileService(userId, username);
 

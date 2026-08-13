@@ -17,9 +17,9 @@ export const registerController = asyncHandler(async (req, res) => {
 
 export const verifyEmailController = asyncHandler(async (req, res) => {
 
-    const varificationData = req.body;
+    const verificationData = req.body;
 
-    const { user, profile, refreshToken, accessToken } = await services.verifyEmailService(varificationData);
+    const { user, profile, refreshToken, accessToken } = await services.verifyEmailService(verificationData);
 
     return res.status(StatusCodes.OK)
         .cookie("refreshToken", refreshToken, COOKIE_CONFIG.REFRESH)
