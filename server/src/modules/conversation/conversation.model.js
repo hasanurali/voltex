@@ -5,6 +5,7 @@ const conversationSchema = new mongoose.Schema({
     name: {
         type: String,
         trim: true,
+        unique: true,
         required: true
     },
     participants: [
@@ -19,6 +20,12 @@ const conversationSchema = new mongoose.Schema({
         ref: "Message",
         default: null
     }
+    
 }, { timestamps: true });
+
+
+// Indexes
+conversationSchema.index({ participants: 1, updatedAt: -1 });
+
 
 export default mongoose.model("Conversation", conversationSchema);

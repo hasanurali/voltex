@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import crypto from "crypto";
 
 const otpSchema = new mongoose.Schema({
+
     email: {
         type: String,
         unique: true,
@@ -11,6 +12,7 @@ const otpSchema = new mongoose.Schema({
         type: String,
         required: true
     }
+
 }, { timestamps: true });
 
 // Using ttl index in otp model for auto expire after 10 minutes

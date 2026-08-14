@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { DEFAULT_AVATAR, DEFAULT_COVER_IMAGE } from "../../shared/constants/assets/default.assets.js";
 
 const profileSchema = new mongoose.Schema({
+
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -42,6 +43,7 @@ const profileSchema = new mongoose.Schema({
         type: String,
         default: null
     }
+    
 }, { timestamps: true });
 
 

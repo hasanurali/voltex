@@ -43,6 +43,13 @@ const commentSehema = new mongoose.Schema({
         ref: "User",
         default: null
     }
+    
 }, { timestamps: true });
+
+
+// Indexes
+commentSehema.index({ post: 1, parentComment: 1, createdAt: -1 });
+commentSehema.index({ parentComment: 1, createdAt: 1 });
+
 
 export default mongoose.model("Comment", commentSehema);

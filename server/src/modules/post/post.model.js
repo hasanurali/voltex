@@ -71,7 +71,12 @@ const postSchema = new mongoose.Schema({
         ref: "User",
         default: null
     }
+    
 }, { timestamps: true });
+
+
+// Indexes
+postSchema.index({ author: 1, createdAt: -1, _id: -1 });
 
 
 postSchema.methods.toJSON = function () {

@@ -55,6 +55,12 @@ const messageSchema = new mongoose.Schema({
         type: Date,
         default: null
     }
+    
 }, { timestamps: true });
+
+
+// Indexes
+messageSchema.index({ conversation: 1, createdAt: -1 });
+
 
 export default mongoose.model("Message", messageSchema);

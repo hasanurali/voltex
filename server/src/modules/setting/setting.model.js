@@ -7,6 +7,7 @@ const settingSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
+        unique: true,
         required: true
     },
     privacy: {
@@ -39,6 +40,7 @@ const settingSchema = new mongoose.Schema({
             default: true
         }
     }
+    
 }, { timestamps: true });
 
 export default mongoose.model("Setting", settingSchema);

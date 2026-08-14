@@ -19,6 +19,12 @@ const reactionSchema = new mongoose.Schema({
         enum: [REACTION_TARGET_TYPE.POST, REACTION_TARGET_TYPE.COMMENT],
         required: true
     }
+
 }, { timestamps: true });
+
+
+// Indexes
+reactionSchema.index({ user: 1, targetId: 1, targetType: 1 }, { unique: true });
+
 
 export default mongoose.model("Reaction", reactionSchema);
