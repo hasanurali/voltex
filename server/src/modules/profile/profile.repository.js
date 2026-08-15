@@ -1,9 +1,9 @@
 import profileModel from "./profile.model.js";
 
 
-export const createProfile = async (profileData) => {
+export const createProfile = async (profileData, session) => {
 
-    const profile = await profileModel.create(profileData);
+    const [profile] = await profileModel.create([profileData], { session });
 
     return profile;
 };
