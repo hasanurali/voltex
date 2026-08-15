@@ -1,10 +1,10 @@
 import settingModel from "./setting.model.js";
 
-export const createSetting = async (userId) => {
+export const createSetting = async (userId, session) => {
 
-    await settingModel.create({
+    await settingModel.create([{
         user: userId
-    });
+    }], { session });
 };
 
 export const fetchSetting = async (userId) => {

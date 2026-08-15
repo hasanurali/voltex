@@ -8,14 +8,14 @@ const validUserQuery = {
     isDeleted: false
 };
 
-export const createUser = async (userData) => {
+export const createUser = async (userData, session) => {
 
     const hashedPassword = await userModel.hashPassword(userData.password);
 
-    const user = await userModel.create({
+    const [user] = await userModel.create([{
         ...userData,
         password: hashedPassword
-    });
+    }], { session });
 
     return user;
 };

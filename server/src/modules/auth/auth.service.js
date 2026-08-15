@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 import * as authRepository from "./auth.repository.js";
 import { settingRepository } from "../setting/index.js";
-import { ApiError, otpGenerator, tokenGenerator, hashToken, whitelistInput } from "../../shared/utils/index.js";
+import { ApiError, otpGenerator, tokenGenerator, hashToken, whitelistInput, withTransaction } from "../../shared/utils/index.js";
 import * as mailService from "../../shared/mail/mail.service.js";
 import { AUTH_MESSAGES } from "../../shared/constants/messages/index.js";
 import JWT_CONFIG from "../../config/jwt.js";
@@ -16,11 +16,17 @@ export const registerService = async (userData) => {
     const allowedFields = ['displayName', 'username', 'email', 'password'];
     const whitelistedData = whitelistInput(userData, allowedFields);
 
-    const user = await authRepository.createUser(whitelistedData);
+    let user;
+    let profile;
 
-    const profile = await profileRepository.createProfile({ user: user._id });
+    await withTransaction(async (session) => {
 
-    await settingRepository.createSetting(user._id);
+        user = await authRepository.createUser(whitelistedData, session);
+
+        profile = await profileRepository.createProfile({ user: user._id }, session);
+
+        await settingRepository.createSetting(user._id, session);
+    });
 
     const otp = otpGenerator();
 
