@@ -1,12 +1,21 @@
+import { StatusCodes } from "http-status-codes";
+
 import * as userRepository from "./user.repository.js";
-import { pagination } from "../../shared/utils/index.js";
+import { ApiError, pagination } from "../../shared/utils/index.js";
+import { USER_MESSAGES } from "../../shared/constants/messages/index.js";
 
 
 export const fetchUsersService = async (page, limit, search = "") => {
 
+    const trimmedSearch = search.trim();
+
+    if (!trimmedSearch) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, USER_MESSAGES.SEARCH_REQUIRED);
+    };
+
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const [result] = await userRepository.searchUsers(search, skip, safeLimit);
+    const result = await userRepository.searchUsers(trimmedSearch, skip, safeLimit);
 
     const users = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -14,7 +23,7 @@ export const fetchUsersService = async (page, limit, search = "") => {
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
-        data: users,
+        users,
         pagination: {
             total,
             page: safePage,
@@ -23,5 +32,5 @@ export const fetchUsersService = async (page, limit, search = "") => {
             hasNextPage: safePage < totalPages,
             hasPrevPage: safePage > 1
         }
-    }
+    };
 };
