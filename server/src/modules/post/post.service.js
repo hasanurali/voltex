@@ -6,6 +6,8 @@ import * as followRepository from "../follow/follow.repository.js";
 import { blockRepository } from "../block/index.js";
 import { ApiError, whitelistInput, withTransaction, encodeCursor, decodeCursor, convertToObjectId, pagination } from "../../shared/utils/index.js";
 import { POST_MESSAGES, AUTH_MESSAGES, USER_MESSAGES } from "../../shared/constants/messages/index.js";
+import { MEDIA_TYPE } from "../../shared/constants/enums/index.js";
+
 
 export const createPostService = async (userId, postData) => {
 
@@ -15,13 +17,32 @@ export const createPostService = async (userId, postData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.CONTENT_OR_MEDIA_REQUIRED);
     };
 
-    const isValidPublicIds = media?.every(({ publicId }) => publicId?.trim());
-    if (!isValidPublicIds) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_CREATE_FAIL)
+    const allowedPostFields = ['content', 'media', 'hashtags', 'visibility'];
+    const whitelistedPostData = whitelistInput(postData, allowedPostFields);
+
+    let whitelistedMediaData;
+    if (media.length) {
+
+        const allowedMediaFields = ['mediaType', 'url', 'publicId'];
+        whitelistedMediaData = media.map(media => whitelistInput(media, allowedMediaFields));
+
+        const isValidPublicIds = whitelistedMediaData.every(({ publicId }) => publicId?.trim());
+        if (!isValidPublicIds) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_CREATE_FAIL);
+        };
+
+        const isImageMedia = whitelistedMediaData.every(media => media.mediaType === MEDIA_TYPE.IMAGE);
+        const isVideoMedia = whitelistedMediaData.every(media => media.mediaType === MEDIA_TYPE.VIDEO);
+
+        if ((!isImageMedia && !isVideoMedia) || (isImageMedia && whitelistedMediaData.length > 5) || (isVideoMedia && whitelistedMediaData.length > 1)) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.MEDIA_LIMIT_EXCEEDED)
+        };
     };
 
-    const allowedFields = ['content', 'media', 'hashtags', 'visibility'];
-    const whitelistedData = whitelistInput(postData, allowedFields);
+    const whitelistedData = {
+        ...whitelistedPostData,
+        ...(whitelistedMediaData !== undefined && { media: whitelistedMediaData })
+    };
 
     let post;
 
@@ -65,25 +86,25 @@ export const fetchPostsService = async (userId, cursor) => {
                     .filter(id => id !== userId.toString() && !userFollowingIdsSet.has(id))
             )
         ].map(id => convertToObjectId(id));
+
+        const [blockedByMe, blockedMe] = await Promise.all([
+            blockRepository.fetchBlockedUserIds(userId),
+            blockRepository.fetchBlockerUserIds(userId)
+        ]);
+
+        const blockedIds = new Set([
+            ...blockedByMe.map(id => id.toString()),
+            ...blockedMe.map(id => id.toString())
+        ]);
+
+        userFollowingIds = userFollowingIds.filter(
+            id => !blockedIds.has(id.toString())
+        );
+
+        suggestedFollowingIds = suggestedFollowingIds.filter(
+            id => !blockedIds.has(id.toString())
+        );
     };
-
-    const [blockedByMe, blockedMe] = await Promise.all([
-        blockRepository.fetchBlockedUserIds(userId),
-        blockRepository.fetchBlockerUserIds(userId)
-    ]);
-
-    const blockedIds = new Set([
-        ...blockedByMe.map(id => id.toString()),
-        ...blockedMe.map(id => id.toString())
-    ]);
-
-    userFollowingIds = userFollowingIds.filter(
-        id => !blockedIds.has(id.toString())
-    );
-
-    suggestedFollowingIds = suggestedFollowingIds.filter(
-        id => !blockedIds.has(id.toString())
-    );
 
     const posts = await postRepository.fetchHomeFeed({ userFollowingIds, suggestedFollowingIds, cursor: decodedCursor });
 
@@ -106,12 +127,12 @@ export const fetchPostsService = async (userId, cursor) => {
 
 export const fetchPostDetailsService = async (postId) => {
 
-    const objectId = convertToObjectId(postId);
-    if (!objectId) {
+    const postObjectId = convertToObjectId(postId);
+    if (!postObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID);
     };
 
-    const [detailedPost] = await postRepository.fetchPostDetails(objectId);
+    const detailedPost = await postRepository.fetchPostDetails(postObjectId);
 
     if (!detailedPost) {
         throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
@@ -126,14 +147,14 @@ export const fetchUserPostsService = async (username, page, limit) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, AUTH_MESSAGES.INVALID_USERNAME);
     };
 
-    const user = await authRepository.checkUserExists(username);
+    const user = await authRepository.findUserByUsername(username, { select: "_id", lean: true });
     if (!user) {
         throw new ApiError(StatusCodes.NOT_FOUND, USER_MESSAGES.NOT_FOUND);
     };
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const [result] = await postRepository.fetchUserPosts(user._id, safeLimit, skip);
+    const result = await postRepository.fetchUserPosts(user._id, safeLimit, skip);
 
     const posts = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -161,12 +182,12 @@ export const updatePostService = async (userId, postId, postData) => {
 
     const { media } = postData;
 
-    const objectId = convertToObjectId(postId);
-    if (!objectId) {
+    const postObjectId = convertToObjectId(postId);
+    if (!postObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID)
     };
 
-    const post = await postRepository.findPost(objectId);
+    const post = await postRepository.findPost(postObjectId, { select: "author", lean: true });
     if (!post) {
         throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
     };
@@ -175,20 +196,26 @@ export const updatePostService = async (userId, postId, postData) => {
         throw new ApiError(StatusCodes.FORBIDDEN, POST_MESSAGES.NOT_OWNER)
     };
 
-    if (media !== undefined) {
-        const isValidPublicIds = media.every(({ publicId }) => publicId?.trim());
-        if (!isValidPublicIds) {
-            throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL)
-        };
-    };
-
     const allowedPostFields = ['content', 'media', 'hashtags', 'visibility'];
     const whitelistedPostData = whitelistInput(postData, allowedPostFields);
 
     let whitelistedMediaData;
     if (media !== undefined) {
+
         const allowedMediaFields = ['mediaType', 'url', 'publicId'];
         whitelistedMediaData = media.map(media => whitelistInput(media, allowedMediaFields));
+
+        const isValidPublicIds = whitelistedMediaData.every(({ publicId }) => publicId?.trim());
+        if (!isValidPublicIds) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL);
+        };
+
+        const isImageMedia = whitelistedMediaData.every(media => media.mediaType === MEDIA_TYPE.IMAGE);
+        const isVideoMedia = whitelistedMediaData.every(media => media.mediaType === MEDIA_TYPE.VIDEO);
+
+        if ((!isImageMedia && !isVideoMedia) || (isImageMedia && whitelistedMediaData.length > 5) || (isVideoMedia && whitelistedMediaData.length > 1)) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.MEDIA_LIMIT_EXCEEDED)
+        };
     };
 
     const whitelistedData = {
@@ -200,19 +227,19 @@ export const updatePostService = async (userId, postId, postData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL);
     };
 
-    const updatedPost = await postRepository.updatePost(objectId, whitelistedData);
+    const updatedPost = await postRepository.updatePost(postObjectId, whitelistedData);
 
     return updatedPost;
 };
 
 export const deletePostService = async (userId, postId) => {
 
-    const objectId = convertToObjectId(postId);
-    if (!objectId) {
+    const postObjectId = convertToObjectId(postId);
+    if (!postObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID)
     };
 
-    const post = await postRepository.findPost(objectId);
+    const post = await postRepository.findPost(postObjectId, { select: "author", lean: true });
     if (!post) {
         throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
     };
@@ -223,8 +250,10 @@ export const deletePostService = async (userId, postId) => {
 
     await withTransaction(async (session) => {
 
-        await postRepository.softDeletePost(objectId, userId, session);
+        const result = await postRepository.softDeletePost(postObjectId, userId, session);
 
-        await authRepository.decrementPost(userId, session);
+        if (result.modifiedCount === 1) {
+            await authRepository.decrementPost(userId, session);
+        };
     });
 };

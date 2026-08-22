@@ -10,6 +10,7 @@ const POST_MESSAGES = Object.freeze({
     POST_CREATE_FAIL: "Post creation failed. Please try again",
     POST_UPDATE_FAIL: "Post update failed. Please try again",
     NOT_OWNER: "Only the post owner can perform this action",
+    MEDIA_LIMIT_EXCEEDED: "You can upload up to 5 images or 1 video per post",
     INVALID_POST_ID: "Invalid post ID",
     NOT_FOUND: "Post not found"
 });

@@ -1,9 +1,87 @@
 import postModel from "./post.model.js";
 import { VISIBILITY_TYPE } from "../../shared/constants/enums/index.js"
+import { executeWithConfig } from "../../shared/utils/index.js";
+
+
+// Reusable aggregation pipelines
+const postResponsePipeline = (projectionFields = {}) => [
+    {
+        $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            as: "user"
+        }
+    },
+    {
+        $unwind: "$user"
+    },
+    {
+        $lookup: {
+            from: "profiles",
+            localField: "author",
+            foreignField: "user",
+            as: "profile"
+        }
+    },
+    {
+        $unwind: "$profile"
+    },
+    {
+        $project: {
+            _id: 1,
+            author: {
+                _id: "$user._id",
+                displayName: "$user.displayName",
+                username: "$user.username",
+                avatar: "$profile.avatar.url"
+            },
+            content: 1,
+            media: {
+                $map: {
+                    input: "$media",
+                    as: "item",
+                    in: {
+                        mediaType: "$$item.mediaType",
+                        url: "$$item.url"
+                    }
+                }
+            },
+            ...projectionFields,
+            commentsCount: 1,
+            likesCount: 1,
+            visibility: 1,
+            isEdited: 1,
+            createdAt: 1,
+        }
+    }
+];
+
 
 export const createPost = async (postData, session) => {
 
-    const [post] = await postModel.create([postData], { session });
+    const [createdPost] = await postModel.create(
+        [
+            postData
+        ],
+        {
+            session
+        }
+    );
+
+    const [post] = await postModel.aggregate([
+        {
+            $match: {
+                _id: createdPost._id
+            }
+        },
+
+        ...postResponsePipeline()
+    ],
+        {
+            session
+        }
+    );
 
     return post;
 };
@@ -123,11 +201,9 @@ export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingI
                 }
             }
         },
-
         {
             $unwind: "$candidates"
         },
-
         {
             $group: {
                 _id: "$candidates._id",
@@ -136,7 +212,6 @@ export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingI
                 }
             }
         },
-
         {
             $replaceRoot: {
                 newRoot: "$post"
@@ -275,65 +350,8 @@ export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingI
             $limit: 20
         },
 
-        // Lookup user for displayName and username
-        {
-            $lookup: {
-                from: "users",
-                localField: "author",
-                foreignField: "_id",
-                as: "user"
-            }
-        },
-
-        {
-            $unwind: "$user"
-        },
-
-        // Lookup profile for user avatar
-        {
-            $lookup: {
-                from: "profiles",
-                localField: "author",
-                foreignField: "user",
-                as: "profile"
-            }
-        },
-
-        {
-            $unwind: "$profile"
-        },
-
         // Return only feed data
-        {
-            $project: {
-                _id: 1,
-                author: {
-                    _id: "$user._id",
-                    displayName: "$user.displayName",
-                    username: "$user.username",
-                    avatar: {
-                        url: "$profile.avatar.url"
-                    }
-                },
-                content: 1,
-                media: {
-                    $map: {
-                        input: "$media",
-                        as: "item",
-                        in: {
-                            mediaType: "$$item.mediaType",
-                            url: "$$item.url"
-                        }
-                    }
-                },
-                commentsCount: 1,
-                likesCount: 1,
-                visibility: 1,
-                isEdited: 1,
-                createdAt: 1,
-                finalScore: 1
-            }
-        }
+        ...postResponsePipeline({ finalScore: 1 }),
     ]);
 
     return feedPosts;
@@ -341,7 +359,7 @@ export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingI
 
 export const fetchPostDetails = async (postId) => {
 
-    const detailedPost = await postModel.aggregate([
+    const [detailedPost] = await postModel.aggregate([
         {
             $match: {
                 _id: postId,
@@ -349,63 +367,7 @@ export const fetchPostDetails = async (postId) => {
             }
         },
 
-        {
-            $lookup: {
-                from: "users",
-                localField: "author",
-                foreignField: "_id",
-                as: "user"
-            }
-        },
-
-        {
-            $unwind: "$user"
-        },
-
-        {
-            $lookup: {
-                from: "profiles",
-                localField: "author",
-                foreignField: "user",
-                as: "profile"
-            }
-        },
-
-        {
-            $unwind: "$profile"
-        },
-
-        {
-            $project: {
-                _id: 1,
-                author: {
-                    _id: "$user._id",
-                    displayName: "$user.displayName",
-                    username: "$user.username",
-                    avatar: {
-                        url: "$profile.avatar.url"
-                    }
-                },
-                content: 1,
-                media: {
-                    $map: {
-                        input: "$media",
-                        as: "item",
-                        in: {
-                            mediaType: "$$item.mediaType",
-                            url: "$$item.url"
-                        }
-                    }
-                },
-                hashtags: 1,
-                commentsCount: 1,
-                likesCount: 1,
-                visibility: 1,
-                isEdited: 1,
-                createdAt: 1,
-                finalScore: 1
-            }
-        }
+        ...postResponsePipeline({ hashtags: 1 }),
     ]);
 
     return detailedPost;
@@ -413,89 +375,30 @@ export const fetchPostDetails = async (postId) => {
 
 export const fetchUserPosts = async (userId, limit, skip) => {
 
-    const userPostsData = postModel.aggregate([
+    const [userPostsData] = await postModel.aggregate([
         {
             $match: {
                 author: userId,
                 isDeleted: false
             }
         },
-
         {
             $facet: {
-
                 data: [
-
                     {
                         $sort: {
                             createdAt: -1,
                             _id: -1
                         }
                     },
-
                     {
                         $skip: skip
                     },
-
                     {
                         $limit: limit
                     },
 
-                    {
-                        $lookup: {
-                            from: "users",
-                            localField: "author",
-                            foreignField: "_id",
-                            as: "user"
-                        }
-                    },
-
-                    {
-                        $unwind: "$user"
-                    },
-
-                    {
-                        $lookup: {
-                            from: "profiles",
-                            localField: "author",
-                            foreignField: "user",
-                            as: "profile"
-                        }
-                    },
-
-                    {
-                        $unwind: "$profile"
-                    },
-
-                    {
-                        $project: {
-                            _id: 1,
-                            author: {
-                                _id: "$user._id",
-                                displayName: "$user.displayName",
-                                username: "$user.username",
-                                avatar: {
-                                    url: "$profile.avatar.url"
-                                }
-                            },
-                            content: 1,
-                            media: {
-                                $map: {
-                                    input: "$media",
-                                    as: "item",
-                                    in: {
-                                        mediaType: "$$item.mediaType",
-                                        url: "$$item.url"
-                                    }
-                                }
-                            },
-                            commentsCount: 1,
-                            likesCount: 1,
-                            visibility: 1,
-                            isEdited: 1,
-                            createdAt: 1,
-                        }
-                    }
+                    ...postResponsePipeline()
                 ],
 
                 metadata: [
@@ -510,73 +413,146 @@ export const fetchUserPosts = async (userId, limit, skip) => {
     return userPostsData;
 };
 
-export const findPost = async (postId) => {
+export const findPost = async (postId, queryConfig = {}) => {
 
-    const post = await postModel.findOne({
-        _id: postId,
-        isDeleted: false
-    });
+    const baseQuery = postModel.findOne(
+        {
+            _id: postId,
+            isDeleted: false
+        }
+    );
 
-    return post;
+    return await executeWithConfig(baseQuery, queryConfig);
+};
+
+export const checkPostExistsById = async (postId) => {
+
+    const isPostExists = await postModel.exists(
+        {
+            _id: postId,
+            isDeleted: false
+        }
+    );
+
+    return isPostExists;
 };
 
 export const updatePost = async (postId, whitelistedData) => {
 
-    const updatedPost = await postModel.findByIdAndUpdate(postId,
+    await postModel.updateOne(
+        {
+            _id: postId,
+            isDeleted: false
+        },
         {
             $set: {
                 ...whitelistedData,
                 isEdited: true
             }
-        },
-        { returnDocument: "after" });
+        }
+    );
 
-    return updatedPost;
+    const [post] = await postModel.aggregate([
+        {
+            $match: {
+                _id: postId
+            }
+        },
+
+        ...postResponsePipeline()
+    ]);
+
+    return post;
 };
 
 export const softDeletePost = async (postId, userId, session) => {
 
-    await postModel.findByIdAndUpdate(postId, {
-        $set: {
-            isDeleted: true,
-            deletedBy: userId,
-            deletedAt: new Date()
+    return await postModel.updateOne(
+        {
+            _id: postId,
+            isDeleted: false
+        },
+        {
+            $set: {
+                isDeleted: true,
+                deletedBy: userId,
+                deletedAt: new Date()
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const incrementPostComment = async (postId, session) => {
 
-    await postModel.findByIdAndUpdate(postId, {
-        $inc: {
-            commentsCount: 1
+    await postModel.updateOne(
+        {
+            _id: postId,
+            isDeleted: false
+        },
+        {
+            $inc: {
+                commentsCount: 1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const decrementPostComment = async (postId, decrementCount, session) => {
 
-    await postModel.findByIdAndUpdate(postId, {
-        $inc: {
-            commentsCount: -decrementCount
+    await postModel.updateOne(
+        {
+            _id: postId,
+            isDeleted: false
+        },
+        {
+            $inc: {
+                commentsCount: -decrementCount
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const incrementLikeCount = async (postId, session) => {
 
-    await postModel.findByIdAndUpdate(postId, {
-        $inc: {
-            likesCount: 1
+    await postModel.updateOne(
+        {
+            _id: postId,
+            isDeleted: false
+        },
+        {
+            $inc: {
+                likesCount: 1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const decrementLikeCount = async (postId, session) => {
 
-    await postModel.findByIdAndUpdate(postId, {
-        $inc: {
-            likesCount: -1
+    await postModel.updateOne(
+        {
+            _id: postId,
+            isDeleted: false
+        },
+        {
+            $inc: {
+                likesCount: -1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
