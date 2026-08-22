@@ -1,41 +1,155 @@
 import commentModel from "./comment.model.js";
+import { executeWithConfig } from "../../shared/utils/index.js";
+
+
+// Reusable aggregation pipelines
+const commentResponsePipeline = [
+    {
+        $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            pipeline: [
+                {
+                    $project: {
+                        _id: 1,
+                        username: 1,
+                        displayName: 1
+                    }
+                }
+            ],
+            as: "author"
+        }
+    },
+    {
+        $unwind: "$author"
+    },
+    {
+        $lookup: {
+            from: "profiles",
+            localField: "author._id",
+            foreignField: "user",
+            pipeline: [
+                {
+                    $project: {
+                        _id: 0,
+                        avatar: 1
+                    }
+                }
+            ],
+            as: "profile"
+        }
+    },
+    {
+        $unwind: "$profile"
+    },
+    {
+        $project: {
+            _id: 1,
+            post: 1,
+            author: {
+                _id: "$author._id",
+                username: "$author.username",
+                displayName: "$author.displayName",
+                avatar: "$profile.avatar.url"
+            },
+            parentComment: 1,
+            content: 1,
+            likesCount: 1,
+            repliesCount: 1,
+            createdAt: 1,
+            updatedAt: 1
+        }
+    }
+];
+
 
 export const createComment = async (commentData, session) => {
 
-    const [comment] = await commentModel.create(
-        [commentData],
-        { session }
+    const [createdComment] = await commentModel.create(
+        [
+            commentData
+        ],
+        {
+            session
+        }
+    );
+
+    const [comment] = await commentModel.aggregate([
+        {
+            $match: {
+                _id: createdComment._id
+            }
+        },
+
+        ...commentResponsePipeline
+    ],
+        {
+            session
+        }
     );
 
     return comment;
 };
 
-export const findCommentById = async (commentId) => {
+export const findCommentById = async (commentId, queryConfig = {}) => {
 
-    const comment = await commentModel.findOne({
-        _id: commentId,
-        isDeleted: false
-    })
+    const baseQuery = commentModel.findOne(
+        {
+            _id: commentId,
+            isDeleted: false
+        }
+    );
 
-    return comment;
+    return await executeWithConfig(baseQuery, queryConfig);
+};
+
+export const checkCommentExistsById = async (commentId) => {
+
+    const isCommentExists = await commentModel.exists(
+        {
+            _id: commentId,
+            isDeleted: false
+        }
+    );
+
+    return isCommentExists;
 };
 
 export const incrementRepliesCount = async (commentId, session) => {
 
-    await commentModel.findByIdAndUpdate(commentId, {
-        $inc: {
-            repliesCount: 1
+    await commentModel.updateOne(
+        {
+            _id: commentId,
+            isDeleted: false
+        },
+        {
+            $inc: {
+                repliesCount: 1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const decrementRepliesCount = async (commentId, session) => {
 
-    await commentModel.findByIdAndUpdate(commentId, {
-        $inc: {
-            repliesCount: -1
+    await commentModel.updateOne(
+        {
+            _id: commentId,
+            isDeleted: false
+        },
+        {
+            $inc: {
+                repliesCount: -1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const fetchCommentsByPostId = async (postId, skip, limit) => {
@@ -48,13 +162,11 @@ export const fetchCommentsByPostId = async (postId, skip, limit) => {
                 isDeleted: false
             },
         },
-
         {
             $sort: {
                 createdAt: -1
             }
         },
-
         {
             $facet: {
                 data: [
@@ -63,7 +175,9 @@ export const fetchCommentsByPostId = async (postId, skip, limit) => {
                     },
                     {
                         $limit: limit
-                    }
+                    },
+
+                    ...commentResponsePipeline
                 ],
 
                 metadata: [
@@ -78,30 +192,74 @@ export const fetchCommentsByPostId = async (postId, skip, limit) => {
     return result;
 };
 
-export const fetchRepliesByCommentId = async (commentId) => {
+export const fetchRepliesByCommentId = async (commentId, skip, limit) => {
 
-    const commentReplies = await commentModel.find({
-        parentComment: commentId,
-        isDeleted: false
-    }).sort({ createdAt: 1 });
+    const [commentReplies] = await commentModel.aggregate([
+        {
+            $match: {
+                parentComment: commentId,
+                isDeleted: false
+            }
+        },
+        {
+            $sort: {
+                createdAt: 1
+            }
+        },
+        {
+            $facet: {
+                data: [
+                    {
+                        $skip: skip
+                    },
+                    {
+                        $limit: limit
+                    },
+
+                    ...commentResponsePipeline
+                ],
+
+                metadata: [
+                    {
+                        $count: "total"
+                    }
+                ]
+            }
+        }
+    ]);
 
     return commentReplies;
 };
 
 export const updateComment = async (commentId, whitelistedData) => {
 
-    const updatedComment = await commentModel.findByIdAndUpdate(commentId, {
-        $set: whitelistedData
-    }, { returnDocument: "after" });
+    await commentModel.updateOne(
+        {
+            _id: commentId,
+            isDeleted: false
+        },
+        {
+            $set: whitelistedData
+        }
+    );
 
-    return updatedComment;
+    const [comment] = await commentModel.aggregate([
+        {
+            $match: {
+                _id: commentId
+            }
+        },
+
+        ...commentResponsePipeline
+    ]);
+
+    return comment;
 };
 
 export const softDeleteCommentAndReplies = async (userId, commentId, session) => {
 
     const [result] = await commentModel.aggregate([
         {
-
             $match: {
                 _id: commentId,
                 isDeleted: false
@@ -114,7 +272,9 @@ export const softDeleteCommentAndReplies = async (userId, commentId, session) =>
                 connectFromField: "_id",
                 connectToField: "parentComment",
                 as: "descendants",
-                restrictSearchWithMatch: { isDeleted: false }
+                restrictSearchWithMatch: {
+                    isDeleted: false
+                }
             }
         },
 
@@ -125,40 +285,67 @@ export const softDeleteCommentAndReplies = async (userId, commentId, session) =>
                 }
             }
         },
-    ], { session });
+    ],
+        {
+            session
+        }
+    );
 
     const allTargetIds = result.allTargetIds;
 
-    await commentModel.updateMany({
-        _id: {
-            $in: allTargetIds
+    await commentModel.updateMany(
+        {
+            _id: {
+                $in: allTargetIds
+            },
         },
-    },
         {
             $set: {
                 isDeleted: true,
                 deletedAt: new Date(),
                 deletedBy: userId
             }
-        }, { session });
+        },
+        {
+            session
+        }
+    );
 
     return allTargetIds.length;
 };
 
 export const incrementLikeCount = async (commentId, session) => {
 
-    await commentModel.findByIdAndUpdate(commentId, {
-        $inc: {
-            likesCount: 1
+    await commentModel.updateOne(
+        {
+            _id: commentId,
+            isDeleted: true
+        },
+        {
+            $inc: {
+                likesCount: 1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const decrementLikeCount = async (commentId, session) => {
 
-    await commentModel.findByIdAndUpdate(commentId, {
-        $inc: {
-            likesCount: -1
+    await commentModel.updateOne(
+        {
+            _id: commentId,
+            isDeleted: true
+        },
+        {
+            $inc: {
+                likesCount: -1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
