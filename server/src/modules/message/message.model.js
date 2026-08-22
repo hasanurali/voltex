@@ -55,12 +55,27 @@ const messageSchema = new mongoose.Schema({
         type: Date,
         default: null
     }
-    
+
 }, { timestamps: true });
 
 
 // Indexes
 messageSchema.index({ conversation: 1, createdAt: -1 });
+
+messageSchema.methods.toJSON = function () {
+    const obj = this.toObject();
+
+    if (Array.isArray(obj.media)) {
+        obj.media.forEach(item => {
+            if (item) delete item.publicId;
+        });
+    };
+
+    delete obj.deletedAt;
+    delete obj.__v;
+
+    return obj;
+};
 
 
 export default mongoose.model("Message", messageSchema);

@@ -8,7 +8,8 @@ import { settingRepository } from "../setting/index.js";
 import { followRepository } from "../follow/index.js";
 import { ApiError, whitelistInput, convertToObjectId, withTransaction, pagination } from "../../shared/utils/index.js";
 import { MESSAGE_MESSAGES, USER_MESSAGES, CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
-import { MESSAGE_PERMISSION } from "../../shared/constants/enums/index.js";
+import { MEDIA_TYPE, MESSAGE_PERMISSION } from "../../shared/constants/enums/index.js";
+
 
 export const createMessageService = async (userId, messageData) => {
 
@@ -18,9 +19,31 @@ export const createMessageService = async (userId, messageData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.CONTENT_OR_MEDIA_REQUIRED);
     };
 
-    const isValidPublicIds = media?.every(({ publicId }) => publicId?.trim());
-    if (!isValidPublicIds) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.MESSAGE_CREATE_FAIL);
+    const allowedMessageFields = ['content', 'media'];
+    const whitelistedMessageData = whitelistInput(messageData, allowedMessageFields);
+
+    let whitelistedMediaData;
+    if (media.length) {
+
+        const allowedMediaFields = ['mediaType', 'url', 'publicId'];
+        whitelistedMediaData = media.map(media => whitelistInput(media, allowedMediaFields));
+
+        const isValidPublicIds = whitelistedMediaData.every(({ publicId }) => publicId?.trim());
+        if (!isValidPublicIds) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.MESSAGE_CREATE_FAIL);
+        };
+
+        const isImageMedia = whitelistedMediaData.every(media => media.mediaType === MEDIA_TYPE.IMAGE);
+        const isVideoMedia = whitelistedMediaData.every(media => media.mediaType === MEDIA_TYPE.VIDEO);
+
+        if ((!isImageMedia && !isVideoMedia) || (isImageMedia && whitelistedMediaData.length > 5) || (isVideoMedia && whitelistedMediaData.length > 1)) {
+            throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.MEDIA_LIMIT_EXCEEDED)
+        };
+    };
+
+    const whitelistedData = {
+        ...whitelistedMessageData,
+        ...(whitelistedMediaData !== undefined && { media: whitelistedMediaData })
     };
 
     const conversationObjectId = convertToObjectId(conversationId);
@@ -34,7 +57,7 @@ export const createMessageService = async (userId, messageData) => {
 
     conversation = (
         conversationObjectId &&
-        await conversationRepository.findConversationByIdAndUser(conversationObjectId, userId)
+        await conversationRepository.findConversationByIdAndUser(conversationObjectId, userId, { select: "_id", lean: true })
     );
 
     if (conversationObjectId && !conversation) {
@@ -45,7 +68,7 @@ export const createMessageService = async (userId, messageData) => {
 
         const participant = (
             participantObjectId &&
-            await authRepository.findUserById(participantObjectId)
+            await authRepository.findUserById(participantObjectId, { select: "_id", lean: true })
         );
 
         if (!participant) {
@@ -57,18 +80,18 @@ export const createMessageService = async (userId, messageData) => {
         };
 
         const [isBlocked, isBlockedByTarget] = await Promise.all([
-            blockRepository.findBlockByBlockerAndBlocked(userId, participant._id),
-            blockRepository.findBlockByBlockerAndBlocked(participant._id, userId)
+            blockRepository.checkBlockExistsByBlockerAndBlocked(userId, participant._id),
+            blockRepository.checkBlockExistsByBlockerAndBlocked(participant._id, userId)
         ]);
 
         if (isBlocked || isBlockedByTarget) {
             throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.CANNOT_MESSAGE_BLOCKED_USER);
         };
 
-        const setting = await settingRepository.fetchSetting(participantObjectId);
+        const setting = await settingRepository.fetchSetting(participantObjectId, { select: "privacy.messagePermission", lean: true });
         if (setting.privacy.messagePermission === MESSAGE_PERMISSION.FOLLOWER) {
 
-            const isFollower = await followRepository.checkFollowing(userId, participantObjectId);
+            const isFollower = await followRepository.checkFollowingExists(userId, participantObjectId);
             if (!isFollower) {
                 throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.MESSAGE_PERMISSION_FOLLOWER_REQUIRED);
             };
@@ -80,9 +103,6 @@ export const createMessageService = async (userId, messageData) => {
     if (!conversation) {
         throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, MESSAGE_MESSAGES.MESSAGE_CREATE_FAIL);
     };
-
-    const allowedFields = ['content', 'media'];
-    const whitelistedData = whitelistInput(messageData, allowedFields);
 
     let message;
 
@@ -107,8 +127,8 @@ export const fetchConversationMessagesService = async (userId, conversationId, p
         throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
     };
 
-    const conversation = await conversationRepository.findConversationByIdAndUser(conversationObjectId, userId);
-    if (!conversation) {
+    const isConversationExists = await conversationRepository.checkConversationExistsByIdAndUser(conversationObjectId, userId);
+    if (!isConversationExists) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND)
     };
 
@@ -122,7 +142,7 @@ export const fetchConversationMessagesService = async (userId, conversationId, p
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
-        data: messages,
+        messages,
         pagination: {
             total,
             page: safePage,
@@ -141,7 +161,7 @@ export const deleteMessageService = async (userId, messageId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, MESSAGE_MESSAGES.INVALID_MESSAGE_ID)
     };
 
-    const message = await messageRepository.findMessageById(messageObjectId);
+    const message = await messageRepository.findMessageById(messageObjectId, { select: "conversation sender", lean: true });
     if (!message) {
         throw new ApiError(StatusCodes.NOT_FOUND, MESSAGE_MESSAGES.NOT_FOUND);
     };
@@ -150,5 +170,12 @@ export const deleteMessageService = async (userId, messageId) => {
         throw new ApiError(StatusCodes.FORBIDDEN, MESSAGE_MESSAGES.NOT_OWNER);
     };
 
-    await messageRepository.softDeleteMessage(messageObjectId);
+    await withTransaction(async (session) => {
+
+        await messageRepository.softDeleteMessage(messageObjectId, session);
+
+        const lastMessage = await messageRepository.findLastMessageByConversationId(message.conversation, session, { select: "_id", lean: true });
+
+        await conversationRepository.setLastMessage(message.conversation, lastMessage?._id ?? null, session);
+    });
 };
