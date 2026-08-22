@@ -8,6 +8,7 @@ import { USER_MESSAGES, FOLLOW_MESSAGES } from "../../shared/constants/messages/
 import { createNotification } from "../notification/index.js";
 import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
 
+
 export const followUserService = async (userId, username) => {
 
     const user = await authRepository.checkUserExists(username);
@@ -20,15 +21,15 @@ export const followUserService = async (userId, username) => {
     };
 
     const [isBlocked, isBlockedByTarget] = await Promise.all([
-        blockRepository.findBlockByBlockerAndBlocked(userId, user._id),
-        blockRepository.findBlockByBlockerAndBlocked(user._id, userId)
+        blockRepository.checkBlockExistsByBlockerAndBlocked(userId, user._id),
+        blockRepository.checkBlockExistsByBlockerAndBlocked(user._id, userId)
     ]);
 
     if (isBlocked || isBlockedByTarget) {
         throw new ApiError(StatusCodes.FORBIDDEN, FOLLOW_MESSAGES.CANNOT_FOLLOW_BLOCKED_USER);
     };
 
-    const isFollowing = await followRepository.checkFollowing(userId, user._id);
+    const isFollowing = await followRepository.checkFollowingExists(userId, user._id);
     if (isFollowing) {
         throw new ApiError(StatusCodes.CONFLICT, FOLLOW_MESSAGES.ALREADY_FOLLOWED);
     };
@@ -68,7 +69,7 @@ export const fetchFollowersService = async (username, page, limit) => {
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
-        data: followers,
+        followers,
         pagination: {
             total,
             page: safePage,
@@ -97,7 +98,7 @@ export const fetchFollowingsService = async (username, page, limit) => {
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
-        data: followings,
+        followings,
         pagination: {
             total,
             page: safePage,
@@ -116,7 +117,7 @@ export const unfollowUserService = async (userId, username) => {
         throw new ApiError(StatusCodes.NOT_FOUND, USER_MESSAGES.NOT_FOUND);
     };
 
-    const isFollowing = await followRepository.checkFollowing(userId, user._id);
+    const isFollowing = await followRepository.checkFollowingExists(userId, user._id);
     if (!isFollowing) {
         throw new ApiError(StatusCodes.CONFLICT, FOLLOW_MESSAGES.NOT_FOLLOWED);
     };
