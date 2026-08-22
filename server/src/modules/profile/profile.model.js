@@ -43,15 +43,16 @@ const profileSchema = new mongoose.Schema({
         type: String,
         default: null
     }
-    
+
 }, { timestamps: true });
 
 
 profileSchema.methods.toJSON = function () {
     const obj = this.toObject();
 
-    delete obj.avatar?.publicId
-    delete obj.coverImage?.publicId
+    delete obj.avatar.publicId;
+    delete obj.coverImage.publicId;
+    delete obj.__v;
 
     return obj;
 };
