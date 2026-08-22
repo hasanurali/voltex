@@ -10,7 +10,8 @@ const requiredEnv = [
     "DEFAULT_COVER_IMAGE",
     "CLOUDINARY_CLOUD_NAME",
     "CLOUDINARY_APY_KEY",
-    "CLOUDINARY_APY_SECRET"
+    "CLOUDINARY_APY_SECRET",
+    "REDIS_URL"
 ];
 
 // Check Required Environment Variable Is Present
@@ -45,7 +46,9 @@ const env = Object.freeze({
 
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_APY_KEY: process.env.CLOUDINARY_APY_KEY,
-    CLOUDINARY_APY_SECRET: process.env.CLOUDINARY_APY_SECRET
+    CLOUDINARY_APY_SECRET: process.env.CLOUDINARY_APY_SECRET,
+
+    REDIS_URL: process.env.REDIS_URL
 });
 
 export default env;
