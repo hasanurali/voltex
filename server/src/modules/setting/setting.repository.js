@@ -1,34 +1,45 @@
 import settingModel from "./setting.model.js";
+import { executeWithConfig } from "../../shared/utils/index.js";
+
 
 export const createSetting = async (userId, session) => {
 
-    await settingModel.create([{
-        user: userId
-    }], { session });
+    await settingModel.create(
+        [
+            {
+                user: userId
+            }
+        ],
+        {
+            session
+        }
+    );
 };
 
-export const fetchSetting = async (userId) => {
+export const fetchSetting = async (userId, queryConfig = {}) => {
 
-    const setting = await settingModel.findOne({
-        user: userId
-    });
+    const baseQuery = settingModel.findOne(
+        {
+            user: userId
+        }
+    );
 
-    return setting;
+    return await executeWithConfig(baseQuery, queryConfig);
 };
 
-export const updateSetting = async (userId, updateData) => {
+export const updateSetting = async (userId, updateData, queryConfig = {}) => {
 
-    const updatedSetting = await settingModel.findOneAndUpdate(
+    const baseQuery = settingModel.findOneAndUpdate(
         {
             user: userId
         },
-        {
-            $set: updateData
-        },
+
+        updateData,
+
         {
             returnDocument: "after"
         }
     );
 
-    return updatedSetting;
+    return await executeWithConfig(baseQuery, queryConfig);
 };

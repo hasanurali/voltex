@@ -40,7 +40,7 @@ const settingSchema = new mongoose.Schema({
             default: true
         }
     }
-    
+
 }, { timestamps: true });
 
 export default mongoose.model("Setting", settingSchema);
