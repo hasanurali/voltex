@@ -90,7 +90,7 @@ const userSchema = new mongoose.Schema({
         ref: "User",
         default: null
     }
-    
+
 }, { timestamps: true });
 
 
@@ -134,6 +134,11 @@ userSchema.methods.toJSON = function () {
 
     delete obj.password;
     delete obj.refreshToken;
+    delete obj.passwordResetToken;
+    delete obj.passwordResetExpires;
+    delete obj.deletedAt;
+    delete obj.deletedBy;
+    delete obj.__v;
 
     return obj;
 };

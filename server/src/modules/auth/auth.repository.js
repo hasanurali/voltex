@@ -1,21 +1,31 @@
 import userModel from "./user.model.js";
 import otpModel from "./otp.model.js";
+import { executeWithConfig } from "../../shared/utils/index.js";
+import { USER_STATUS } from "../../shared/constants/enums/index.js";
 
 
-const validUserQuery = {
+const verifiedUserQuery = {
     isEmailVerified: true,
-    status: "active",
+    status: USER_STATUS.ACTIVE,
     isDeleted: false
 };
+
 
 export const createUser = async (userData, session) => {
 
     const hashedPassword = await userModel.hashPassword(userData.password);
 
-    const [user] = await userModel.create([{
-        ...userData,
-        password: hashedPassword
-    }], { session });
+    const [user] = await userModel.create(
+        [
+            {
+                ...userData,
+                password: hashedPassword
+            }
+        ],
+        {
+            session
+        }
+    );
 
     return user;
 };
@@ -24,66 +34,90 @@ export const createOtp = async (otpData) => {
 
     const hashedOtp = otpModel.hashOtp(otpData.otp);
 
-    await otpModel.create({
-        ...otpData,
-        otp: hashedOtp
-    });
+    await otpModel.create(
+        {
+            ...otpData,
+            otp: hashedOtp
+        }
+    );
 };
 
-export const findUserByEmail = async (email, select = "") => {
+export const findUserByEmail = async (email, queryConfig = {}) => {
 
-    const user = await userModel.findOne({ email }).select(select);
+    const baseQuery = userModel.findOne(
+        {
+            email,
+            status: USER_STATUS.ACTIVE,
+            isDeleted: false
+        }
+    );
 
-    return user;
+    return await executeWithConfig(baseQuery, queryConfig);
 };
 
 export const matchOtp = async (email, otp) => {
 
     const hashedOtp = otpModel.hashOtp(otp);
 
-    const isOtpExists = await otpModel.exists({
-        email,
-        otp: hashedOtp
-    });
+    const isOtpExists = await otpModel.exists(
+        {
+            email,
+            otp: hashedOtp
+        }
+    );
 
     return isOtpExists;
 };
 
-export const markEmailVerified = async (userId) => {
+export const markEmailVerified = async (userId, queryConfig = {}) => {
 
-    const updatedUser = await userModel.findByIdAndUpdate(userId, {
-        $set: {
+    const baseQuery = userModel.findByIdAndUpdate(userId,
+        {
             isEmailVerified: true
+        },
+        {
+            returnDocument: "after"
         }
-    }, { returnDocument: "after" });
+    );
 
-    return updatedUser;
+    return await executeWithConfig(baseQuery, queryConfig);
 };
 
 export const deleteOtpByEmail = async (email) => {
 
-    await otpModel.deleteOne({ email });
+    await otpModel.deleteOne(
+        {
+            email
+        }
+    );
 };
 
 export const setNewOtp = async ({ email, otp }) => {
 
     const hashedOtp = otpModel.hashOtp(otp);
 
-    await otpModel.findOneAndUpdate(
-        { email },
+    await otpModel.updateOne(
         {
-            otp: hashedOtp,
-            createdAt: new Date()
+            email
         },
         {
-            upsert: true,
-            returnDocument: "after"
-        });
+            $set: {
+                otp: hashedOtp,
+                createdAt: new Date()
+            }
+        },
+        {
+            upsert: true
+        }
+    );
 };
 
 export const removeRefreshToken = async (userId) => {
 
-    await userModel.findByIdAndUpdate(userId,
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
         {
             $set: {
                 refreshToken: null
@@ -92,11 +126,16 @@ export const removeRefreshToken = async (userId) => {
     );
 };
 
-export const findUserById = async (userId, select = "") => {
+export const findUserById = async (userId, queryConfig = {}) => {
 
-    const user = await userModel.findOne({ _id: userId, ...validUserQuery }).select(select);
+    const baseQuery = userModel.findOne(
+        {
+            _id: userId,
+            ...verifiedUserQuery
+        }
+    );
 
-    return user;
+    return await executeWithConfig(baseQuery, queryConfig);
 };
 
 export const setResetPasswordToken = async (userId, resetToken) => {
@@ -104,33 +143,41 @@ export const setResetPasswordToken = async (userId, resetToken) => {
     // 10 minutes
     const addedTime = 10 * 60 * 1000;
 
-    await userModel.findByIdAndUpdate(userId,
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
         {
             $set: {
                 passwordResetToken: resetToken,
-                passwordResetExpires: new Date(Date.now() + addedTime),
+                passwordResetExpires: new Date(Date.now() + addedTime)
             }
         }
     );
 };
 
-export const matchResetPasswordToken = async (token) => {
+export const matchResetPasswordToken = async (token, queryConfig = {}) => {
 
-    const user = await userModel.findOne({
-        passwordResetToken: token,
-        passwordResetExpires: {
-            $gt: new Date()
+    const baseQuery = userModel.findOne(
+        {
+            passwordResetToken: token,
+            passwordResetExpires: {
+                $gt: new Date()
+            }
         }
-    });
+    );
 
-    return user;
+    return await executeWithConfig(baseQuery, queryConfig);
 };
 
 export const resetPassword = async (userId, password) => {
 
     const hashedPassword = await userModel.hashPassword(password);
 
-    await userModel.findByIdAndUpdate(userId,
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
         {
             $set: {
                 password: hashedPassword,
@@ -142,83 +189,142 @@ export const resetPassword = async (userId, password) => {
     );
 };
 
-export const findUserByUsername = async (username, select = "") => {
+export const findUserByUsername = async (username, queryConfig = {}) => {
 
-    const user = await userModel.findOne({ username, ...validUserQuery }).select(select);
+    const baseQuery = userModel.findOne(
+        {
+            username,
+            ...verifiedUserQuery
+        }
+    );
 
-    return user;
+    return await executeWithConfig(baseQuery, queryConfig);
 };
 
-export const updateUserByUserId = async (userId, userData) => {
+export const updateUserByUserId = async (userId, userData, queryConfig = {}) => {
 
-    const updatedUser = await userModel.findByIdAndUpdate(userId,
+    const baseQuery = userModel.findByIdAndUpdate(userId,
         {
-            $set: userData
+            ...userData
         },
         {
             returnDocument: "after"
-        });
+        }
+    );
 
-    return updatedUser;
+    return await executeWithConfig(baseQuery, queryConfig);
 };
 
 export const checkUserExists = async (username) => {
 
-    const isUserExists = await userModel.exists({ username, ...validUserQuery })
+    const isUserExists = await userModel.exists(
+        {
+            username,
+            ...verifiedUserQuery
+        }
+    );
 
     return isUserExists;
 };
 
 export const incrementFollower = async (userId, session) => {
 
-    await userModel.findByIdAndUpdate(userId, {
-        $inc: {
-            followersCount: 1
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
+        {
+            $inc: {
+                followersCount: 1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const incrementFollowing = async (userId, session) => {
 
-    await userModel.findByIdAndUpdate(userId, {
-        $inc: {
-            followingCount: 1
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
+        {
+            $inc: {
+                followingCount: 1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const decrementFollower = async (userId, session) => {
 
-    await userModel.findByIdAndUpdate(userId, {
-        $inc: {
-            followersCount: -1
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
+        {
+            $inc: {
+                followersCount: -1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const decrementFollowing = async (userId, session) => {
 
-    await userModel.findByIdAndUpdate(userId, {
-        $inc: {
-            followingCount: -1
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
+        {
+            $inc: {
+                followingCount: -1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const incrementPost = async (userId, session) => {
 
-    await userModel.findByIdAndUpdate(userId, {
-        $inc: {
-            postsCount: 1
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
+        {
+            $inc: {
+                postsCount: 1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
 
 export const decrementPost = async (userId, session) => {
 
-    await userModel.findByIdAndUpdate(userId, {
-        $inc: {
-            postsCount: -1
+    await userModel.updateOne(
+        {
+            _id: userId
+        },
+        {
+            $inc: {
+                postsCount: -1
+            }
+        },
+        {
+            session
         }
-    }, { session });
+    );
 };
