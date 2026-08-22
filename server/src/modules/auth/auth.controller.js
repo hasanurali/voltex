@@ -10,7 +10,7 @@ export const registerController = asyncHandler(async (req, res) => {
     const userData = req.body;
 
     const { user, profile } = await services.registerService(userData);
-
+    
     return res.status(StatusCodes.CREATED)
         .json(new ApiResponse(AUTH_MESSAGES.REGISTER_SUCCESS, { user, profile }));
 });

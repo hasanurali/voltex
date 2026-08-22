@@ -12,3 +12,5 @@ export { default as encodeCursor } from "./encodeCursor.js";
 export { default as convertToObjectId } from "./convertToObjectId.js";
 export { default as buildNestedUpdateFields } from "./buildNestedUpdateFields.js";
 export { default as pagination } from "./pagination.js";
+export { default as executeWithConfig } from "./executeWithConfig.js";
+export { default as reshapeProfile } from "./reshapeProfile.js";

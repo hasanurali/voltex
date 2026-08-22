@@ -7,6 +7,7 @@ import { POST_MESSAGES, COMMENT_MESSAGES } from "../../shared/constants/messages
 import { createNotification } from "../notification/index.js";
 import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
 
+
 export const createCommentService = async (userId, commentData) => {
 
     const { post: postId, parentComment } = commentData;
@@ -16,7 +17,7 @@ export const createCommentService = async (userId, commentData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID);
     };
 
-    const post = await postRepository.findPost(postObjectId);
+    const post = await postRepository.findPost(postObjectId, { select: "author", lean: true });
     if (!post) {
         throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
     };
@@ -26,7 +27,7 @@ export const createCommentService = async (userId, commentData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const fetchedParentComment = parentCommentObjectId && await commentRepository.findCommentById(parentCommentObjectId);
+    const fetchedParentComment = parentCommentObjectId && await commentRepository.findCommentById(parentCommentObjectId, { select: "author post parentComment depth", lean: true });
     if (parentCommentObjectId && !fetchedParentComment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
@@ -38,16 +39,30 @@ export const createCommentService = async (userId, commentData) => {
     const allowedFields = ['content'];
     const whitelistedData = whitelistInput(commentData, allowedFields);
 
-    const parentCommentId = fetchedParentComment ?
+    let commentAuthor = fetchedParentComment && fetchedParentComment.author;
+
+    const depth = fetchedParentComment ?
+        fetchedParentComment.depth + 1
+        :
+        0;
+
+    let parentCommentId = fetchedParentComment ?
         parentCommentObjectId
         :
         null;
 
-    let comment;
+    if (depth > 2) {
 
-    await withTransaction(async (session) => {
+        parentCommentId = fetchedParentComment.parentComment;
 
-        comment = await commentRepository.createComment({
+        commentAuthor = (
+            await commentRepository.findCommentById(parentCommentId, { select: "author", lean: true })
+        ).author;
+    };
+
+    const comment = await withTransaction(async (session) => {
+
+        const comment = await commentRepository.createComment({
             author: userId,
             post: postObjectId,
             parentComment: parentCommentId,
@@ -60,12 +75,14 @@ export const createCommentService = async (userId, commentData) => {
             parentCommentId &&
             await commentRepository.incrementRepliesCount(parentCommentId, session)
         );
+
+        return comment;
     });
 
     void createNotification({
         user: (
             parentCommentId ?
-                fetchedParentComment.author
+                commentAuthor
                 :
                 post.author
         ),
@@ -84,7 +101,15 @@ export const createCommentService = async (userId, commentData) => {
                 NOTIFICATION_TYPE.COMMENT_REPLY
                 :
                 NOTIFICATION_TYPE.POST_COMMENT
-        )
+        ),
+        metadata: {
+            ...(
+                parentCommentId ?
+                    { commentId: comment._id }
+                    :
+                    { postId: post._id }
+            )
+        }
     });
 
     return comment;
@@ -97,8 +122,8 @@ export const fetchCommentService = async (postId, page, limit) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID);
     };
 
-    const post = await postRepository.findPost(postObjectId);
-    if (!post) {
+    const isPostExists = await postRepository.checkPostExistsById(postObjectId);
+    if (!isPostExists) {
         throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
     };
 
@@ -112,7 +137,7 @@ export const fetchCommentService = async (postId, page, limit) => {
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
-        data: comments,
+        comments,
         pagination: {
             total,
             page: safePage,
@@ -124,21 +149,38 @@ export const fetchCommentService = async (postId, page, limit) => {
     };
 };
 
-export const fetchCommentRepliesService = async (commentId) => {
+export const fetchCommentRepliesService = async (commentId, page, limit) => {
 
     const commentObjectId = convertToObjectId(commentId);
     if (!commentObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findCommentById(commentObjectId);
-    if (!comment) {
+    const isCommentExists = await commentRepository.checkCommentExistsById(commentObjectId);
+    if (!isCommentExists) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
 
-    const commentReplies = await commentRepository.fetchRepliesByCommentId(commentObjectId);
+    const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    return commentReplies;
+    const result = await commentRepository.fetchRepliesByCommentId(commentObjectId, skip, safeLimit);
+
+    const commentReplies = result?.data ?? [];
+    const total = result?.metadata?.[0]?.total ?? 0;
+
+    const totalPages = Math.ceil(total / safeLimit);
+
+    return {
+        commentReplies,
+        pagination: {
+            total,
+            page: safePage,
+            limit: safeLimit,
+            totalPages,
+            hasNextPage: safePage < totalPages,
+            hasPrevPage: safePage > 1
+        }
+    };
 };
 
 export const updateCommentService = async (userId, commentId, commentData) => {
@@ -152,7 +194,7 @@ export const updateCommentService = async (userId, commentId, commentData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findCommentById(commentObjectId);
+    const comment = await commentRepository.findCommentById(commentObjectId, { select: "author", lean: true });
     if (!comment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
@@ -180,7 +222,8 @@ export const deleteCommentService = async (userId, commentId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.INVALID_COMMENT_ID);
     };
 
-    const comment = await commentRepository.findCommentById(commentObjectId);
+    const comment = await commentRepository.findCommentById(commentObjectId, { select: "author parentComment post", lean: true });
+
     if (!comment) {
         throw new ApiError(StatusCodes.NOT_FOUND, COMMENT_MESSAGES.NOT_FOUND);
     };
@@ -195,11 +238,11 @@ export const deleteCommentService = async (userId, commentId) => {
 
         const commentCount = await commentRepository.softDeleteCommentAndReplies(userId, commentObjectId, session);
 
+        await postRepository.decrementPostComment(comment.post, commentCount, session);
+
         (
             parentComment &&
             await commentRepository.decrementRepliesCount(parentComment, session)
         );
-
-        await postRepository.decrementPostComment(comment.post, commentCount, session);
     });
 };

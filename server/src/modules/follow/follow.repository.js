@@ -1,19 +1,53 @@
 import followModel from "./follow.model.js";
 
+
+// Reusable aggregation pipelines
+const userProfileFetchingPipeline = [
+    {
+        $lookup: {
+            from: "profiles",
+            localField: "user._id",
+            foreignField: "user",
+            pipeline: [
+                {
+                    $project: {
+                        _id: 0,
+                        avatar: 1
+                    }
+                },
+            ],
+            as: "profile"
+        }
+    },
+    {
+        $unwind: "$profile"
+    },
+];
+
+
 export const followUser = async (follower, following, session) => {
 
-    await followModel.create([{
-        follower,
-        following
-    }], { session });
+    await followModel.create(
+        [
+            {
+                follower,
+                following
+            }
+        ],
+        {
+            session
+        }
+    );
 };
 
-export const checkFollowing = async (follower, following) => {
+export const checkFollowingExists = async (follower, following) => {
 
-    const isFollowing = await followModel.exists({
-        follower,
-        following
-    });
+    const isFollowing = await followModel.exists(
+        {
+            follower,
+            following
+        }
+    );
 
     return isFollowing;
 };
@@ -26,48 +60,11 @@ export const fetchFollowersByUserId = async (userId, skip, limit) => {
                 following: userId
             }
         },
-
         {
             $sort: {
                 createdAt: -1
             }
         },
-
-        {
-            $lookup: {
-                from: "users",
-                localField: "follower",
-                foreignField: "_id",
-                pipeline: [
-                    {
-                        $match: {
-                            isEmailVerified: true,
-                            status: "active",
-                            isDeleted: false
-                        }
-                    },
-                ],
-                as: "user"
-            }
-        },
-
-        {
-            $unwind: "$user"
-        },
-
-        {
-            $lookup: {
-                from: "profiles",
-                localField: "user._id",
-                foreignField: "user",
-                as: "profile"
-            }
-        },
-
-        {
-            $unwind: "$profile"
-        },
-
         {
             $facet: {
                 data: [
@@ -78,13 +75,34 @@ export const fetchFollowersByUserId = async (userId, skip, limit) => {
                         $limit: limit
                     },
                     {
+                        $lookup: {
+                            from: "users",
+                            localField: "follower",
+                            foreignField: "_id",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        _id: 1,
+                                        displayName: 1,
+                                        username: 1
+                                    }
+                                },
+                            ],
+                            as: "user"
+                        }
+                    },
+                    {
+                        $unwind: "$user"
+                    },
+
+                    ...userProfileFetchingPipeline,
+
+                    {
                         $project: {
                             _id: "$user._id",
                             displayName: "$user.displayName",
                             username: "$user.username",
-                            avatar: {
-                                url: "$profile.avatar.url"
-                            }
+                            avatar: "$profile.avatar.url"
                         }
                     }
                 ],
@@ -109,48 +127,11 @@ export const fetchFollowingsByUserId = async (userId, skip, limit) => {
                 follower: userId
             }
         },
-
         {
             $sort: {
                 createdAt: -1
             }
         },
-
-        {
-            $lookup: {
-                from: "users",
-                localField: "following",
-                foreignField: "_id",
-                pipeline: [
-                    {
-                        $match: {
-                            isEmailVerified: true,
-                            status: "active",
-                            isDeleted: false
-                        }
-                    },
-                ],
-                as: "user"
-            }
-        },
-
-        {
-            $unwind: "$user"
-        },
-
-        {
-            $lookup: {
-                from: "profiles",
-                localField: "user._id",
-                foreignField: "user",
-                as: "profile"
-            }
-        },
-
-        {
-            $unwind: "$profile"
-        },
-
         {
             $facet: {
                 data: [
@@ -161,13 +142,34 @@ export const fetchFollowingsByUserId = async (userId, skip, limit) => {
                         $limit: limit
                     },
                     {
+                        $lookup: {
+                            from: "users",
+                            localField: "following",
+                            foreignField: "_id",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        _id: 1,
+                                        displayName: 1,
+                                        username: 1
+                                    }
+                                },
+                            ],
+                            as: "user"
+                        }
+                    },
+                    {
+                        $unwind: "$user"
+                    },
+
+                    ...userProfileFetchingPipeline,
+
+                    {
                         $project: {
                             _id: "$user._id",
                             displayName: "$user.displayName",
                             username: "$user.username",
-                            avatar: {
-                                url: "$profile.avatar.url"
-                            }
+                            avatar: "$profile.avatar.url"
                         }
                     }
                 ],
@@ -186,28 +188,37 @@ export const fetchFollowingsByUserId = async (userId, skip, limit) => {
 
 export const unfollowUser = async (follower, following, session) => {
 
-    await followModel.deleteOne({
-        follower,
-        following
-    }, { session });
+    await followModel.deleteOne(
+        {
+            follower,
+            following
+        },
+        {
+            session
+        }
+    );
 };
 
 export const fetchUserFollowingIds = async (userId) => {
 
-    const followingIds = await followModel.find({
-        follower: userId
-    });
+    const followingIds = await followModel.find(
+        {
+            follower: userId
+        }
+    ).select("following").lean();
 
     return followingIds;
 };
 
 export const fetchUsersFollowingIds = async (userIds) => {
 
-    const followingIds = await followModel.find({
-        follower: {
-            $in: userIds
+    const followingIds = await followModel.find(
+        {
+            follower: {
+                $in: userIds
+            }
         }
-    });
+    ).select("following").lean();
 
     return followingIds;
 };

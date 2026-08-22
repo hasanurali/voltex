@@ -1,10 +1,103 @@
 import messageModel from "./message.model.js";
+import { executeWithConfig } from "../../shared/utils/index.js";
+
+
+// Reusable aggregation pipelines
+const messageResponsePipeline = [
+    {
+        $lookup: {
+            from: "users",
+            localField: "sender",
+            foreignField: "_id",
+            pipeline: [
+                {
+                    $project: {
+                        _id: 1,
+                        displayName: 1,
+                        username: 1
+                    }
+                }
+            ],
+            as: "user"
+        }
+    },
+    {
+        $unwind: "$user"
+    },
+    {
+        $lookup: {
+            from: "profiles",
+            localField: "user._id",
+            foreignField: "user",
+            pipeline: [
+                {
+                    $project: {
+                        _id: 0,
+                        avatar: 1
+                    }
+                }
+            ],
+            as: "profile"
+        }
+    },
+    {
+        $unwind: "$profile"
+    },
+    {
+        $project: {
+            _id: 1,
+            conversation: 1,
+            sender: {
+                _id: "$user._id",
+                displayName: "$user.displayName",
+                username: "$user.username",
+                avatar: "$profile.avatar.url"
+            },
+            content: 1,
+            media: {
+                $map: {
+                    input: "$media",
+                    as: "item",
+                    in: {
+                        mediaType: "$$item.mediaType",
+                        url: "$$item.url"
+                    }
+                }
+            },
+            isSeen: 1,
+            seenAt: 1,
+            isDeleted: 1,
+            createdAt: 1
+        }
+    }
+];
+
 
 export const createMessage = async (messageData, session) => {
 
-    const [message] = await messageModel.create([messageData], { session });
+    const [createdMessage] = await messageModel.create(
+        [
+            messageData
+        ],
+        {
+            session
+        }
+    );
 
-    return message;
+    const [message] = await messageModel.aggregate([
+        {
+            $match: {
+                _id: createdMessage._id
+            }
+        },
+
+        ...messageResponsePipeline
+    ],
+        {
+            session
+        });
+
+    return message
 };
 
 export const fetchConversationMessages = async (conversationId, skip, limit) => {
@@ -16,13 +109,11 @@ export const fetchConversationMessages = async (conversationId, skip, limit) => 
                 isDeleted: false
             },
         },
-
         {
             $sort: {
                 createdAt: -1
             }
         },
-
         {
             $facet: {
                 data: [
@@ -32,73 +123,8 @@ export const fetchConversationMessages = async (conversationId, skip, limit) => 
                     {
                         $limit: limit
                     },
-                    {
-                        $lookup: {
-                            from: "users",
-                            localField: "sender",
-                            foreignField: "_id",
-                            pipeline: [
-                                {
-                                    $match: {
-                                        isEmailVerified: true,
-                                        status: "active",
-                                        isDeleted: false
-                                    }
-                                },
-                                {
-                                    $project: {
-                                        _id: 1,
-                                        displayName: 1,
-                                        username: 1
-                                    }
-                                }
-                            ],
-                            as: "sender"
-                        }
-                    },
-                    {
-                        $unwind: "$sender"
-                    },
-                    {
-                        $lookup: {
-                            from: "profiles",
-                            localField: "sender._id",
-                            foreignField: "user",
-                            pipeline: [
-                                {
-                                    $project: {
-                                        _id: 0,
-                                        avatar: 1
-                                    }
-                                }
-                            ],
-                            as: "profile"
-                        }
-                    },
-                    {
-                        $unwind: "$profile"
-                    },
-                    {
-                        $project: {
-                            _id: 1,
-                            conversation: 1,
-                            content: 1,
-                            media: 1,
-                            isSeen: 1,
-                            seenAt: 1,
-                            isDeleted: 1,
-                            deletedAt: 1,
-                            createdAt: 1,
-                            sender: {
-                                _id: "$sender._id",
-                                displayName: "$sender.displayName",
-                                username: "$sender.username",
-                                avatar: {
-                                    url: "$profile.avatar.url"
-                                }
-                            }
-                        }
-                    }
+
+                    ...messageResponsePipeline
                 ],
 
                 metadata: [
@@ -113,19 +139,37 @@ export const fetchConversationMessages = async (conversationId, skip, limit) => 
     return result;
 };
 
-export const findMessageById = async (messageId) => {
+export const findMessageById = async (messageId, queryConfig = {}) => {
 
-    const message = await messageModel.findOne({
-        _id: messageId,
-        isDeleted: false
-    });
+    const baseQuery = messageModel.findOne(
+        {
+            _id: messageId,
+            isDeleted: false
+        }
+    );
 
-    return message;
+    return await executeWithConfig(baseQuery, queryConfig);
 };
 
-export const softDeleteMessage = async (messageId) => {
+export const findLastMessageByConversationId = async (conversationId, session, queryConfig = {}) => {
 
-    await messageModel.findOneAndUpdate(
+    const baseQuery = messageModel.findOne(
+        {
+            conversation: conversationId,
+            isDeleted: false
+        }
+    ).session(session).sort(
+        {
+            createdAt: -1
+        }
+    );
+
+    return await executeWithConfig(baseQuery, queryConfig);
+};
+
+export const softDeleteMessage = async (messageId, session) => {
+
+    await messageModel.updateOne(
         {
             _id: messageId,
             isDeleted: false
@@ -135,6 +179,9 @@ export const softDeleteMessage = async (messageId) => {
                 isDeleted: true,
                 deletedAt: new Date()
             }
+        },
+        {
+            session
         }
     );
 };

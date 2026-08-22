@@ -46,11 +46,22 @@ const notificationSchema = new mongoose.Schema({
             ref: "Post",
             default: null
         },
+        commentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Comment",
+            default: null
+        },
     },
     isRead: {
         type: Boolean,
         default: false
     }
+
 }, { timestamps: true });
+
+
+// Indexes
+notificationSchema.index({ user: 1, createdAt: -1 });
+
 
 export default mongoose.model("Notification", notificationSchema);

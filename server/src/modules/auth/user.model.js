@@ -8,6 +8,7 @@ import JWT_CONFIG from "../../config/jwt.js";
 import env from "../../config/env.js";
 
 const userSchema = new mongoose.Schema({
+
     displayName: {
         type: String,
         required: true,
@@ -89,7 +90,12 @@ const userSchema = new mongoose.Schema({
         ref: "User",
         default: null
     }
+
 }, { timestamps: true });
+
+
+// Indexes
+userSchema.index({ passwordResetToken: 1, passwordResetExpires: 1 });
 
 
 userSchema.methods.generateRefreshToken = function () {
@@ -128,6 +134,11 @@ userSchema.methods.toJSON = function () {
 
     delete obj.password;
     delete obj.refreshToken;
+    delete obj.passwordResetToken;
+    delete obj.passwordResetExpires;
+    delete obj.deletedAt;
+    delete obj.deletedBy;
+    delete obj.__v;
 
     return obj;
 };

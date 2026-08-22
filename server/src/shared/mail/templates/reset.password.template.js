@@ -83,7 +83,7 @@ const resetPasswordTemplate = ({ name, resetLink, expiry }) => {
                     <tr>
                         <td align="center"
                             style="padding-top:36px; font-size:13px; color:#9ca3af; ">
-                            © ${new Date().getFullYear()} Social Media. All rights reserved.
+                            © ${new Date().getFullYear()} Voltex. All rights reserved.
                         </td>
                     </tr>
 
@@ -96,6 +96,6 @@ const resetPasswordTemplate = ({ name, resetLink, expiry }) => {
 </body>
 </html>
 `
-}; 
+};
 
 export default resetPasswordTemplate; 

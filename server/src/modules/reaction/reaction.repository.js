@@ -1,18 +1,33 @@
 import reactionModel from "./reaction.model.js";
 
-export const findReaction = async (reactionData) => {
 
-    const reaction = await reactionModel.findOne(reactionData);
+export const checkReactionExists = async (reactionData) => {
 
-    return reaction;
+    const isReactionExists = await reactionModel.exists(
+        reactionData
+    );
+
+    return isReactionExists;
 };
 
 export const createReaction = async (reactionData, session) => {
 
-    await reactionModel.create([reactionData], { session });
+    await reactionModel.create(
+        [
+            reactionData
+        ],
+        {
+            session
+        }
+    );
 };
 
 export const deleteReaction = async (reactionData, session) => {
 
-    await reactionModel.deleteOne(reactionData, { session });
+    return await reactionModel.deleteOne(
+        reactionData,
+        {
+            session
+        }
+    );
 };

@@ -62,7 +62,7 @@ export const fetchNotificationService = async (userId, page, limit) => {
     const totalPages = Math.ceil(total / safeLimit);
 
     return {
-        data: notifications,
+        notifications,
         unreadCount,
         pagination: {
             total,
@@ -82,7 +82,7 @@ export const markNotificationAsReadService = async (userId, notificationId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, NOTIFICATION_MESSAGES.INVALID_NOTIFICATION_ID);
     };
 
-    const notification = await notificationRepository.findNotificationById(notificationObjectId);
+    const notification = await notificationRepository.findNotificationById(notificationObjectId, { select: "user isRead", lean: true });
     if (!notification) {
         throw new ApiError(StatusCodes.NOT_FOUND, NOTIFICATION_MESSAGES.NOT_FOUND);
     };
@@ -110,7 +110,7 @@ export const deleteNotificationService = async (userId, notificationId) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, NOTIFICATION_MESSAGES.INVALID_NOTIFICATION_ID);
     };
 
-    const notification = await notificationRepository.findNotificationById(notificationObjectId);
+    const notification = await notificationRepository.findNotificationById(notificationObjectId, { select: "user", lean: true });
     if (!notification) {
         throw new ApiError(StatusCodes.NOT_FOUND, NOTIFICATION_MESSAGES.NOT_FOUND);
     };

@@ -1,8 +1,9 @@
 import userModel from "../auth/user.model.js";
 
+
 export const searchUsers = async (search, skip, limit) => {
 
-    return userModel.aggregate([
+    const [users] = await userModel.aggregate([
         {
             $search: {
                 index: "user_search",
@@ -64,6 +65,14 @@ export const searchUsers = async (search, skip, limit) => {
                 from: "profiles",
                 localField: "_id",
                 foreignField: "user",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 0,
+                            avatar: 1
+                        }
+                    }
+                ],
                 as: "profile"
             },
         },
@@ -81,9 +90,7 @@ export const searchUsers = async (search, skip, limit) => {
                 _id: 1,
                 username: 1,
                 displayName: 1,
-                avatar: {
-                    url: "$profile.avatar.url"
-                },
+                avatar: "$profile.avatar.url"
             },
         },
 
@@ -107,4 +114,6 @@ export const searchUsers = async (search, skip, limit) => {
         },
 
     ]);
+
+    return users;
 };

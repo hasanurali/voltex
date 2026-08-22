@@ -33,7 +33,9 @@ export const fetchCommentRepliesController = asyncHandler(async (req, res) => {
 
     const commentId = req.params.commentId;
 
-    const commentReplies = await services.fetchCommentRepliesService(commentId);
+    const { page, limit } = req.query;
+
+    const commentReplies = await services.fetchCommentRepliesService(commentId, page, limit);
 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_REPLIES_FETCH_SUCCESS, commentReplies));

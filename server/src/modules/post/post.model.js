@@ -71,7 +71,12 @@ const postSchema = new mongoose.Schema({
         ref: "User",
         default: null
     }
+
 }, { timestamps: true });
+
+
+// Indexes
+postSchema.index({ author: 1, createdAt: -1, _id: -1 });
 
 
 postSchema.methods.toJSON = function () {
@@ -81,7 +86,11 @@ postSchema.methods.toJSON = function () {
         obj.media.forEach(item => {
             if (item) delete item.publicId;
         });
-    }
+    };
+
+    delete obj.deletedAt;
+    delete obj.deletedBy;
+    delete obj.__v;
 
     return obj;
 };

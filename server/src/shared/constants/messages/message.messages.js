@@ -10,6 +10,7 @@ const MESSAGE_MESSAGES = Object.freeze({
     CANNOT_MESSAGE_SELF: "You cannot message yourself",
     CANNOT_MESSAGE_BLOCKED_USER: "You cannot message blocked user",
     MESSAGE_PERMISSION_FOLLOWER_REQUIRED: "Follow this user to send a message",
+    MEDIA_LIMIT_EXCEEDED: "You can send up to 10 images or 1 video per message",
     NOT_FOUND: "Message not found"
 });
 

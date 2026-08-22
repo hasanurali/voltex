@@ -64,7 +64,7 @@ const otpTemplate = ({ name, otp, expiry }) => {
                         <td style="padding:25px; text-align:center; background:#f9fafb; border-top:1px solid #e5e7eb;">
 
                             <p style="margin:0; font-size:13px; color:#6b7280;">
-                                © 2026 Social Media. All rights reserved.
+                                © ${new Date().getFullYear()} Voltex. All rights reserved.
                             </p>
 
                             <p style="margin-top:8px; font-size:12px; color:#9ca3af;">
