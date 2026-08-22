@@ -1,4 +1,50 @@
 import conversationModel from "./conversation.model.js";
+import { executeWithConfig } from "../../shared/utils/index.js";
+
+
+// Reusable aggregation pipelines
+const participantProfileFetchingPipeline = [
+    {
+        $lookup: {
+            from: "users",
+            localField: "participants",
+            foreignField: "_id",
+            pipeline: [
+                {
+                    $project: {
+                        _id: 1,
+                        displayName: 1,
+                        username: 1,
+                    }
+                }
+            ],
+            as: "user"
+        }
+    },
+    {
+        $unwind: "$user"
+    },
+    {
+        $lookup: {
+            from: "profiles",
+            localField: "user._id",
+            foreignField: "user",
+            pipeline: [
+                {
+                    $project: {
+                        _id: 0,
+                        avatar: 1
+                    }
+                }
+            ],
+            as: "profile"
+        }
+    },
+    {
+        $unwind: "$profile"
+    },
+];
+
 
 export const fetchConversations = async (userId, skip, limit) => {
 
@@ -8,17 +54,14 @@ export const fetchConversations = async (userId, skip, limit) => {
                 participants: userId
             },
         },
-
         {
             $sort: {
                 updatedAt: -1
             }
         },
-
         {
             $unwind: "$participants"
         },
-
         {
             $match: {
                 participants: {
@@ -26,99 +69,6 @@ export const fetchConversations = async (userId, skip, limit) => {
                 }
             }
         },
-
-        {
-            $lookup: {
-                from: "users",
-                localField: "participants",
-                foreignField: "_id",
-                pipeline: [
-                    {
-                        $match: {
-                            isEmailVerified: true,
-                            status: "active",
-                            isDeleted: false
-                        }
-                    },
-                    {
-                        $project: {
-                            _id: 1,
-                            displayName: 1,
-                            username: 1,
-                        }
-                    }
-                ],
-                as: "user"
-            }
-        },
-
-        {
-            $unwind: "$user"
-        },
-
-        {
-            $lookup: {
-                from: "profiles",
-                localField: "user._id",
-                foreignField: "user",
-                pipeline: [
-                    {
-                        $project: {
-                            _id: 0,
-                            avatar: 1
-                        }
-                    }
-                ],
-                as: "profile"
-            }
-        },
-
-        {
-            $unwind: "$profile"
-        },
-
-        {
-
-            $lookup: {
-                from: "messages",
-                localField: "lastMessage",
-                foreignField: "_id",
-                pipeline: [
-                    {
-                        $project: {
-                            _id: 0,
-                            content: 1,
-                            createdAt: 1,
-                        }
-                    }
-                ],
-                as: "message"
-            }
-
-        },
-
-        {
-            $unwind: "$message"
-        },
-
-        {
-            $group: {
-                _id: "$_id",
-                name: { $first: "$name" },
-                participant: {
-                    $first: {
-                        _id: "$user._id",
-                        displayName: "$user.displayName",
-                        username: "$user.username",
-                        avatar: {
-                            url: "$profile.avatar.url"
-                        }
-                    }
-                },
-                lastMessage: { $first: "$message" },
-            }
-        },
-
         {
             $facet: {
                 data: [
@@ -127,6 +77,49 @@ export const fetchConversations = async (userId, skip, limit) => {
                     },
                     {
                         $limit: limit
+                    },
+
+                    ...participantProfileFetchingPipeline,
+
+                    {
+                        $lookup: {
+                            from: "messages",
+                            localField: "lastMessage",
+                            foreignField: "_id",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        _id: 0,
+                                        content: 1,
+                                        createdAt: 1,
+                                    }
+                                }
+                            ],
+                            as: "message"
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: "$message",
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$_id",
+                            name: {
+                                $first: "$name"
+                            },
+                            participant: {
+                                $first: {
+                                    _id: "$user._id",
+                                    displayName: "$user.displayName",
+                                    username: "$user.username",
+                                    avatar: "$profile.avatar.url"
+                                }
+                            },
+                            lastMessage: { $first: "$message" },
+                        }
                     },
                 ],
 
@@ -151,75 +144,21 @@ export const fetchConversationDetails = async (userId, conversationId) => {
                 participants: userId
             },
         },
-        {
-            $lookup: {
-                from: "users",
-                localField: "participants",
-                foreignField: "_id",
-                pipeline: [
-                    {
-                        $match: {
-                            isEmailVerified: true,
-                            status: "active",
-                            isDeleted: false
-                        }
-                    },
-                    {
-                        $project: {
-                            _id: 1,
-                            displayName: 1,
-                            username: 1,
-                        }
-                    }
-                ],
-                as: "user"
-            }
-        },
-        {
-            $match: {
-                $expr: {
-                    $eq: [
-                        { $size: "$user" },
-                        { $size: "$participants" }
-                    ]
-                }
-            }
-        },
-        {
-            $unwind: "$user"
-        },
-        {
-            $lookup: {
-                from: "profiles",
-                localField: "user._id",
-                foreignField: "user",
-                pipeline: [
-                    {
-                        $project: {
-                            _id: 0,
-                            avatar: 1
-                        }
-                    }
-                ],
-                as: "profile"
-            }
-        },
-        {
-            $unwind: "$profile"
-        },
+
+        ...participantProfileFetchingPipeline,
+
         {
             $group: {
                 _id: "$_id",
-                name: { $first: "$name" },
-                lastMessage: { $first: "$lastMessage" },
+                name: {
+                    $first: "$name"
+                },
                 participants: {
                     $push: {
                         _id: "$user._id",
                         displayName: "$user.displayName",
                         username: "$user.username",
-                        avatar: {
-                            url: "$profile.avatar.url"
-                        }
+                        avatar: "$profile.avatar.url"
                     }
                 }
             }
@@ -252,23 +191,43 @@ export const createConversation = async (participants) => {
     return conversation;
 };
 
-export const findConversationByIdAndUser = async (conversationId, userId) => {
+export const findConversationByIdAndUser = async (conversationId, userId, queryConfig = {}) => {
 
-    const conversation = await conversationModel.findOne({
-        _id: conversationId,
-        participants: userId
-    });
+    const baseQuery = conversationModel.findOne(
+        {
+            _id: conversationId,
+            participants: userId
+        }
+    );
 
-    return conversation;
+    return await executeWithConfig(baseQuery, queryConfig);
+};
+
+export const checkConversationExistsByIdAndUser = async (conversationId, userId) => {
+
+    const isConversationExists = await conversationModel.exists(
+        {
+            _id: conversationId,
+            participants: userId
+        }
+    );
+
+    return isConversationExists;
 };
 
 export const setLastMessage = async (conversationId, lastMessageId, session) => {
 
-    await conversationModel.findByIdAndUpdate(conversationId,
+    await conversationModel.updateOne(
+        {
+            _id: conversationId
+        },
         {
             $set: {
                 lastMessage: lastMessageId
             }
-        }, { session }
+        },
+        {
+            session
+        }
     );
 };
