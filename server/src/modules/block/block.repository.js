@@ -1,29 +1,36 @@
 import blockModel from "./block.model.js";
 
-export const findBlockByBlockerAndBlocked = async (blocker, blocked) => {
 
-    const block = await blockModel.findOne({
-        blocker,
-        blocked
-    });
+export const checkBlockExistsByBlockerAndBlocked = async (blocker, blocked) => {
 
-    return block;
+    const isBlock = await blockModel.exists(
+        {
+            blocker,
+            blocked
+        }
+    );
+
+    return isBlock;
 };
 
 export const blockUser = async (blocker, blocked) => {
 
-    await blockModel.create({
-        blocker,
-        blocked
-    });
+    await blockModel.create(
+        {
+            blocker,
+            blocked
+        }
+    );
 };
 
 export const unblockUser = async (blocker, blocked) => {
 
-    await blockModel.deleteOne({
-        blocker,
-        blocked
-    });
+    await blockModel.deleteOne(
+        {
+            blocker,
+            blocked
+        }
+    );
 };
 
 export const fetchBlockedUsers = async (userId) => {
@@ -35,26 +42,17 @@ export const fetchBlockedUsers = async (userId) => {
                 blocker: userId
             }
         },
-
         {
             $sort: {
                 createdAt: -1
             }
         },
-
         {
             $lookup: {
                 from: "users",
                 localField: "blocked",
                 foreignField: "_id",
                 pipeline: [
-                    {
-                        $match: {
-                            isEmailVerified: true,
-                            status: "active",
-                            isDeleted: false
-                        }
-                    },
                     {
                         $project: {
                             _id: 1,
@@ -66,11 +64,9 @@ export const fetchBlockedUsers = async (userId) => {
                 as: "user"
             }
         },
-
         {
             $unwind: "$user"
         },
-
         {
             $lookup: {
                 from: "profiles",
@@ -87,19 +83,15 @@ export const fetchBlockedUsers = async (userId) => {
                 as: "profile"
             }
         },
-
         {
             $unwind: "$profile"
         },
-
         {
             $project: {
                 _id: "$user._id",
                 displayName: "$user.displayName",
                 username: "$user.username",
-                avatar: {
-                    url: "$profile.avatar.url"
-                }
+                avatar: "$profile.avatar.url"
             }
         }
     ]);
@@ -109,18 +101,22 @@ export const fetchBlockedUsers = async (userId) => {
 
 export const fetchBlockedUserIds = async (userId) => {
 
-    const blockedUserIds = await blockModel.find({
-        blocker: userId
-    }).select("-_id blocked");
+    const blockedUserIds = await blockModel.find(
+        {
+            blocker: userId
+        }
+    ).select("-_id blocked").lean();
 
     return blockedUserIds.map(doc => doc.blocked);
 };
 
 export const fetchBlockerUserIds = async (userId) => {
 
-    const blockerUserIds = await blockModel.find({
-        blocked: userId
-    }).select("-_id blocker");
+    const blockerUserIds = await blockModel.find(
+        {
+            blocked: userId
+        }
+    ).select("-_id blocker").lean();
 
     return blockerUserIds.map(doc => doc.blocker);
 };
