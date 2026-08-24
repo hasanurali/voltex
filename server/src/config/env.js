@@ -48,7 +48,16 @@ const env = Object.freeze({
     CLOUDINARY_APY_KEY: process.env.CLOUDINARY_APY_KEY,
     CLOUDINARY_APY_SECRET: process.env.CLOUDINARY_APY_SECRET,
 
-    REDIS_URL: process.env.REDIS_URL
+    REDIS_URL: process.env.REDIS_URL,
+
+    TIER_STRICT_WINDOW_MS: process.env.TIER_STRICT_WINDOW_MS || 15 * 60 * 1000,
+    TIER_STRICT_MAX_REQUEST: process.env.TIER_STRICT_MAX_REQUEST || 5,
+
+    TIER_MEDIUM_WINDOW_MS: process.env.TIER_MEDIUM_WINDOW_MS || 60 * 1000,
+    TIER_MEDIUM_MAX_REQUEST: process.env.TIER_MEDIUM_MAX_REQUEST || 30,
+
+    TIER_LOOSE_WINDOW_MS: process.env.TIER_LOOSE_WINDOW_MS || 10 * 60 * 1000,
+    TIER_LOOSE_MAX_REQUEST: process.env.TIER_LOOSE_MAX_REQUEST || 1000,
 });
 
 export default env;
