@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import resend from "./resend.js";
 import MAIL_CONFIG from "../../config/mail.js";
 import otpTemplate from "./templates/otp.template.js";
-import resetPasswordTemplate from "./templates/reset.password.template.js";
+import resetPasswordTemplate from "./templates/resetPassword.template.js";
 import { ApiError, log } from "../utils/index.js";
 import { AUTH_MESSAGES } from "../constants/messages/index.js";
 

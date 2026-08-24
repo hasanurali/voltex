@@ -8,8 +8,8 @@ import { settingRepository } from "../setting/index.js";
 import { profileRepository } from "../profile/index.js";
 import { AUTH_MESSAGES } from "../../shared/constants/messages/index.js";
 import { emailQueue } from "../../shared/mail/mail.queue.js";
-import { EMAIL_JOB } from "../../shared/constants/enums/email.job.enum.js";
-import { EMAIL_JOB_OPTIONS } from "../../shared/mail/mail.options.js";
+import { EMAIL_JOB } from "../../shared/constants/enums/index.js";
+import { EMAIL_JOB_OPTIONS } from "../../shared/mail/mail.option.js";
 import JWT_CONFIG from "../../config/jwt.js";
 import env from "../../config/env.js";
 

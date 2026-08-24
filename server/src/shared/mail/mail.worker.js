@@ -1,7 +1,7 @@
 import { Worker } from "bullmq";
 
 import redis from "../../config/redis.js";
-import { sendOtpJob, sendResetPasswordLinkJob } from "./mail.jobs.js";
+import { sendOtpJob, sendResetPasswordLinkJob } from "./mail.job.js";
 import { EMAIL_JOB } from "../constants/enums/index.js";
 import { log } from "../utils/index.js";
 
@@ -32,5 +32,5 @@ emailWorker.on("completed", (job) => {
 });
 
 emailWorker.on("failed", (job, error) => {
-    log(`Email job failed: ${job?.id}`, error.message)
+    log(`Email job failed: ${job?.id}, ${error.message}`)
 });

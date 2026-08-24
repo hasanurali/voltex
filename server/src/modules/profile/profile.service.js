@@ -7,7 +7,7 @@ import { authRepository } from "../auth/index.js";
 import { settingRepository } from "../setting/index.js";
 import { followRepository } from "../follow/index.js";
 import * as cloudinary from "../../shared/cloudinary/cloudinary.service.js";
-import { DEFAULT_AVATAR, DEFAULT_COVER_IMAGE } from "../../shared/constants/assets/default.assets.js";
+import { DEFAULT_AVATAR, DEFAULT_COVER_IMAGE } from "../../shared/constants/assets/default.asset.js";
 import { PROFILE_VISIBILITY } from "../../shared/constants/enums/index.js";
 import { AUTH_OPTIONS } from "../auth/index.js";
 
