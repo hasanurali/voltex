@@ -19,7 +19,7 @@ import followRoutes from "./modules/follow/follow.route.js";
 import postRoutes from "./modules/post/post.route.js";
 import commentRoutes from "./modules/comment/comment.route.js";
 import reactionRoutes from "./modules/reaction/reaction.route.js";
-import notificationRoutes from "./modules/notification/notification.routes.js";
+import notificationRoutes from "./modules/notification/notification.route.js";
 import conversationRoutes from "./modules/conversation/conversation.route.js";
 import messageRoutes from "./modules/message/message.route.js";
 import settingRoutes from "./modules/setting/setting.route.js";
@@ -69,7 +69,7 @@ app.use("/api/v1", globalLimiter);
 
 // Test Route
 app.get("/", (req, res) => {
-    console.log(req)
+
     res.json({
         success: true,
         message: "API Running"
