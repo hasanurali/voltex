@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import * as userRepository from "./user.repository.js";
 import { ApiError, pagination } from "../../shared/utils/index.js";
 import { USER_MESSAGES } from "../../shared/constants/messages/index.js";
+import { onlineUsers } from "../../shared/socket/socket.js";
 
 
 export const fetchUsersService = async (page, limit, search = "") => {
@@ -33,4 +34,20 @@ export const fetchUsersService = async (page, limit, search = "") => {
             hasPrevPage: safePage > 1
         }
     };
+};
+
+export const checkUserStatusesService = async (userIds) => {
+
+    if (!userIds || !Array.isArray(userIds)) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, USER_MESSAGES.INVALID_ARRAY_FORMAT);
+    };
+
+    const userStatuses = {};
+
+    userIds.forEach(userId => {
+
+        userStatuses[userId] = onlineUsers.has(userId);
+    });
+
+    return userStatuses;
 };

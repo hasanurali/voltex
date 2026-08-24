@@ -7,3 +7,4 @@ export { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "./notification.enum
 export { default as PROFILE_VISIBILITY } from "./profile.visibility.enum.js";
 export { default as MESSAGE_PERMISSION } from "./message.permission.enum.js";
 export { EMAIL_JOB } from "./email.job.enum.js";
+export { default as SOCKET_EVENTS } from "./socket.enum.js";

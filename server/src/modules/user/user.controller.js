@@ -13,3 +13,13 @@ export const fetchUsersController = asyncHandler(async (req, res) => {
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(USER_MESSAGES.FETCH_SUCCESS, userData));
 });
+
+export const checkUserStatusesController = asyncHandler(async (req, res) => {
+
+    const userIds = req.body.userIds;
+
+    const userStatuses = await services.checkUserStatusesService(userIds);
+
+    return res.status(StatusCodes.OK)
+        .json(new ApiResponse(USER_MESSAGES.USER_STATUSES_FETCH_SUCCESS, userStatuses));
+});
