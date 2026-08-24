@@ -8,8 +8,8 @@ import { settingRepository } from "../setting/index.js";
 import { followRepository } from "../follow/index.js";
 import { ApiError, whitelistInput, convertToObjectId, withTransaction, pagination } from "../../shared/utils/index.js";
 import { MESSAGE_MESSAGES, USER_MESSAGES, CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
-import { MEDIA_TYPE, MESSAGE_PERMISSION } from "../../shared/constants/enums/index.js";
-
+import { MEDIA_TYPE, MESSAGE_PERMISSION, SOCKET_EVENTS } from "../../shared/constants/enums/index.js";
+import { getIO } from "../../shared/socket/socket.js";
 
 export const createMessageService = async (userId, messageData) => {
 
@@ -115,7 +115,10 @@ export const createMessageService = async (userId, messageData) => {
         }, session);
 
         await conversationRepository.setLastMessage(conversation._id, message._id, session);
-    })
+    });
+
+    const io = getIO();
+    io.to(message.conversation.toString()).except(message.sender.toString()).emit(SOCKET_EVENTS.RECEIVE_CHAT_MESSAGE, message);
 
     return message;
 };

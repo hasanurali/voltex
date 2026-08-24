@@ -2,8 +2,9 @@ import { StatusCodes } from "http-status-codes";
 
 import * as notificationRepository from "./notification.repository.js";
 import { ApiError, convertToObjectId, log, pagination } from "../../shared/utils/index.js";
-import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE } from "../../shared/constants/enums/index.js";
-import { NOTIFICATION_MESSAGES } from "../../shared/constants/messages/index.js"
+import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE, SOCKET_EVENTS } from "../../shared/constants/enums/index.js";
+import { NOTIFICATION_MESSAGES } from "../../shared/constants/messages/index.js";
+import { getIO } from "../../shared/socket/socket.js";
 
 export const createNotification = async ({ user, triggeredBy, entityId, entityType, type, metadata = null }) => {
 
@@ -40,7 +41,8 @@ export const createNotification = async ({ user, triggeredBy, entityId, entityTy
 
         const notification = await notificationRepository.createNotification(notificationData);
 
-        // Socket.io later
+        const io = getIO();
+        io.to(user.toString()).emit(SOCKET_EVENTS.RECEIVE_NOTIFICATION, notificationData);
 
         return notification;
 
