@@ -11,7 +11,7 @@ const SOCKET_EVENTS = Object.freeze({
     TYPING_START: 'status:typing-start',
     TYPING_STOP: 'status:typing-stop',
 
-    RECEIVE_CHAT_MESSAGE: 'chat:message-recive',
+    RECEIVE_CHAT_MESSAGE: 'chat:message-receive',
     RECEIVE_NOTIFICATION: 'notification:receive',
 });
 
