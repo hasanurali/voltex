@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { DEFAULT_AVATAR, DEFAULT_COVER_IMAGE } from "../../shared/constants/assets/default.assets.js";
+import { DEFAULT_AVATAR, DEFAULT_COVER_IMAGE } from "../../shared/constants/assets/default.asset.js";
 
 const profileSchema = new mongoose.Schema({
 
