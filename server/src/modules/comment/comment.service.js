@@ -41,7 +41,7 @@ export const createCommentService = async (userId, commentData) => {
 
     let commentAuthor = fetchedParentComment && fetchedParentComment.author;
 
-    const depth = fetchedParentComment ?
+    let depth = fetchedParentComment ?
         fetchedParentComment.depth + 1
         :
         0;
@@ -52,6 +52,8 @@ export const createCommentService = async (userId, commentData) => {
         null;
 
     if (depth > 2) {
+
+        depth = 2;
 
         parentCommentId = fetchedParentComment.parentComment;
 
@@ -66,6 +68,7 @@ export const createCommentService = async (userId, commentData) => {
             author: userId,
             post: postObjectId,
             parentComment: parentCommentId,
+            depth,
             ...whitelistedData
         }, session);
 

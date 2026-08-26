@@ -57,6 +57,7 @@ const commentResponsePipeline = [
             content: 1,
             likesCount: 1,
             repliesCount: 1,
+            depth: 1,
             createdAt: 1,
             updatedAt: 1
         }
