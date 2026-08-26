@@ -7,32 +7,31 @@ import * as controllers from "./auth.controller.js";
 import { LIMITER_TIER } from "../../shared/constants/enums/index.js";
 
 
-const authLimiter = middlewares.createRateLimiter(LIMITER_TIER.STRICT,
+const getAuthLimiter = () => middlewares.createRateLimiter(LIMITER_TIER.STRICT,
     'Too many authentication attempts. Please try again after 15 minutes'
 );
 
-
 authRoutes.post("/register",
-    authLimiter,
+    getAuthLimiter(),
     validations.registerValidation,
     middlewares.validationResultMiddleware,
     controllers.registerController
 );
 
 authRoutes.post("/verify-email",
-    authLimiter,
+    getAuthLimiter(),
     validations.otpValidation,
     middlewares.validationResultMiddleware,
     controllers.verifyEmailController
 );
 
 authRoutes.post("/resend-otp",
-    authLimiter,
+    getAuthLimiter(),
     controllers.resendOtpController
 );
 
 authRoutes.post("/login",
-    authLimiter,
+    getAuthLimiter(),
     validations.loginValidation,
     middlewares.validationResultMiddleware,
     controllers.loginController
@@ -48,14 +47,14 @@ authRoutes.post("/refresh-token",
 );
 
 authRoutes.post("/forgot-password",
-    authLimiter,
+    getAuthLimiter(),
     validations.forgotPasswordValidation,
     middlewares.validationResultMiddleware,
     controllers.forgotPasswordController
 );
 
 authRoutes.post("/reset-password",
-    authLimiter,
+    getAuthLimiter(),
     validations.resetPasswordValidation,
     middlewares.validationResultMiddleware,
     controllers.resetPasswordController
