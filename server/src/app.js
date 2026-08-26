@@ -3,12 +3,11 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import hpp from "hpp";
-import mongoSanitizerPkg from 'mongo-sanitizer';
-const mongoSanitizer = mongoSanitizerPkg.default || mongoSanitizerPkg;
 
 import { errorHandler } from "./middlewares/index.js";
 import setupSwagger from "./config/swagger.js";
 import CORS_CONFIG from "./config/cors.js";
+import { mongoSanitizeMiddleware } from "./middlewares/index.js";
 import { createRateLimiter } from "./middlewares/index.js";
 import { LIMITER_TIER } from "./shared/constants/enums/index.js";
 
@@ -35,32 +34,9 @@ app.use(helmet())
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(mongoSanitizer());
+app.use(mongoSanitizeMiddleware);
 app.use(hpp());
 
-// Overwrite native objects
-app.use((req, res, next) => {
-
-    if (req.sanitizedBody) {
-        req.body = req.sanitizedBody;
-    };
-
-    if (req.sanitizedParams) {
-        req.params = req.sanitizedParams;
-    };
-
-    if (req.sanitizedQuery) {
-
-        Object.defineProperty(req, 'query', {
-            value: req.sanitizedQuery,
-            writable: true,
-            configurable: true,
-            enumerable: true
-        });
-    };
-
-    next();
-});
 
 // Add global limiter
 const globalLimiter = createRateLimiter(LIMITER_TIER.LOOSE);

@@ -4,7 +4,10 @@ const reshapeProfile = (profile) => {
         return null;
     };
 
-    const rawData = profile.toObject();
+    const rawData = profile.toObject ?
+        profile.toObject()
+        :
+        profile;
 
     const reshapedProfile = {
         ...rawData,
