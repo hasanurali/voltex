@@ -4,7 +4,8 @@
   "description": "A production-ready MERN social media platform with authentication, real-time messaging, notifications, media uploads, and scalable architecture",
   "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "worker": "node src/shared/mail/mail.worker.js"
@@ -37,6 +38,9 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "mongodb-memory-server-core": "^11.2.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.11"
   }
 }
