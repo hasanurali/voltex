@@ -9,6 +9,7 @@ const connectMongoDb = async () => {
         const poolOptions = {
             maxPoolSize: 10,
             serverSelectionTimeoutMS: 5000,
+            autoIndex: env.NODE_ENV !== 'production'
         };
 
         const conn = await mongoose.connect(MongoURI, poolOptions);
