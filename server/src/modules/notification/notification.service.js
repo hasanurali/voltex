@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 
 import * as notificationRepository from "./notification.repository.js";
+import { settingRepository } from "../setting/index.js";
 import { ApiError, convertToObjectId, log, pagination } from "../../shared/utils/index.js";
 import { NOTIFICATION_TARGET_TYPE, NOTIFICATION_TYPE, SOCKET_EVENTS } from "../../shared/constants/enums/index.js";
 import { NOTIFICATION_MESSAGES } from "../../shared/constants/messages/index.js";
@@ -39,10 +40,24 @@ export const createNotification = async ({ user, triggeredBy, entityId, entityTy
 
     try {
 
+        const setting = await settingRepository.fetchSetting(userObjectId, { select: "notifications", lean: true });
+
+        if (!setting.notifications.likes && [NOTIFICATION_TYPE.POST_LIKE, NOTIFICATION_TYPE.COMMENT_LIKE].includes(type)) {
+            return;
+        };
+
+        if (!setting.notifications.comments && [NOTIFICATION_TYPE.POST_COMMENT, NOTIFICATION_TYPE.COMMENT_REPLY].includes(type)) {
+            return;
+        };
+
+        if (!setting.notifications.follows && type === NOTIFICATION_TYPE.FOLLOW) {
+            return;
+        };
+
         const notification = await notificationRepository.createNotification(notificationData);
 
         const io = getIO();
-        io.to(user.toString()).emit(SOCKET_EVENTS.RECEIVE_NOTIFICATION, notificationData);
+        io.to(user.toString()).emit(SOCKET_EVENTS.RECEIVE_NOTIFICATION, notification);
 
         return notification;
 

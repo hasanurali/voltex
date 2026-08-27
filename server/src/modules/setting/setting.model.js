@@ -34,10 +34,6 @@ const settingSchema = new mongoose.Schema({
         follows: {
             type: Boolean,
             default: true
-        },
-        messages: {
-            type: Boolean,
-            default: true
         }
     }
 
