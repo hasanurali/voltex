@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 
 import * as conversationRepository from "./conversation.repository.js";
 import { messageRepository } from "../message/index.js";
-import { ApiError, convertToObjectId, pagination } from "../../shared/utils/index.js";
+import { ApiError, convertToObjectId, log, pagination } from "../../shared/utils/index.js";
 import { CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
 
 
@@ -17,8 +17,26 @@ export const fetchConversationsService = async (userId, page, limit) => {
 
     const totalPages = Math.ceil(total / safeLimit);
 
+    const unreadMessagesCount = await Promise.all(
+        conversations.map(({ _id }) => messageRepository.countUnreadMessages(_id, userId)
+            .catch(err => {
+
+                log(`Failed to count unread messages for conversation ${_id}: ${err}`);
+
+                return 0;
+            })
+        )
+    );
+
+    const groupedConversations = conversations.map((conversation, i) => (
+        {
+            ...conversation,
+            unreadMessages: unreadMessagesCount[i] ?? 0
+        })
+    );
+
     return {
-        conversations,
+        groupedConversations,
         pagination: {
             total,
             page: safePage,
