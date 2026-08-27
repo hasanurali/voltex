@@ -219,8 +219,7 @@ export const checkUserExists = async (username) => {
 
     const isUserExists = await userModel.exists(
         {
-            username,
-            ...verifiedUserQuery
+            username
         }
     );
 
