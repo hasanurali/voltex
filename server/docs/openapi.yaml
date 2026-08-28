@@ -6,8 +6,8 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://localhost:5000/api/v1
-    description: Local development server
+  - url: /api/v1
+    description: API server
 
 tags:
   - name: Authentication
@@ -66,7 +66,6 @@ paths:
 
       requestBody:
         required: true
-
         content:
           application/json:
             schema:
@@ -76,13 +75,23 @@ paths:
 
         '201':
           description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationResponse'
 
         '400':
           description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
         '409':
           description: Email or username already exists
 
+        '429':
+          $ref: '#/components/responses/AuthenticationRateLimitExceeded'
 
   /auth/verify-email:
     post:
@@ -98,7 +107,6 @@ paths:
 
       requestBody:
         required: true
-
         content:
           application/json:
             schema:
@@ -108,6 +116,16 @@ paths:
 
         '200':
           description: Email verified successfully. Access and refresh token cookies are set.
+          headers:
+            Set-Cookie:
+              description: HTTP-only accessToken and refreshToken cookies set by the server.
+              schema:
+                type: string
+
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginVerifyEmailResponse'
 
         '400':
           description: |
@@ -115,15 +133,21 @@ paths:
             - Verification session expired. Please login again
             - Invalid OTP
 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
         '409':
           description: Email already verified
 
+        '429':
+          $ref: '#/components/responses/AuthenticationRateLimitExceeded'
 
   /auth/resend-otp:
     post:
       tags:
         - Authentication
-
       summary: Resend verification OTP
 
       description: >
@@ -132,7 +156,6 @@ paths:
 
       requestBody:
         required: true
-
         content:
           application/json:
             schema:
@@ -142,12 +165,19 @@ paths:
 
         '200':
           description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: Verification session expired. Please login again
 
         '409':
           description: Email already verified
+
+        '429':
+          $ref: '#/components/responses/AuthenticationRateLimitExceeded'
 
 
   /auth/login:
@@ -163,7 +193,6 @@ paths:
 
       requestBody:
         required: true
-
         content:
           application/json:
             schema:
@@ -174,14 +203,32 @@ paths:
         '200':
           description: Login successful. Access and refresh token cookies are set.
 
+          headers:
+            Set-Cookie:
+              description: HTTP-only accessToken and refreshToken cookies set by the server.
+              schema:
+                type: string
+
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginVerifyEmailResponse'
+
         '400':
           description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
         '401':
           description: Invalid email or password
 
         '403':
           description: Verify your email
+
+        '429':
+          $ref: '#/components/responses/AuthenticationRateLimitExceeded'
 
 
   /auth/logout:
@@ -192,7 +239,7 @@ paths:
       summary: Logout user
 
       description: >
-        Logs out the authenticated user, removes the stored refresh
+        Logout the authenticated user, removes the stored refresh
         token, and clears the access and refresh token cookies.
 
       security:
@@ -202,6 +249,11 @@ paths:
 
         '200':
           description: Logout successful. Authentication cookies are cleared.
+
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '401':
           description: You are not authorized
@@ -225,6 +277,15 @@ paths:
 
         '200':
           description: Token refreshed successfully. New access and refresh token cookies are set.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
+          headers:
+            Set-Cookie:
+              description: HTTP-only accessToken and refreshToken cookies set by the server.
+              schema:
+                type: string
 
         '401':
           description: You are not authorized
@@ -244,7 +305,6 @@ paths:
 
       requestBody:
         required: true
-
         content:
           application/json:
             schema:
@@ -254,9 +314,20 @@ paths:
 
         '200':
           description: Successfully sent a password reset link to email, if it exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '429':
+          $ref: '#/components/responses/AuthenticationRateLimitExceeded'
 
 
   /auth/reset-password:
@@ -271,7 +342,6 @@ paths:
 
       requestBody:
         required: true
-
         content:
           application/json:
             schema:
@@ -281,12 +351,23 @@ paths:
 
         '200':
           description: Password reset successfully, please login with your new password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: |
             Possible messages:
             - Validation failed
             - Invalid or expired password reset link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '429':
+          $ref: '#/components/responses/AuthenticationRateLimitExceeded'
 
 
   /auth/me:
@@ -306,6 +387,10 @@ paths:
 
         '200':
           description: User fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
 
         '401':
           description: You are not authorized
@@ -338,9 +423,17 @@ paths:
       responses:
         '200':
           description: Username availability result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsernameAvailabilityResponse'
 
         '400':
           description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 
   /profile/{username}:
@@ -348,11 +441,15 @@ paths:
       tags:
         - Profile
 
-      summary: Get public profile
+      summary: Get user profile
       description: >
-        Returns the public user and profile information for the specified
-        username. Sensitive user fields and internal image public IDs
-        are not exposed.
+        Returns the user and profile information for the specified username.
+        Access requires authentication and private profiles are not available
+        to unauthorized viewers. Sensitive user fields and internal image
+        public IDs are not exposed.
+
+      security:
+        - accessTokenCookie: []
 
       parameters:
         - name: username
@@ -366,6 +463,16 @@ paths:
       responses:
         '200':
           description: Profile fetched successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+
+        '401':
+          description: You are not authorized.
+
+        '403':
+          description: Profile is private.
 
         '404':
           description: Profile not found.
@@ -393,9 +500,17 @@ paths:
       responses:
         '200':
           description: Username updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
 
         '400':
           description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
         '401':
           description: You are not authorized.
@@ -413,6 +528,7 @@ paths:
         - Profile
 
       summary: Update profile
+
       description: >
         Updates the authenticated user's profile. Only fields provided
         in the request are updated.
@@ -431,9 +547,17 @@ paths:
       responses:
         '200':
           description: Profile updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileUpdateResponse'
 
         '400':
           description: Validation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
         '401':
           description: You are not authorized.
@@ -455,7 +579,6 @@ paths:
 
       requestBody:
         required: true
-
         content:
           application/json:
             schema:
@@ -464,10 +587,18 @@ paths:
       responses:
         '200':
           description: Avatar changed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
 
         '400':
           description: >
             Validation failed or avatar upload failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
         '401':
           description: You are not authorized.
@@ -481,6 +612,7 @@ paths:
         - Profile
 
       summary: Remove avatar
+
       description: >
         Removes the authenticated user's custom avatar and restores
         the default avatar.
@@ -491,6 +623,10 @@ paths:
       responses:
         '200':
           description: Avatar removed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '401':
           description: You are not authorized.
@@ -505,6 +641,7 @@ paths:
         - Profile
 
       summary: Update cover image
+
       description: >
         Updates the authenticated user's cover image. The image is
         uploaded client-side and the resulting URL and Cloudinary
@@ -515,7 +652,6 @@ paths:
 
       requestBody:
         required: true
-
         content:
           application/json:
             schema:
@@ -524,10 +660,18 @@ paths:
       responses:
         '200':
           description: Cover image changed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
 
         '400':
           description: >
             Validation failed or cover image upload failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
         '401':
           description: You are not authorized.
@@ -551,6 +695,10 @@ paths:
       responses:
         '200':
           description: Cover image removed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '401':
           description: You are not authorized.
@@ -600,8 +748,8 @@ paths:
 
         - in: query
           name: search
-          required: false
-          description: Search by username or display name.
+          required: true
+          description: Search by username or display name. An empty value is rejected.
           schema:
             type: string
             example: hasan
@@ -610,6 +758,47 @@ paths:
 
         '200':
           description: Users fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+
+        '400':
+          description: Search is required.
+
+
+  /users/user-statuses:
+    post:
+      tags:
+        - User
+
+      summary: Check user online statuses
+
+      description: Returns an online boolean for each supplied user ID.
+
+      security:
+        - accessTokenCookie: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserStatusesRequest'
+
+      responses:
+        '200':
+          description: User statuses fetched successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStatusesResponse'
+
+        '400':
+          description: userIds must be an array.
+
+        '401':
+          description: You are not authorized.
 
 
   # ============================================================
@@ -643,6 +832,10 @@ paths:
 
         '201':
           description: User followed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: User cannot follow themselves
@@ -652,6 +845,9 @@ paths:
 
         '404':
           description: User not found
+
+        '403':
+          description: Follow relationship is blocked
 
         '409':
           description: User is already followed
@@ -683,6 +879,10 @@ paths:
 
         '200':
           description: User unfollowed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '401':
           description: Authentication required
@@ -717,6 +917,10 @@ paths:
 
         '200':
           description: Followers fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowersResponse'
 
         '404':
           description: User not found
@@ -741,10 +945,31 @@ paths:
             type: string
           example: hasanur003
 
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+
       responses:
 
         '200':
           description: Following users fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowingResponse'
 
         '404':
           description: User not found        
@@ -758,28 +983,45 @@ paths:
     post:
       tags:
         - Post
+
       summary: Create Post
+
       description: Create a new post.
+
       security:
         - accessTokenCookie: []
+
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreatePostRequest"
+
       responses:
         '201':
           description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+
         '400':
           description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
         '401':
           description: Unauthorized
 
     get:
       tags:
         - Post
+
       summary: Fetch Home Feed
+
       description: >
         Fetch the personalized home feed.
 
@@ -791,6 +1033,7 @@ paths:
         For guest users, only popular public posts are returned.
 
         Supports cursor-based pagination.
+
       parameters:
         - in: query
           name: cursor
@@ -798,84 +1041,130 @@ paths:
           schema:
             type: string
           description: Encoded cursor returned from the previous request.
+
       responses:
         '200':
           description: Posts fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostsCursorResponse'
 
 
   /posts/{postId}:
     get:
       tags:
         - Post
+
       summary: Fetch Post Details
+
       description: Fetch a single post by post ID.
+
       parameters:
         - in: path
           name: postId
           required: true
           schema:
             type: string
+
       responses:
         '200':
           description: Post details fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+
         '400':
           description: Invalid post ID
+
         '404':
           description: Post not found
 
     patch:
       tags:
         - Post
+
       summary: Update Post
+
       description: Update an existing post.
+
       security:
         - accessTokenCookie: []
+
       parameters:
         - in: path
           name: postId
           required: true
           schema:
             type: string
+
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdatePostRequest"
+
       responses:
         '200':
           description: Post updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+
         '400':
           description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
         '401':
           description: Unauthorized
+
         '403':
           description: Only the post owner can perform this action
+
         '404':
           description: Post not found
 
     delete:
       tags:
         - Post
+
       summary: Delete Post
+
       description: Soft delete a post.
+
       security:
         - accessTokenCookie: []
+
       parameters:
         - in: path
           name: postId
           required: true
           schema:
             type: string
+
       responses:
         '200':
           description: Post deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
+
         '400':
           description: Invalid post ID
+
         '401':
           description: Unauthorized
+
         '403':
           description: Only the post owner can perform this action
+
         '404':
           description: Post not found
 
@@ -884,8 +1173,11 @@ paths:
     get:
       tags:
         - Post
+
       summary: Fetch User Posts
+
       description: Fetch paginated posts of a user.
+
       parameters:
         - in: path
           name: username
@@ -911,8 +1203,14 @@ paths:
       responses:
         '200':
           description: User posts fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostsPageResponse'
+
         '400':
           description: Invalid username
+
         '404':
           description: User not found
 
@@ -926,23 +1224,39 @@ paths:
     post:
       tags:
         - Comment
+
       summary: Create Comment
+
       description: Create a new comment or reply to an existing comment.
+
       security:
         - accessTokenCookie: []
+
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateCommentRequest"
+
       responses:
         '201':
           description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+
         '400':
           description: Invalid post ID or comment ID or parent comment does not belong to this post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
         '401':
           description: Unauthorized
+
         '404':
           description: Post or parent comment not found
 
@@ -978,8 +1292,14 @@ paths:
       responses:
         '200':
           description: Comment fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentsResponse'
+
         '400':
           description: Invalid post ID
+
         '404':
           description: Post not found
 
@@ -988,8 +1308,11 @@ paths:
     get:
       tags:
         - Comment
+
       summary: Fetch Comment Replies
+
       description: Fetch replies of a comment.
+
       parameters:
         - in: path
           name: commentId
@@ -997,11 +1320,34 @@ paths:
           schema:
             type: string
 
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+
       responses:
         '200':
           description: Comment replies fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentRepliesResponse'
+
         '400':
           description: Invalid comment ID
+
         '404':
           description: Comment not found
 
@@ -1010,56 +1356,87 @@ paths:
     patch:
       tags:
         - Comment
+
       summary: Update Comment
+
       description: Update an existing comment.
+
       security:
         - accessTokenCookie: []
+
       parameters:
         - in: path
           name: commentId
           required: true
           schema:
             type: string
+
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateCommentRequest"
+
       responses:
         '200':
           description: Comment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentResponse'
+
         '400':
           description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
         '401':
           description: Unauthorized
+
         '403':
           description: Only the comment owner can perform this action
+
         '404':
           description: Comment not found
 
     delete:
       tags:
         - Comment
+
       summary: Delete Comment
+
       description: Soft delete a comment and its nested replies.
+
       security:
         - accessTokenCookie: []
+
       parameters:
         - in: path
           name: commentId
           required: true
           schema:
             type: string
+
       responses:
         '200':
           description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
+
         '400':
           description: Invalid comment ID
+
         '401':
           description: Unauthorized
+
         '403':
           description: Only the comment owner can perform this action
+
         '404':
           description: Comment not found
   
@@ -1098,6 +1475,10 @@ paths:
 
         '201':
           description: Post or comment reacted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: Invalid target type or target ID
@@ -1140,6 +1521,10 @@ paths:
 
         '200':
           description: Post or comment reaction removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: Invalid target type or target ID
@@ -1203,6 +1588,10 @@ paths:
 
         '200':
           description: Notifications fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsResponse'
 
         '401':
           description: Authentication required
@@ -1238,6 +1627,10 @@ paths:
 
         '200':
           description: Notification marked as read successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: Invalid notification ID
@@ -1270,6 +1663,10 @@ paths:
 
         '200':
           description: All notifications marked as read successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '401':
           description: Authentication required
@@ -1304,6 +1701,10 @@ paths:
 
         '200':
           description: Notification deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: Invalid notification ID
@@ -1364,7 +1765,11 @@ paths:
       responses:
 
         '200':
-          description: Conversation fetched successfully
+          description: Conversations fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationsResponse'
 
         '401':
           description: Authentication required
@@ -1399,6 +1804,10 @@ paths:
 
         '200':
           description: Conversation details fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationDetailsResponse'
 
         '400':
           description: Invalid conversation ID
@@ -1441,6 +1850,10 @@ paths:
 
         '200':
           description: All conversation messages marked as read successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: Invalid conversation ID
@@ -1488,17 +1901,31 @@ paths:
 
         '201':
           description: Message created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
 
         '400':
           description: >
             Message content or media is required, conversation or participant
             is required, or message media data is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
         '401':
           description: Authentication required
 
         '404':
           description: User or conversation not found
+
+        '403':
+          description: Messaging is blocked or the recipient only accepts messages from followers.
+
+        '500':
+          description: Message creation failed after conversation setup.
 
 
   /messages/{conversationId}:
@@ -1515,7 +1942,7 @@ paths:
 
         Supports pagination using page and limit query parameters.
 
-        Messages are returned from oldest to newest.
+        Messages are returned from newest to oldest and sorted in oldest to newest.
 
       security:
         - accessTokenCookie: []
@@ -1555,6 +1982,10 @@ paths:
 
         '200':
           description: Messages fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagesResponse'
 
         '400':
           description: Invalid conversation ID
@@ -1595,6 +2026,10 @@ paths:
 
         '200':
           description: Message deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
         '400':
           description: Invalid message ID
@@ -1623,19 +2058,26 @@ paths:
         Fetch the settings of the authenticated user.
 
       security:
-        - cookieAuth: []
+        - accessTokenCookie: []
 
       responses:
         '200':
           description: Setting fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingResponse'
 
         '401':
           description: Unauthorized
 
+
     patch:
       tags:
         - Setting
+
       summary: Update user settings
+
       description: >
         Updates the authenticated user's privacy and notification settings.
 
@@ -1643,7 +2085,7 @@ paths:
         settings they want to change.
 
       security:
-        - cookieAuth: []
+        - accessTokenCookie: []
 
       requestBody:
         required: true
@@ -1655,9 +2097,17 @@ paths:
       responses:
         '200':
           description: Setting updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SettingResponse'
 
         '400':
           description: Invalid setting data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
         '401':
           description: Unauthorized
@@ -1668,11 +2118,13 @@ paths:
   # BLOCK
   # ============================================================
 
-  /blocks:
+  /blocks/{username}:
     post:
       tags:
         - Block
+
       summary: Block a user
+
       description: >
         Blocks a user by username for the authenticated user.
 
@@ -1680,7 +2132,7 @@ paths:
         block relationship cannot be created again.
 
       security:
-        - cookieAuth: []
+        - accessTokenCookie: []
 
       parameters:
         - in: path
@@ -1691,32 +2143,39 @@ paths:
           example: john_doe
 
       responses:
-        "201":
+        '201':
           description: User blocked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
-        "400":
+        '400':
           description: Invalid username or attempting to block yourself
 
-        "401":
+        '401':
           description: Unauthorized
 
-        "404":
+        '404':
           description: User not found
 
-        "409":
+        '409':
           description: User already blocked
+
 
     delete:
       tags:
         - Block
+
       summary: Unblock a user
+
       description: >
         Removes an existing block relationship for the authenticated user.
 
         The user must currently be blocked before they can be unblocked.
 
       security:
-        - cookieAuth: []
+        - accessTokenCookie: []
 
       parameters:
         - in: path
@@ -1727,22 +2186,30 @@ paths:
           example: john_doe
 
       responses:
-        "200":
+        '200':
           description: User unblocked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptySuccessResponse'
 
-        "400":
+        '400':
           description: Invalid username
 
-        "401":
+        '401':
           description: Unauthorized
 
-        "404":
+        '404':
           description: User not found or user is not blocked
 
+
+  /blocks:
     get:
       tags:
         - Block
+
       summary: Fetch blocked users
+
       description: >
         Fetch all users blocked by the authenticated user.
 
@@ -1750,18 +2217,44 @@ paths:
         and profile avatar.
 
       security:
-        - cookieAuth: []
+        - accessTokenCookie: []
 
       responses:
-        "200":
+        '200':
           description: Blocked users fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockedUsersResponse'
 
-        "401":
+        '401':
           description: Unauthorized
 
 
-
 components:
+
+  responses:
+    RateLimitExceeded:
+      description: Request rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RateLimitResponse'
+
+    AuthenticationRateLimitExceeded:
+      description: Authentication request rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticationRateLimitResponse'
+
+    ValidationError:
+      description: Request validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse' 
+
 
   # ============================================================
   # SECURITY SCHEMES
@@ -2029,6 +2522,9 @@ components:
 
     CreatePostRequest:
       type: object
+      oneOf:
+        - required: [content]
+        - required: [media]
       properties:
         content:
           type: string
@@ -2037,6 +2533,7 @@ components:
 
         media:
           type: array
+          minItems: 1
           items:
             $ref: "#/components/schemas/PostMedia"
 
@@ -2054,6 +2551,7 @@ components:
             - public
             - followers
           example: public
+
 
     UpdatePostRequest:
       type: object
@@ -2085,9 +2583,11 @@ components:
 
     PostMedia:
       type: object
+      description: Media entries are either up to five images or one video per post.
       required:
         - mediaType
         - url
+        - publicId
       properties:
         mediaType:
           type: string
@@ -2213,6 +2713,13 @@ components:
 
     CreateMessageRequest:
       type: object
+      description: Media entries are either up to five images or one video per message.
+      oneOf:
+        - required: [conversation]
+        - required: [participant]
+      anyOf:
+        - required: [content]
+        - required: [media]
 
       properties:
 
@@ -2235,8 +2742,10 @@ components:
         media:
           type: array
           description: Optional image or video attachments.
+          minItems: 1
           items:
             type: object
+            required: [mediaType, url, publicId]
             properties:
 
               mediaType:
@@ -2258,7 +2767,7 @@ components:
 
 
     # ============================================================
-    # MESSAGE SCHEMAS
+    # SETTING SCHEMAS
     # ============================================================             
 
     UpdateSettingRequest:
@@ -2301,3 +2810,855 @@ components:
             messages:
               type: boolean
               example: true
+
+
+    # ============================================================
+    # RESPONSE SCHEMAS
+    # ============================================================
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+        - errors
+      properties:
+        success:
+          type: boolean
+          const: false
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+
+
+    ValidationErrorItem:
+      type: object
+      properties:
+        type:
+          type: string
+        value: {}
+        msg:
+          type: string
+        path:
+          type: string
+        location:
+          type: string
+
+
+    RateLimitResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: integer
+          const: 429
+        message:
+          type: string
+
+
+    AuthenticationRateLimitResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: integer
+          const: 429
+        message:
+          type: string
+          const: Too many authentication attempts. Please try again after 15 minutes
+
+
+    EmptySuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+        - data
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: 'null'
+
+
+    Pagination:
+      type: object
+      required:
+        - total
+        - page
+        - limit
+        - totalPages
+        - hasNextPage
+        - hasPrevPage
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+        hasNextPage:
+          type: boolean
+        hasPrevPage:
+          type: boolean
+
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        displayName:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        isEmailVerified:
+          type: boolean
+        role:
+          type: string
+          enum: [user, admin]
+        followersCount:
+          type: integer
+        followingCount:
+          type: integer
+        postsCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+
+    Profile:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        avatar:
+          type: string
+        coverImage:
+          type: string
+        bio:
+          type: [string, 'null']
+        website:
+          type: [string, 'null']
+        location:
+          type: [string, 'null']
+
+
+    RegistrationUser:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [active, suspended, banned]
+            isDeleted:
+              type: boolean
+            updatedAt:
+              type: string
+              format: date-time
+
+
+    UserProfileResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          required: [user, profile]
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            profile:
+              $ref: '#/components/schemas/Profile'
+
+
+    LoginVerifyEmailResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          required: [user, profile]
+          properties:
+            user:
+              type: object
+              properties:
+                _id: { type: string }
+                displayName: { type: string }
+                username: { type: string }
+                email: { type: string, format: email }
+                isEmailVerified: { type: boolean }
+                role: { type: string, enum: [user, admin] }
+                followersCount: { type: integer }
+                followingCount: { type: integer }
+                postsCount: { type: integer }
+                createdAt: { type: string, format: date-time }
+                updatedAt: { type: string, format: date-time }
+            profile:
+              $ref: '#/components/schemas/Profile'
+
+
+    RegistrationResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          required: [user, profile]
+          properties:
+            user:
+              type: object
+              properties:
+                displayName: { type: string }
+                username: { type: string }
+                email: { type: string, format: email }
+                isEmailVerified: { type: boolean }
+                role: { type: string, enum: [user, admin] }
+                status: { type: string, enum: [active, suspended, banned] }
+                followersCount: { type: integer }
+                followingCount: { type: integer }
+                postsCount: { type: integer }
+                isDeleted: { type: boolean }
+                _id: { type: string }
+                createdAt: { type: string, format: date-time }
+                updatedAt: { type: string, format: date-time }
+            profile:
+              $ref: '#/components/schemas/Profile'
+
+
+    UsernameAvailabilityResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          required: [available]
+          properties:
+            available: { type: boolean }
+
+
+    UserResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/User'
+
+
+    ProfileResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/Profile'
+
+
+    ProfileUpdateResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          required: [updatedUser, updatedProfile]
+          properties:
+            updatedUser:
+              anyOf:
+                - $ref: '#/components/schemas/User'
+                - type: 'null'
+            updatedProfile:
+              anyOf:
+                - $ref: '#/components/schemas/Profile'
+                - type: 'null'
+
+
+    UserSummary:
+      type: object
+      properties:
+        _id:
+          type: string
+        displayName:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+
+
+    Post:
+      type: object
+      properties:
+        _id:
+          type: string
+        author:
+          $ref: '#/components/schemas/UserSummary'
+        content:
+          type: string
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicMedia'
+        hashtags:
+          type: array
+          items:
+            type: string
+        commentsCount:
+          type: integer
+        likesCount:
+          type: integer
+        visibility:
+          type: string
+          enum: [public, followers]
+        isEdited:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+
+    PostListItem:
+      type: object
+      properties:
+        _id:
+          type: string
+        author:
+          $ref: '#/components/schemas/UserSummary'
+        content:
+          type: string
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicMedia'
+        commentsCount:
+          type: integer
+        likesCount:
+          type: integer
+        visibility:
+          type: string
+          enum: [public, followers]
+        isEdited:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+
+    PublicMedia:
+      type: object
+      required: [mediaType, url]
+      properties:
+        mediaType:
+          type: string
+          enum: [image, video]
+        url:
+          type: string
+
+
+    Comment:
+      type: object
+      properties:
+        _id:
+          type: string
+        post:
+          type: string
+        author:
+          type: object
+          properties:
+            _id:
+              type: string
+            username:
+              type: string
+            displayName:
+              type: string
+            avatar:
+              type: string
+        parentComment:
+          type: [string, 'null']
+        content:
+          type: string
+        likesCount:
+          type: integer
+        repliesCount:
+          type: integer
+        depth:
+          type: integer
+          minimum: 0
+          maximum: 2
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+
+    Message:
+      type: object
+      properties:
+        _id:
+          type: string
+        conversation:
+          type: string
+        sender:
+          $ref: '#/components/schemas/UserSummary'
+        content:
+          type: string
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicMedia'
+        isSeen:
+          type: boolean
+        seenAt:
+          type: [string, 'null']
+          format: date-time
+        isDeleted:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        triggeredBy:
+          type: object
+          properties:
+            id:
+              type: string
+            displayName:
+              type: string
+            username:
+              type: string
+            avatar:
+              type: string
+        entityId:
+          type: string
+        entityType:
+          type: string
+          enum: [user, post, comment]
+        type:
+          type: string
+          enum: [post-like, post-comment, comment-like, comment-reply, follow]
+        metadata:
+          type: object
+          properties:
+            post:
+              anyOf:
+                - $ref: '#/components/schemas/NotificationPostPreview'
+                - type: 'null'
+            comment:
+              anyOf:
+                - $ref: '#/components/schemas/NotificationCommentPreview'
+                - type: 'null'
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+
+    NotificationPostPreview:
+      type: object
+      properties:
+        _id:
+          type: string
+        author:
+          type: string
+        content:
+          type: string
+        media:
+          anyOf:
+            - $ref: '#/components/schemas/PublicMedia'
+            - type: 'null'
+
+
+    NotificationCommentPreview:
+      type: object
+      properties:
+        _id:
+          type: string
+        author:
+          type: string
+        content:
+          type: string
+
+
+    Setting:
+      type: object
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        privacy:
+          $ref: '#/components/schemas/PrivacySettings'
+        notifications:
+          $ref: '#/components/schemas/NotificationSettings'
+
+
+    PrivacySettings:
+      type: object
+      properties:
+        profileVisibility:
+          type: string
+          enum: [public, private]
+        messagePermission:
+          type: string
+          enum: [everyone, follower]
+
+
+    NotificationSettings:
+      type: object
+      properties:
+        likes:
+          type: boolean
+        comments:
+          type: boolean
+        follows:
+          type: boolean
+        messages:
+          type: boolean
+
+
+    Conversation:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        participant:
+          $ref: '#/components/schemas/ConversationParticipant'
+        lastMessage:
+          $ref: '#/components/schemas/LastMessage'
+        unreadMessages:
+          type: number 
+
+
+    ConversationParticipant:
+      type: object
+      properties:
+        _id:
+          type: string
+        displayName:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+
+
+    LastMessage:
+      type: [object, 'null']
+      properties:
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+
+    ConversationDetails:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationParticipant'
+
+
+    PostResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          $ref: '#/components/schemas/Post'
+
+
+    PostsPageResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            posts:
+              type: array
+              items: { $ref: '#/components/schemas/PostListItem' }
+            pagination: { $ref: '#/components/schemas/Pagination' }
+
+
+    PostsCursorResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            posts:
+              type: array
+              items: { $ref: '#/components/schemas/PostListItem' }
+            nextCursor:
+              type: [string, 'null']
+
+
+    CommentResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/Comment' }
+
+
+    CommentsResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            comments:
+              type: array
+              items: { $ref: '#/components/schemas/Comment' }
+            pagination: { $ref: '#/components/schemas/Pagination' }
+
+
+    CommentRepliesResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            commentReplies:
+              type: array
+              items: { $ref: '#/components/schemas/Comment' }
+            pagination: { $ref: '#/components/schemas/Pagination' }
+
+
+    NotificationsResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            notifications:
+              type: array
+              items: { $ref: '#/components/schemas/Notification' }
+            unreadCount: { type: integer }
+            pagination: { $ref: '#/components/schemas/Pagination' }
+
+
+    ConversationsResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            conversations:
+              type: array
+              items: { $ref: '#/components/schemas/Conversation' }
+            pagination: { $ref: '#/components/schemas/Pagination' }
+
+
+    ConversationResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/ConversationDetails' }
+
+
+    ConversationDetailsResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/ConversationDetails' }
+
+
+    MessageResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/Message' }
+
+
+    MessagesResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            messages:
+              type: array
+              items: { $ref: '#/components/schemas/Message' }
+            pagination: { $ref: '#/components/schemas/Pagination' }
+
+
+    SettingResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/Setting' }
+
+
+    BlockedUsersResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: { type: boolean, const: true }
+        message: { type: string }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/UserSummary' }
+
+
+    UsersResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            users:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserSummary'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+
+    UserStatusesRequest:
+      type: object
+      required: [userIds]
+      properties:
+        userIds:
+          type: array
+
+
+    UserStatusesResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: boolean
+
+
+    FollowersResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            followers:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserSummary'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+
+    FollowingResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success:
+          type: boolean
+          const: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            followings:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserSummary'
+            pagination:
+              $ref: '#/components/schemas/Pagination'

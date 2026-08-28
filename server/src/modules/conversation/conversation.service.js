@@ -36,7 +36,7 @@ export const fetchConversationsService = async (userId, page, limit) => {
     );
 
     return {
-        groupedConversations,
+        conversations: groupedConversations,
         pagination: {
             total,
             page: safePage,

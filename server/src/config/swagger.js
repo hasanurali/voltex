@@ -9,7 +9,11 @@ const swaggerDocument = YAML.parse(
 const setupSwagger = (app) => {
     app.use("/api-docs",
         swaggerUi.serve,
-        swaggerUi.setup(swaggerDocument)
+        swaggerUi.setup(swaggerDocument, {
+            swaggerOptions: {
+                withCredentials: true
+            }
+        })
     );
 };
 
