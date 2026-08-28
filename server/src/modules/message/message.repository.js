@@ -205,3 +205,19 @@ export const markMessagesAsRead = async (conversationId, userId) => {
         }
     );
 };
+
+export const countUnreadMessages = async (conversationId, userId) => {
+
+    const unreadMessageCount = await messageModel.countDocuments(
+        {
+            conversation: conversationId,
+            sender: {
+                $ne: userId
+            },
+            isDeleted: false,
+            isSeen: false
+        }
+    );
+
+    return unreadMessageCount;
+};

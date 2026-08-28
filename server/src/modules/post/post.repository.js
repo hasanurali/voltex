@@ -76,7 +76,7 @@ export const createPost = async (postData, session) => {
             }
         },
 
-        ...postResponsePipeline()
+        ...postResponsePipeline({ hashtags: 1 })
     ],
         {
             session
@@ -367,7 +367,7 @@ export const fetchPostDetails = async (postId) => {
             }
         },
 
-        ...postResponsePipeline({ hashtags: 1 }),
+        ...postResponsePipeline({ hashtags: 1 })
     ]);
 
     return detailedPost;
@@ -459,7 +459,7 @@ export const updatePost = async (postId, whitelistedData) => {
             }
         },
 
-        ...postResponsePipeline()
+        ...postResponsePipeline({ hashtags: 1 })
     ]);
 
     return post;
