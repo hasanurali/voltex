@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import Spinner from './Spinner';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -6,6 +7,7 @@ type ButtonSize = 'sm' | 'md' | 'lg';
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
     size?: ButtonSize;
+    loading?: boolean;
     children: ReactNode;
 };
 
@@ -22,12 +24,13 @@ const sizeStyles: Record<ButtonSize, string> = {
     lg: 'px-6 py-3 text-lg',
 };
 
-const Button = ({ variant = 'primary', size = 'md', className = '', children, ...props }: ButtonProps) => {
+const Button = ({ variant = 'primary', size = 'md', loading = false, className = '', children, ...props }: ButtonProps) => {
     return (
         <button
             className={`rounded-md font-sans font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
             {...props}
         >
+            {loading && <Spinner size="sm" className="border-white/40 border-t-white" />}
             {children}
         </button>
     );
