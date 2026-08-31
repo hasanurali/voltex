@@ -11,11 +11,11 @@ const Input = ({ className = '', showPasswordToggle = false, type = 'text', erro
     const [passwordToggle, setPasswordToggle] = useState<boolean>(false);
 
     return (
-        <div className="flex flex-col gap-1 relative">
+        <div className="flex flex-col relative">
 
             <input
                 type={showPasswordToggle ? (passwordToggle ? 'text' : 'password') : type}
-                className={`rounded-md border px-3 py-2 ${showPasswordToggle && 'pr-12 '} font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed ${error ? 'border-danger' : 'border-border'} ${className}`}
+                className={`rounded-md border px-3 py-2 ${showPasswordToggle && 'pr-12 '} font-sans text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${error ? 'border-danger' : 'border-border'} ${className}`}
                 {...props}
             />
 
@@ -27,7 +27,15 @@ const Input = ({ className = '', showPasswordToggle = false, type = 'text', erro
                 {passwordToggle ? <Eye color='gray' /> : <EyeOff color='gray' />}
             </button>}
 
-            {error && <span className="text-sm text-danger">{error}</span>}
+            {/* smooth animated error container */}
+            <div className={`grid transition-all duration-200 ease-out ${error ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
+                <div className="overflow-hidden">
+                    <span className="text-[13px] text-danger block leading-tight">
+                        {error}
+                    </span>
+                </div>
+            </div>
+
         </div>
     );
 };
