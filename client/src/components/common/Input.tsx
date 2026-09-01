@@ -21,7 +21,7 @@ const Input = ({ className = '', showPasswordToggle = false, type = 'text', erro
 
             {showPasswordToggle && <button
                 type="button"
-                className='absolute right-3.5 top-3.25'
+                className='absolute right-3.5 top-3.25 cursor-pointer'
                 onClick={() => setPasswordToggle(!passwordToggle)}
             >
                 {passwordToggle ? <Eye color='gray' /> : <EyeOff color='gray' />}
