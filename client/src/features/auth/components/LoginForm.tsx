@@ -25,13 +25,13 @@ const LoginForm = () => {
     useEffect(() => {
 
         if (debouncedValue) {
-            setSessionItem(AUTH_SESSION_KEYS.loginDraftEmail, debouncedValue);
+            setSessionItem<string>(AUTH_SESSION_KEYS.loginDraftEmail, debouncedValue);
         };
     }, [debouncedValue]);
 
     useEffect(() => {
 
-        const email: string | null = getSessionItem(AUTH_SESSION_KEYS.loginDraftEmail);
+        const email = getSessionItem<string>(AUTH_SESSION_KEYS.loginDraftEmail);
         if (email) {
             setValue('email', email);
         };

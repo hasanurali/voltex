@@ -33,15 +33,15 @@ const RegisterForm = () => {
 
         if (debouncedValue.filter(Boolean).length) {
             const [displayName, username, email] = debouncedValue;
-            const draftValues: RegisterDraftValues = { displayName, username, email };
+            const draftValues = { displayName, username, email };
 
-            setSessionItem(AUTH_SESSION_KEYS.registerDraftValues, draftValues);
+            setSessionItem<RegisterDraftValues>(AUTH_SESSION_KEYS.registerDraftValues, draftValues);
         };
     }, [debouncedValue]);
 
     useEffect(() => {
 
-        const draftValues: RegisterDraftValues | null = getSessionItem(AUTH_SESSION_KEYS.registerDraftValues);
+        const draftValues = getSessionItem<RegisterDraftValues>(AUTH_SESSION_KEYS.registerDraftValues);
         if (draftValues) {
 
             const { displayName, username, email } = draftValues;
