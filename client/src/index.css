@@ -65,4 +65,13 @@
     --color-muted-foreground: var(--color-neutral-600);
     --color-border: var(--color-neutral-200);
     --color-danger: #dc2626;
-}
+};
+
+::-webkit-scrollbar {
+  display: none;
+};
+
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+};
