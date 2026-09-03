@@ -62,16 +62,16 @@ const LoginForm = () => {
                 {/* Email */}
                 <div className="flex flex-col gap-1">
                     <label htmlFor="email" className="text-primary-700 font-label text-[15px] tracking-[0.2px]">Email address</label>
-                    <Input {...register('email')} error={errors.email?.message} id="email" type="text" placeholder="name@example.com" className={`py-3 px-4 bg-neutral-50 focus:bg-transparent ${!errors.email && 'focus:border-primary-800'} placeholder:text-neutral-400 focus:placeholder:text-neutral-500`} />
+                    <Input {...register('email')} error={errors.email?.message} id="email" type="text" placeholder="name@example.com" className={`py-3 px-4 bg-neutral-50 focus:bg-white ${!errors.email && 'focus:border-primary-800'} placeholder:text-neutral-400 focus:placeholder:text-neutral-500`} />
                 </div>
 
                 {/* Password */}
                 <div className="flex flex-col gap-1">
                     <div className="flex justify-between font-label text-[15px] tracking-[0.2px]">
                         <label htmlFor="password" className="text-primary-700 ">Password</label>
-                        <Link to={ROUTES.forgotPassword} className="text-primary-800">Forgot password?</Link>
+                        <Link to={ROUTES.forgotPassword} className="text-primary-800 font-medium">Forgot password?</Link>
                     </div>
-                    <Input {...register('password')} error={errors.password?.message} id="password" type="password" showPasswordToggle={true} placeholder="••••••••" className={`py-3 px-3 bg-neutral-50 focus:bg-transparent  ${!errors.password && 'focus:border-primary-800'} placeholder:text-neutral-400 focus:placeholder:text-neutral-500`} />
+                    <Input {...register('password')} error={errors.password?.message} id="password" type="password" showPasswordToggle={true} placeholder="••••••••" className={`py-3 px-3 bg-neutral-50 focus:bg-white  ${!errors.password && 'focus:border-primary-800'} placeholder:text-neutral-400 focus:placeholder:text-neutral-500`} />
                 </div>
 
             </div>
