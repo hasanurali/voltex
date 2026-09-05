@@ -33,7 +33,7 @@ export const router = createBrowserRouter([
                         element: <ForgotPasswordPage />
                     },
                     {
-                        path: ROUTES.forgotPassword,
+                        path: ROUTES.resetPassword,
                         element: <ResetPasswordPage />
                     }
                 ],
