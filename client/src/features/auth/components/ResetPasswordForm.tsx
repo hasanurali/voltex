@@ -2,6 +2,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button, Input } from '@/components';
 import { resetPasswordSchema, type ResetPasswordFormValues } from '../schemas/authSchema';
 import { fieldApiError } from '@/utils';
@@ -24,7 +25,7 @@ const ResetPasswordForm = () => {
         const token: string | null = searchParams.get('token');
         if (!token) {
             navigate(ROUTES.forgotPassword, { replace: true });
-            // toast
+            toast.error('Invalid or expired password reset link');
             return;
         };
 

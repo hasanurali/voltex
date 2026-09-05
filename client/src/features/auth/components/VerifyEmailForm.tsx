@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
 import { verifyEmailSchema, type VerifyEmailFormValues } from '../schemas/authSchema';
 import { useVerifyEmail } from '../hooks/useVerifyEmail';
 import { fieldApiError, getSessionItem } from '@/utils';
@@ -56,7 +57,7 @@ const VerifyEmailForm = () => {
 
         if (!email) {
             navigate(ROUTES.login, { replace: true });
-            //toast
+            toast.error('Verification session expired. Please login again');
             return;
         };
 

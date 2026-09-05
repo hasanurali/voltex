@@ -10,6 +10,7 @@ export const useLogoutUser = () => {
 
     return useMutation({
         mutationFn: logoutUser,
+        meta: { skipGlobalErrorToast: true },
         onSuccess: () => {
             clearAuth();
             queryClient.invalidateQueries({ queryKey: authKeys.all });

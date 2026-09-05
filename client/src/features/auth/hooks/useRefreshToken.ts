@@ -3,6 +3,7 @@ import { refreshToken } from '../api/authApi';
 
 export const useRefreshToken = () => {
     return useMutation({
+        meta: { skipGlobalErrorToast: true },
         mutationFn: refreshToken
     });
 };

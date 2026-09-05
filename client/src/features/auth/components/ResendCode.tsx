@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components';
 import { useResendOtp } from '../hooks/useResendOtp';
 import { getSessionItem } from '@/utils';
@@ -33,7 +34,7 @@ const ResendCode = () => {
         const email = getSessionItem<string>(AUTH_SESSION_KEYS.pendingVerificationEmail);
         if (!email) {
             navigate(ROUTES.login, { replace: true });
-            // toast
+            toast.error('Verification session expired. Please login again');
             return;
         };
 
