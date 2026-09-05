@@ -3,7 +3,7 @@ import { ROUTES } from './routes.ts';
 import NotFoundPage from '../pages/NotFoundPage.tsx';
 import RouteErrorPage from "../pages/RouteErrorPage.tsx"
 import GuestRoute from './GuestRoute.tsx';
-import { LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage } from '@/features/auth';
+import { LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage, ResetPasswordPage } from '@/features/auth';
 
 
 export const router = createBrowserRouter([
@@ -32,6 +32,10 @@ export const router = createBrowserRouter([
                         path: ROUTES.forgotPassword,
                         element: <ForgotPasswordPage />
                     },
+                    {
+                        path: ROUTES.forgotPassword,
+                        element: <ResetPasswordPage />
+                    }
                 ],
             },
 
