@@ -1,12 +1,36 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExternalLink, MailCheck } from "lucide-react";
 import ForgotPasswordForm from "../components/ForgotPasswordForm";
 import { Button } from "@/components";
 import BackToSignIn from "../components/BackToSignIn";
+import { useForgotPassword } from "../hooks/useForgotPassword";
 
 const ForgotPasswordPage = () => {
 
     const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+    const [isLocked, setIsLocked] = useState(false);
+
+    const lockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const { mutate: forgotPasswordMutate, isPending: isForgotPasswordPending } = useForgotPassword();
+    const handleResendForgotPasswordEmail = () => {
+
+        if (!submittedEmail || isLocked) {
+            return;
+        };
+
+        setIsLocked(true);
+        forgotPasswordMutate({ email: submittedEmail });
+        lockTimeoutRef.current = setTimeout(() => setIsLocked(false), 5000);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (lockTimeoutRef.current) {
+                clearTimeout(lockTimeoutRef.current);
+            };
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-secondary-50 flex justify-center items-center max-[410px]:px-3 font-label">
@@ -32,7 +56,7 @@ const ForgotPasswordPage = () => {
                                 <h1 className="text-2xl font-bold">Check your email</h1>
                                 <div className="text-secondary-600 text-sm text-center">
                                     <p>We've sent a password reset link to</p>
-                                    <p><span className="text-primary-950 font-bold">{submittedEmail && submittedEmail}</span>. Click the link inside to</p>
+                                    <p><span className="text-primary-950 font-bold">{submittedEmail}</span>. Click the link inside to</p>
                                     <p>set a new password.</p>
                                 </div>
                             </>
@@ -59,7 +83,13 @@ const ForgotPasswordPage = () => {
                                     <ExternalLink />
                                 </Button>
                             </a>
-                            <p className="text-secondary-600 text-sm text-center">Didn't receive the email? Check your spam folder or resend link</p>
+                            <p className="text-secondary-600 text-sm text-center">
+                                Didn't receive the email? Check your spam folder or
+                                {' '}
+                                <button type="button" onClick={handleResendForgotPasswordEmail} disabled={isForgotPasswordPending || isLocked} className="text-primary-950 font-medium underline cursor-pointer disabled:opacity-50">
+                                    {isForgotPasswordPending ? 'Resending...' : 'Resend link'}
+                                </button>
+                            </p>
                         </section>
                         :
                         <ForgotPasswordForm onSuccess={setSubmittedEmail} />
