@@ -7,3 +7,4 @@ export { useCurrentUser } from './hooks/useCurrentUser';
 export { refreshToken } from './api/authApi';
 export { AUTH_ENDPOINTS } from './api/authEndpoints';
 export { authKeys } from './api/authKeys';
+export type { User, Profile, AuthUser } from './types';
