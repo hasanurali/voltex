@@ -27,10 +27,10 @@ const sizeStyles: Record<ButtonSize, string> = {
 const Button = ({ variant = 'primary', size = 'md', loading = false, className = '', children, ...props }: ButtonProps) => {
     return (
         <button
-            className={`rounded-md font-sans font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+            className={`flex justify-center items-center gap-3 rounded-md font-sans font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
             {...props}
         >
-            {loading && <Spinner size="sm" className="border-white/40 border-t-white" />}
+            {loading && <Spinner size="sm" className="border-white/40 border-t-white inline-block" />}
             {children}
         </button>
     );
