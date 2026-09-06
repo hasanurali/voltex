@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { usernameField } from '@/lib';
 
 export const registerSchema = z.object({
     displayName: z
@@ -9,14 +10,7 @@ export const registerSchema = z.object({
         .max(30, 'Name must be between 2 and 30 characters')
         .regex(/^[\p{L}]+(?: [\p{L}]+)*$/u, 'Name can only contain letters and spaces'),
 
-    username: z
-        .string()
-        .trim()
-        .min(1, 'Username is required')
-        .toLowerCase()
-        .min(3, 'Username must be between 3 and 30 characters')
-        .max(30, 'Username must be between 3 and 30 characters')
-        .regex(/^[a-z][a-z0-9_]*$/, 'Username must start with a letter and can only contain lowercase letters, numbers and underscores'),
+    username: usernameField,
 
     email: z
         .string()
