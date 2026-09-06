@@ -6,7 +6,7 @@ import { isAxiosError } from 'axios';
 import { Button, Input } from '@/components';
 import { loginSchema, type LoginFormValues } from '../schemas/authSchema';
 import { useLoginUser } from '../hooks/useLoginUser';
-import { fieldApiError, setSessionItem, getSessionItem } from '@/utils';
+import { fieldApiError, setSessionItem, getSessionItem, removeSessionItem } from '@/utils';
 import { ROUTES } from '@/app/routes';
 import { useDebounce } from '@/hooks';
 import { AUTH_SESSION_KEYS } from '../sessionKeys';
@@ -44,6 +44,7 @@ const LoginForm = () => {
 
                 if (isAxiosError(error) && error.response?.status === 403) {
                     setSessionItem(AUTH_SESSION_KEYS.pendingVerificationEmail, formValue.email);
+                    removeSessionItem(AUTH_SESSION_KEYS.loginDraftEmail);
                     navigate(ROUTES.verifyEmail, { replace: true });
                     return;
                 };

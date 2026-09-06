@@ -4,6 +4,8 @@ import { loginUser } from '../api/authApi';
 import { authKeys } from '../api/authKeys';
 import { useAuthStore } from '@/store';
 import { ROUTES } from '@/app/routes';
+import { removeSessionItem } from '@/utils';
+import { AUTH_SESSION_KEYS } from '../sessionKeys';
 
 export const useLoginUser = () => {
 
@@ -18,6 +20,7 @@ export const useLoginUser = () => {
         mutationFn: loginUser,
         onSuccess: (data) => {
             setAuth(data);
+            removeSessionItem(AUTH_SESSION_KEYS.loginDraftEmail);
             navigate(redirectPath || ROUTES.home, { replace: true });
             queryClient.invalidateQueries({ queryKey: authKeys.all });
         }

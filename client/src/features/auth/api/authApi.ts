@@ -20,9 +20,11 @@ export const verifyEmail = async (payload: authTypes.VerifyEmailPayload): Promis
     return res.data.data;
 };
 
-export const resendOtp = async (payload: authTypes.ResendOtpPayload): Promise<void> => {
+export const resendOtp = async (payload: authTypes.ResendOtpPayload): Promise<string> => {
 
-    await api.post<authTypes.ResendOtpResponse>(AUTH_ENDPOINTS.resendOtp, payload);
+    const res = await api.post<authTypes.ResendOtpResponse>(AUTH_ENDPOINTS.resendOtp, payload);
+
+    return res.data.message;
 };
 
 export const loginUser = async (payload: LoginFormValues): Promise<authTypes.AuthUser> => {
@@ -37,14 +39,18 @@ export const logoutUser = async (): Promise<void> => {
     await api.post<authTypes.LogoutResponse>(AUTH_ENDPOINTS.logout);
 };
 
-export const forgotPassword = async (payload: ForgotPasswordFormValues): Promise<void> => {
+export const forgotPassword = async (payload: ForgotPasswordFormValues): Promise<string> => {
 
-    await api.post<authTypes.ForgotPasswordResponse>(AUTH_ENDPOINTS.forgotPassword, payload);
+    const res = await api.post<authTypes.ForgotPasswordResponse>(AUTH_ENDPOINTS.forgotPassword, payload);
+
+    return res.data.message;
 };
 
-export const resetPassword = async (payload: authTypes.ResetPasswordPayload): Promise<void> => {
+export const resetPassword = async (payload: authTypes.ResetPasswordPayload): Promise<string> => {
 
-    await api.post<authTypes.ResetPasswordResponse>(AUTH_ENDPOINTS.resetPassword, payload);
+    const res = await api.post<authTypes.ResetPasswordResponse>(AUTH_ENDPOINTS.resetPassword, payload);
+
+    return res.data.message;
 };
 
 export const refreshToken = async (): Promise<void> => {

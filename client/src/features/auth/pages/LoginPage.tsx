@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
 import LoginForm from "../components/LoginForm";
 import { ROUTES } from "@/app/routes";
+import { removeSessionItem } from "@/utils";
+import { AUTH_SESSION_KEYS } from "../sessionKeys";
 
 const LoginPage = () => {
     return (
         <div className="min-h-screen bg-secondary-50 flex flex-col justify-center items-center gap-[clamp(25px,2.2vw,32px)] max-[410px]:px-3 font-label">
 
             <header className="flex flex-col items-center">
-                <h1 className="text-2xl font-bold">Voltex</h1>
+                <h1 className="text-3xl font-bold">Voltex</h1>
                 <p className="text-secondary-600 text-[15px]">Premium Social Experience</p>
             </header>
 
@@ -25,7 +27,7 @@ const LoginPage = () => {
             <footer className="text-secondary-600 text-[clamp(15px,4vw,16px)]">
                 Don't have an account?
                 {' '}
-                <Link to={ROUTES.register} className="text-primary-950 font-bold cursor-pointer">Create account</Link>
+                <Link to={ROUTES.register} onClick={() => removeSessionItem(AUTH_SESSION_KEYS.loginDraftEmail)} className="text-primary-950 font-bold cursor-pointer">Create account</Link>
             </footer>
 
         </div>

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import RegisterForm from '../components/RegisterForm';
 import { ROUTES } from '@/app/routes';
+import { removeSessionItem } from '@/utils';
+import { AUTH_SESSION_KEYS } from '../sessionKeys';
 
 const RegisterPage = () => {
     return (
@@ -20,7 +22,7 @@ const RegisterPage = () => {
             <footer className="text-secondary-600 text-[clamp(15px,4vw,16px)]">
                 Already have an account?
                 {' '}
-                <Link to={ROUTES.login} className="text-primary-950 font-bold cursor-pointer">Sign In</Link>
+                <Link to={ROUTES.login} onClick={() => removeSessionItem(AUTH_SESSION_KEYS.registerDraftValues)} className="text-primary-950 font-bold cursor-pointer">Sign In</Link>
             </footer>
 
         </div>
