@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loginUser } from '../api/authApi';
 import { authKeys } from '../api/authKeys';
 import { useAuthStore } from '@/store';
@@ -11,11 +11,14 @@ export const useLoginUser = () => {
     const setAuth = useAuthStore((state) => state.setAuth);
     const navigate = useNavigate();
 
+    const [searchParams] = useSearchParams();
+    const redirectPath = searchParams.get('redirect');
+
     return useMutation({
         mutationFn: loginUser,
         onSuccess: (data) => {
             setAuth(data);
-            navigate(ROUTES.home, { replace: true });
+            navigate(redirectPath || ROUTES.home, { replace: true });
             queryClient.invalidateQueries({ queryKey: authKeys.all });
         }
     });
