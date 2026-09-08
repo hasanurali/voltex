@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { usernameField } from '@/lib';
+import { usernameField } from '@/lib/schemas/sharedFields';
 
 export const updateUsernameSchema = z.object({
     username: usernameField
