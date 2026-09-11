@@ -4,6 +4,7 @@ export { default as VerifyEmailPage } from './pages/VerifyEmailPage';
 export { default as ForgotPasswordPage } from './pages/ForgotPasswordPage';
 export { default as ResetPasswordPage } from './pages/ResetPasswordPage';
 export { useCurrentUser } from './hooks/useCurrentUser';
+export { useLogoutUser } from './hooks/useLogoutUser';
 export { refreshToken } from './api/authApi';
 export { AUTH_ENDPOINTS } from './api/authEndpoints';
 export { authKeys } from './api/authKeys';
