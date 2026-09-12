@@ -1,8 +1,16 @@
-import { useMutation } from "@tanstack/react-query"
-import { updateProfile } from "../api/profileApi"
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateProfile } from "../api/profileApi";
+import { profileKeys } from "../api/profileKeys";
 
-export const useUpdateProfile = () => {
+export const useUpdateProfile = (username: string) => {
+
+    const queryClient = useQueryClient();
+
     return useMutation({
-        mutationFn: updateProfile
+        mutationFn: updateProfile,
+        meta: { skipGlobalErrorToast: true },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: profileKeys.detail(username) });
+        }
     });
 };

@@ -12,9 +12,8 @@ export const updateProfileSchema = z.object({
         .min(2, 'Name must be between 2 and 30 characters')
         .max(30, 'Name must be between 2 and 30 characters')
         .regex(/^[\p{L}]+(?: [\p{L}]+)*$/u, 'Name can only contain letters and spaces')
-        .optional()
-        .or(z.literal('')),
-
+        .optional(),
+        
     bio: z
         .string()
         .trim()
@@ -37,6 +36,8 @@ export const updateProfileSchema = z.object({
         .or(z.literal(''))
 });
 
+export const editProfileSchema = updateUsernameSchema.merge(updateProfileSchema);
 
 export type UpdateUsernameFormValues = z.infer<typeof updateUsernameSchema>;
 export type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>;
+export type EditProfileFormValues = z.infer<typeof editProfileSchema>;
