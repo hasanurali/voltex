@@ -14,15 +14,17 @@ import ProfileIconButton from './ProfileIconButton';
 import { useDeleteAvatar } from '../hooks/useDeleteAvatar';
 import { useDeleteCoverImage } from '../hooks/useDeleteCoverImage';
 import Spinner from '@/components/common/Spinner';
+import { ImageWithSkeleton } from '@/components/media';
 
 
 interface CoverImageProps {
     isOwnProfile: boolean;
     viewedProfile: AuthUser | undefined;
+    isLoading: boolean;
 };
 
 
-const ProfileImageSection = ({ isOwnProfile, viewedProfile }: CoverImageProps) => {
+const ProfileImageSection = ({ isOwnProfile, viewedProfile, isLoading }: CoverImageProps) => {
 
     const [avatarImageFile, setAvatarImageFile] = useState<File | null>(null);
     const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
@@ -176,10 +178,12 @@ const ProfileImageSection = ({ isOwnProfile, viewedProfile }: CoverImageProps) =
 
     return (
         <section className='relative w-full h-48 sm:h-56 md:h-64 lg:h-72'>
-            <img
-                className='w-full h-full object-cover'
+
+            <ImageWithSkeleton
                 src={coverImagePreview || viewedProfile?.profile.coverImage}
                 alt=""
+                containerClassName="w-full h-full inset-0 rounded-none!"
+                className="w-full h-full object-cover"
             />
 
             {/* Cover image upload progress bar */}
@@ -191,7 +195,7 @@ const ProfileImageSection = ({ isOwnProfile, viewedProfile }: CoverImageProps) =
             <input onChange={handleImageFileSelectChange} ref={coverImageInputRef} type='file' id='CoverImagefileInput' name='coverImage' className='hidden' />
 
             {/* Cover image edit/delete and check/cancel button */}
-            {isOwnProfile && uploadingImage === null && (
+            {isOwnProfile && uploadingImage === null && !isLoading && (
                 <div className='absolute right-3 top-3 flex gap-2'>
 
                     {
@@ -236,11 +240,13 @@ const ProfileImageSection = ({ isOwnProfile, viewedProfile }: CoverImageProps) =
             )}
 
             {/* Avatar container */}
-            <div className='absolute bottom-0 left-3 z-10 w-[clamp(5rem,18cqw,7rem)] h-[clamp(5rem,18cqw,7rem)] translate-y-1/2 sm:left-4'>
-                <img
-                    className='w-full h-full object-cover rounded-full border-3 border-white bg-white'
+            <div className='absolute bottom-0 left-3 z-10 w-[clamp(5rem,18cqw,7rem)] h-[clamp(5rem,18cqw,7rem)] translate-y-1/2 sm:left-4 bg-white rounded-full'>
+
+                <ImageWithSkeleton
                     src={avatarImagePreview || viewedProfile?.profile.avatar}
                     alt={viewedProfile?.user.displayName ?? 'User avatar'}
+                    containerClassName="w-full h-full object-cover rounded-full border-3 border-white rounded-full!"
+                    className="w-full h-full object-cover"
                 />
 
                 {/* avatar progress bar */}
@@ -252,8 +258,8 @@ const ProfileImageSection = ({ isOwnProfile, viewedProfile }: CoverImageProps) =
                 <input onChange={handleImageFileSelectChange} ref={avatarImageInputRef} type='file' id='avatarFileInput' name='avatarImage' className='hidden' />
 
                 {/* Avatar edit/delete and check/cancel button */}
-                {isOwnProfile && uploadProgress === null && (
-                    <div className='absolute bottom-1 -right-10 flex flex-row gap-2'>
+                {isOwnProfile && uploadProgress === null && !isLoading && (
+                    <div className='absolute bottom-1 -right-13 min-[560px]:-right-12 flex flex-row gap-2'>
 
                         {
                             avatarImageFile ? (
@@ -299,6 +305,6 @@ const ProfileImageSection = ({ isOwnProfile, viewedProfile }: CoverImageProps) =
             </div>
         </section>
     )
-}
+};
 
 export default ProfileImageSection;

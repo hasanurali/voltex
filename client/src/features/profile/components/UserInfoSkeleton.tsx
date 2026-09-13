@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components"
 
-const ProfileInfoSkeleton = () => {
+const UserInfoSkeleton = () => {
     return (
         <>
             <div className="flex flex-col gap-2">
@@ -27,4 +27,4 @@ const ProfileInfoSkeleton = () => {
     )
 };
 
-export default ProfileInfoSkeleton;
+export default UserInfoSkeleton;

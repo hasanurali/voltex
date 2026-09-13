@@ -5,6 +5,7 @@ import { ROUTES } from "@/app/routes";
 import { Button, Logo } from "@/components";
 import { useAuthStore } from "@/store";
 import { useLogoutUser } from "@/features/auth";
+import { ImageWithSkeleton } from "@/components/media";
 
 
 const Sidebar = () => {
@@ -81,7 +82,12 @@ const Sidebar = () => {
                 <div ref={profileMenuRef} aria-hidden={!isAuthenticated} className={`${!isAuthenticated && 'hidden'} relative `}>
                     <div className="flex min-w-0 justify-between items-center p-3 md:max-[850px]:p-2 rounded-full hover:bg-tertiary-100">
                         <div className="flex min-w-0 items-center gap-3">
-                            <img className="h-12 w-12 shrink-0 rounded-full object-cover" src={auth?.profile.avatar} alt={auth?.user.displayName ?? 'Profile avatar'} />
+                            <ImageWithSkeleton
+                                src={auth?.profile.avatar}
+                                alt={auth?.user.displayName ?? 'Profile avatar'}
+                                containerClassName="h-12 w-12 rounded-full shrink-0"
+                                className="h-full w-full object-cover rounded-full"
+                            />
                             <div className="min-w-0">
                                 <p className="wrap-break-word font-medium">{auth?.user.displayName}</p>
                                 <p className="wrap-break-word text-sm text-secondary-400">{`@${auth?.user.username}`}</p>
