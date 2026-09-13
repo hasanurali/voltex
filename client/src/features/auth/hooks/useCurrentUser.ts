@@ -5,6 +5,7 @@ import { currentUser } from '../api/authApi';
 export const useCurrentUser = () => {
     return useQuery({
         queryKey: authKeys.me(),
-        queryFn: currentUser
+        queryFn: currentUser,
+        retry: false
     });
 };

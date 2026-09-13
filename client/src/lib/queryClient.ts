@@ -18,6 +18,15 @@ export const queryClient = new QueryClient({
                     return;
                 };
 
+                const status = isAxiosError(error) ?
+                    error.response?.status
+                    :
+                    null;
+
+                if (mutation.meta?.skip401ErrorToast && status === 401) {
+                    return;
+                };
+
                 const hasFieldErrors = isAxiosError<ApiErrorResponse>(error) &&
                     Array.isArray(error.response?.data?.errors) &&
                     error.response.data.errors.length > 0;
