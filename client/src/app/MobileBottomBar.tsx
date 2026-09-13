@@ -1,16 +1,20 @@
 import { NavLink } from 'react-router-dom';
 import { Home, Mail, Bell, Plus, User } from 'lucide-react';
+import { useAuthStore } from '@/store';
+import { ROUTES } from './routes';
 
 const MobileBottomBar = () => {
 
+    const auth = useAuthStore((state) => state.auth);
+
     const leftItems = [
-        { label: 'Home', icon: Home, path: '/n' },
+        { label: 'Home', icon: Home, path: ROUTES.home },
         { label: 'Messages', icon: Mail, path: '/n' },
     ];
 
     const rightItems = [
         { label: 'Notifications', icon: Bell, path: '/n' },
-        { label: 'Profile', icon: User, path: `/n` },
+        { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` },
     ];
 
     return (

@@ -7,16 +7,6 @@ import { useAuthStore } from "@/store";
 import { useLogoutUser } from "@/features/auth";
 
 
-const navItems = [
-    { label: 'Home', icon: Home, path: ROUTES.home },
-    { label: 'Search', icon: Search, path: '/n' },
-    { label: 'Messages', icon: Mail, path: '/n' },
-    { label: 'Notifications', icon: Bell, path: '/n' },
-    { label: 'Profile', icon: User, path: '/n' },
-    { label: 'Settings', icon: Settings, path: '/n' },
-];
-
-
 const Sidebar = () => {
 
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -24,6 +14,15 @@ const Sidebar = () => {
 
     const auth = useAuthStore((state) => state.auth);
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+    const navItems = [
+        { label: 'Home', icon: Home, path: ROUTES.home },
+        { label: 'Search', icon: Search, path: '/n' },
+        { label: 'Messages', icon: Mail, path: '/n' },
+        { label: 'Notifications', icon: Bell, path: '/n' },
+        { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` },
+        { label: 'Settings', icon: Settings, path: '/n' },
+    ];
 
     useEffect(() => {
 
@@ -47,7 +46,7 @@ const Sidebar = () => {
     };
 
     return (
-        <aside className="w-full md:w-75 min-[851px]:w-[clamp(320px,25vw,360px)] md:max-w-none md:shrink-0 max-h-screen h-screen overflow-y-auto pr-5 pl-[clamp(36px,3vw,72px)] py-5 md:max-[850px]:pr-[clamp(12px,2vw,16px)] md:max-[850px]:pl-[clamp(20px,3vw,24px)] hidden md:flex flex-col justify-between bg-primary-50 font-label">
+        <aside className="w-full md:w-75 min-[851px]:w-[clamp(320px,25vw,360px)] md:max-w-none md:shrink-0 max-h-screen h-screen overflow-y-auto pr-5 pl-[clamp(36px,3vw,72px)] py-5 md:max-[850px]:pr-[clamp(12px,2vw,16px)] md:max-[850px]:pl-[clamp(20px,3vw,24px)] hidden md:flex flex-col justify-between bg-primary-50 border-r border-r-secondary-100 font-label">
 
             <header className="flex gap-3 items-center">
                 <Logo />

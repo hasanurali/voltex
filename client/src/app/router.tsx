@@ -4,6 +4,9 @@ import NotFoundPage from '../pages/NotFoundPage.tsx';
 import RouteErrorPage from "../pages/RouteErrorPage.tsx"
 import GuestRoute from './GuestRoute.tsx';
 import { LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage, ResetPasswordPage } from '@/features/auth';
+import { ProfilePage } from '@/features/profile';
+import AppLayout from './AppLayout.tsx';
+import ProtectedRoute from './ProtectedRoute.tsx';
 
 
 export const router = createBrowserRouter([
@@ -39,10 +42,27 @@ export const router = createBrowserRouter([
                 ],
             },
 
-            // Public routes
+            {
+                element: <AppLayout />,
+                children: [
+                    {
+                        index: true
+                    },
+                    {
+                        element: <ProtectedRoute />,
+                        children: [
+                            {
+                                path: ROUTES.profile,
+                                element: <ProfilePage />
+                            }
+                        ]
+                    }
+                ]
+            },
+
             {
                 path: ROUTES.notFound,
-                element: <NotFoundPage />
+                element: <NotFoundPage />,
             }
         ],
     },
