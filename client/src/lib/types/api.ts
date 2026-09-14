@@ -17,3 +17,12 @@ export interface ApiErrorResponse {
     message: string;
     errors?: ApiFieldError[];
 };
+
+export interface ApiPaginationResponse {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+};
