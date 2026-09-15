@@ -18,7 +18,7 @@ export type UserStatusResponse = ApiResponse<{
 }>;
 
 export interface SearchUserPayload {
-    search: number;
+    search: string;
     page?: number;
     limit?: number;
 };
