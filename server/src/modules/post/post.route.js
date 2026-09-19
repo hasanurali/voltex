@@ -19,6 +19,7 @@ postRoutes.get("/",
 );
 
 postRoutes.get("/:postId",
+    middlewares.optionalMiddleware,
     controllers.fetchPostDetailsController
 );
 

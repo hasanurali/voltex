@@ -1,10 +1,10 @@
 import postModel from "./post.model.js";
-import { VISIBILITY_TYPE } from "../../shared/constants/enums/index.js"
 import { executeWithConfig } from "../../shared/utils/index.js";
+import { REACTION_TARGET_TYPE, VISIBILITY_TYPE } from "../../shared/constants/enums/index.js"
 
 
 // Reusable aggregation pipelines
-const postResponsePipeline = (projectionFields = {}) => [
+const postResponsePipeline = (projectionFields = {}, userId = null) => [
     {
         $lookup: {
             from: "users",
@@ -26,6 +26,34 @@ const postResponsePipeline = (projectionFields = {}) => [
     },
     {
         $unwind: "$profile"
+    },
+    {
+        $lookup: {
+            from: "reactions",
+            let: {
+                targetId: "$_id"
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                { $eq: ["$targetType", REACTION_TARGET_TYPE.POST] },
+                                { $eq: ["$targetId", "$$targetId"] },
+                                { $ne: [userId, null] },
+                                { $eq: ["$user", userId] }
+                            ]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1
+                    }
+                }
+            ],
+            as: "reaction"
+        }
     },
     {
         $project: {
@@ -52,6 +80,9 @@ const postResponsePipeline = (projectionFields = {}) => [
             likesCount: 1,
             visibility: 1,
             isEdited: 1,
+            hasReacted: {
+                $gt: [{ $size: { $ifNull: ["$reaction", []] } }, 0]
+            },
             createdAt: 1,
         }
     }
@@ -86,7 +117,7 @@ export const createPost = async (postData, session) => {
     return post;
 };
 
-export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingIds = [], cursor = null }) => {
+export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingIds = [], cursor = null, userId = null }) => {
 
     const candidateAuthorIds = [
         ...userFollowingIds,
@@ -351,13 +382,13 @@ export const fetchHomeFeed = async ({ userFollowingIds = [], suggestedFollowingI
         },
 
         // Return only feed data
-        ...postResponsePipeline({ finalScore: 1 }),
+        ...postResponsePipeline({ finalScore: 1 }, userId),
     ]);
 
     return feedPosts;
 };
 
-export const fetchPostDetails = async (postId) => {
+export const fetchPostDetails = async (postId, userId = null) => {
 
     const [detailedPost] = await postModel.aggregate([
         {
@@ -367,7 +398,7 @@ export const fetchPostDetails = async (postId) => {
             }
         },
 
-        ...postResponsePipeline({ hashtags: 1 })
+        ...postResponsePipeline({ hashtags: 1 }, userId)
     ]);
 
     return detailedPost;
@@ -437,7 +468,7 @@ export const checkPostExistsById = async (postId) => {
     return isPostExists;
 };
 
-export const updatePost = async (postId, whitelistedData) => {
+export const updatePost = async (postId, whitelistedData, userId = null) => {
 
     await postModel.updateOne(
         {
@@ -459,7 +490,7 @@ export const updatePost = async (postId, whitelistedData) => {
             }
         },
 
-        ...postResponsePipeline({ hashtags: 1 })
+        ...postResponsePipeline({ hashtags: 1 }, userId)
     ]);
 
     return post;

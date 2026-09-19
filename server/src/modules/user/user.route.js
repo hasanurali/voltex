@@ -6,7 +6,8 @@ import * as middlewares from "../../middlewares/index.js"
 
 
 userRoutes.get("/",
-    controllers.fetchUsersController,
+    middlewares.optionalMiddleware,
+    controllers.fetchUsersController
 );
 
 userRoutes.post("/user-statuses",

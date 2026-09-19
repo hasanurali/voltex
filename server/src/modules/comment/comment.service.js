@@ -118,7 +118,7 @@ export const createCommentService = async (userId, commentData) => {
     return comment;
 };
 
-export const fetchCommentService = async (postId, page, limit) => {
+export const fetchCommentService = async ({ postId, page, limit, userId = null }) => {
 
     const postObjectId = convertToObjectId(postId);
     if (!postObjectId) {
@@ -132,7 +132,7 @@ export const fetchCommentService = async (postId, page, limit) => {
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await commentRepository.fetchCommentsByPostId(postObjectId, skip, safeLimit);
+    const result = await commentRepository.fetchCommentsByPostId(postObjectId, skip, safeLimit, userId);
 
     const comments = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -152,7 +152,7 @@ export const fetchCommentService = async (postId, page, limit) => {
     };
 };
 
-export const fetchCommentRepliesService = async (commentId, page, limit) => {
+export const fetchCommentRepliesService = async ({ commentId, page, limit, userId = null }) => {
 
     const commentObjectId = convertToObjectId(commentId);
     if (!commentObjectId) {
@@ -166,7 +166,7 @@ export const fetchCommentRepliesService = async (commentId, page, limit) => {
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await commentRepository.fetchRepliesByCommentId(commentObjectId, skip, safeLimit);
+    const result = await commentRepository.fetchRepliesByCommentId(commentObjectId, skip, safeLimit, userId);
 
     const commentReplies = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;
@@ -213,7 +213,7 @@ export const updateCommentService = async (userId, commentId, commentData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, COMMENT_MESSAGES.COMMENT_UPDATE_FAIL);
     };
 
-    const updatedComment = await commentRepository.updateComment(commentObjectId, whitelistedData);
+    const updatedComment = await commentRepository.updateComment(commentObjectId, whitelistedData, userId);
 
     return updatedComment;
 };
