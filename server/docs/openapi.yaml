@@ -3116,6 +3116,21 @@ components:
           type: string
 
 
+    SearchUserSummary:
+      type: object
+      properties:
+        _id:
+          type: string
+        displayName:
+          type: string
+        username:
+          type: string
+        avatar:
+          type: string
+        isFollowing:
+          type: boolean
+
+
     Post:
       type: object
       properties:
@@ -3141,6 +3156,8 @@ components:
           type: string
           enum: [public, followers]
         isEdited:
+          type: boolean
+        hasReacted:
           type: boolean
         createdAt:
           type: string
@@ -3168,6 +3185,8 @@ components:
           type: string
           enum: [public, followers]
         isEdited:
+          type: boolean
+        hasReacted:
           type: boolean
         createdAt:
           type: string
@@ -3215,6 +3234,8 @@ components:
           type: integer
           minimum: 0
           maximum: 2
+        hasReacted:
+          type: boolean
         createdAt:
           type: string
           format: date-time
@@ -3596,7 +3617,7 @@ components:
             users:
               type: array
               items:
-                $ref: '#/components/schemas/UserSummary'
+                $ref: '#/components/schemas/SearchUserSummary'
             pagination:
               $ref: '#/components/schemas/Pagination'
 
