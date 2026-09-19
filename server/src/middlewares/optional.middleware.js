@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 import JWT_CONFIG from "../config/jwt.js";
+import convertToObjectId from "../shared/utils/convertToObjectId.js";
 
 const optionalMiddleware = (req, res, next) => {
 
@@ -15,7 +16,7 @@ const optionalMiddleware = (req, res, next) => {
         const decoded = jwt.verify(token, JWT_CONFIG.ACCESS.KEY);
 
         req.user = {
-            id: decoded.userId,
+            id: convertToObjectId(decoded.userId),
             role: decoded.role
         };
 
