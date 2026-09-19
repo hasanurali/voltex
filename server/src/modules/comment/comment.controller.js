@@ -25,7 +25,7 @@ export const fetchCommentController = asyncHandler(async (req, res) => {
 
     const userId = req.user?.id;
 
-    const comments = await services.fetchCommentService({ postId, page, limit, userId });
+    const comments = await services.fetchCommentService(postId, page, limit, userId);
 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_FETCH_SUCCESS, comments));
@@ -39,7 +39,7 @@ export const fetchCommentRepliesController = asyncHandler(async (req, res) => {
 
     const userId = req.user?.id;
 
-    const commentReplies = await services.fetchCommentRepliesService({ commentId, page, limit, userId });
+    const commentReplies = await services.fetchCommentRepliesService(commentId, page, limit, userId);
 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(COMMENT_MESSAGES.COMMENT_REPLIES_FETCH_SUCCESS, commentReplies));

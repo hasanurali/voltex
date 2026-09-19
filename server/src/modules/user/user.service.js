@@ -6,7 +6,7 @@ import { USER_MESSAGES } from "../../shared/constants/messages/index.js";
 import { onlineUsers } from "../../shared/socket/socket.js";
 
 
-export const fetchUsersService = async ({ page, limit, search = "", userId = null }) => {
+export const fetchUsersService = async (page, limit, search = "", userId = null) => {
 
     const trimmedSearch = search.trim();
 
@@ -16,7 +16,7 @@ export const fetchUsersService = async ({ page, limit, search = "", userId = nul
 
     const { page: safePage, limit: safeLimit, skip } = pagination(page, limit);
 
-    const result = await userRepository.searchUsers({ trimmedSearch, skip, safeLimit, userId });
+    const result = await userRepository.searchUsers(trimmedSearch, skip, safeLimit, userId);
 
     const users = result?.data ?? [];
     const total = result?.metadata?.[0]?.total ?? 0;

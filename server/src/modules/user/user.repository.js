@@ -1,7 +1,7 @@
 import userModel from "../auth/user.model.js";
 
 
-export const searchUsers = async ({ search, skip, limit, userId = null }) => {
+export const searchUsers = async (search, skip, limit, userId = null) => {
 
     const [users] = await userModel.aggregate([
         {

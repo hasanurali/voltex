@@ -118,7 +118,7 @@ export const createCommentService = async (userId, commentData) => {
     return comment;
 };
 
-export const fetchCommentService = async ({ postId, page, limit, userId = null }) => {
+export const fetchCommentService = async (postId, page, limit, userId = null) => {
 
     const postObjectId = convertToObjectId(postId);
     if (!postObjectId) {
@@ -152,7 +152,7 @@ export const fetchCommentService = async ({ postId, page, limit, userId = null }
     };
 };
 
-export const fetchCommentRepliesService = async ({ commentId, page, limit, userId = null }) => {
+export const fetchCommentRepliesService = async (commentId, page, limit, userId = null) => {
 
     const commentObjectId = convertToObjectId(commentId);
     if (!commentObjectId) {
