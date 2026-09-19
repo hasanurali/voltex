@@ -106,7 +106,7 @@ export const fetchPostsService = async (userId, cursor) => {
         );
     };
 
-    const posts = await postRepository.fetchHomeFeed({ userFollowingIds, suggestedFollowingIds, cursor: decodedCursor });
+    const posts = await postRepository.fetchHomeFeed({ userFollowingIds, suggestedFollowingIds, cursor: decodedCursor, userId });
 
     const lastPost = posts.at(-1);
 
@@ -125,14 +125,14 @@ export const fetchPostsService = async (userId, cursor) => {
     };
 };
 
-export const fetchPostDetailsService = async (postId) => {
+export const fetchPostDetailsService = async (postId, userId = null) => {
 
     const postObjectId = convertToObjectId(postId);
     if (!postObjectId) {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.INVALID_POST_ID);
     };
 
-    const detailedPost = await postRepository.fetchPostDetails(postObjectId);
+    const detailedPost = await postRepository.fetchPostDetails(postObjectId, userId);
 
     if (!detailedPost) {
         throw new ApiError(StatusCodes.NOT_FOUND, POST_MESSAGES.NOT_FOUND);
@@ -227,7 +227,7 @@ export const updatePostService = async (userId, postId, postData) => {
         throw new ApiError(StatusCodes.BAD_REQUEST, POST_MESSAGES.POST_UPDATE_FAIL);
     };
 
-    const updatedPost = await postRepository.updatePost(postObjectId, whitelistedData);
+    const updatedPost = await postRepository.updatePost(postObjectId, whitelistedData, userId);
 
     return updatedPost;
 };

@@ -33,7 +33,9 @@ export const fetchPostDetailsController = asyncHandler(async (req, res) => {
 
     const postId = req.params.postId;
 
-    const detailedPost = await services.fetchPostDetailsService(postId);
+    const userId = req.user?.id;
+
+    const detailedPost = await services.fetchPostDetailsService(postId, userId);
 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(POST_MESSAGES.POST_DETAILS_FETCH_SUCCESS, detailedPost));
