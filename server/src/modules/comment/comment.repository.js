@@ -1,9 +1,10 @@
 import commentModel from "./comment.model.js";
 import { executeWithConfig } from "../../shared/utils/index.js";
+import { REACTION_TARGET_TYPE } from "../../shared/constants/enums/index.js";
 
 
 // Reusable aggregation pipelines
-const commentResponsePipeline = [
+const commentResponsePipeline = (userId = null) => [
     {
         $lookup: {
             from: "users",
@@ -44,6 +45,34 @@ const commentResponsePipeline = [
         $unwind: "$profile"
     },
     {
+        $lookup: {
+            from: "reactions",
+            let: {
+                targetId: "$_id"
+            },
+            pipeline: [
+                {
+                    $match: {
+                        $expr: {
+                            $and: [
+                                { $eq: ["$targetType", REACTION_TARGET_TYPE.COMMENT] },
+                                { $eq: ["$targetId", "$$targetId"] },
+                                { $ne: [userId, null] },
+                                { $eq: ["$user", userId] }
+                            ]
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1
+                    }
+                }
+            ],
+            as: "reaction"
+        }
+    },
+    {
         $project: {
             _id: 1,
             post: 1,
@@ -57,6 +86,9 @@ const commentResponsePipeline = [
             content: 1,
             likesCount: 1,
             repliesCount: 1,
+            hasReacted: {
+                $gt: [{ $size: { $ifNull: ["$reaction", []] } }, 0]
+            },
             depth: 1,
             createdAt: 1,
             updatedAt: 1
@@ -83,7 +115,7 @@ export const createComment = async (commentData, session) => {
             }
         },
 
-        ...commentResponsePipeline
+        ...commentResponsePipeline()
     ],
         {
             session
@@ -153,7 +185,7 @@ export const decrementRepliesCount = async (commentId, session) => {
     );
 };
 
-export const fetchCommentsByPostId = async (postId, skip, limit) => {
+export const fetchCommentsByPostId = async (postId, skip, limit, userId = null) => {
 
     const [result] = await commentModel.aggregate([
         {
@@ -178,7 +210,7 @@ export const fetchCommentsByPostId = async (postId, skip, limit) => {
                         $limit: limit
                     },
 
-                    ...commentResponsePipeline
+                    ...commentResponsePipeline(userId)
                 ],
 
                 metadata: [
@@ -193,7 +225,7 @@ export const fetchCommentsByPostId = async (postId, skip, limit) => {
     return result;
 };
 
-export const fetchRepliesByCommentId = async (commentId, skip, limit) => {
+export const fetchRepliesByCommentId = async (commentId, skip, limit, userId = null) => {
 
     const [commentReplies] = await commentModel.aggregate([
         {
@@ -217,7 +249,7 @@ export const fetchRepliesByCommentId = async (commentId, skip, limit) => {
                         $limit: limit
                     },
 
-                    ...commentResponsePipeline
+                    ...commentResponsePipeline(userId)
                 ],
 
                 metadata: [
@@ -232,7 +264,7 @@ export const fetchRepliesByCommentId = async (commentId, skip, limit) => {
     return commentReplies;
 };
 
-export const updateComment = async (commentId, whitelistedData) => {
+export const updateComment = async (commentId, whitelistedData, userId = null) => {
 
     await commentModel.updateOne(
         {
@@ -251,7 +283,7 @@ export const updateComment = async (commentId, whitelistedData) => {
             }
         },
 
-        ...commentResponsePipeline
+        ...commentResponsePipeline(userId)
     ]);
 
     return comment;

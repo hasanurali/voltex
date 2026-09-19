@@ -14,10 +14,12 @@ commentRoutes.post("/",
 );
 
 commentRoutes.get("/post/:postId",
+    middlewares.optionalMiddleware,
     controllers.fetchCommentController
 );
 
 commentRoutes.get("/:commentId/replies",
+    middlewares.optionalMiddleware,
     controllers.fetchCommentRepliesController
 );
 
