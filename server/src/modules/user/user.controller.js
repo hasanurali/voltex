@@ -8,7 +8,9 @@ export const fetchUsersController = asyncHandler(async (req, res) => {
 
     const { page, limit, search } = req.query;
 
-    const userData = await services.fetchUsersService(page, limit, search);
+    const userId = req.user?.id;
+
+    const userData = await services.fetchUsersService({ page, limit, search, userId });
 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(USER_MESSAGES.FETCH_SUCCESS, userData));
