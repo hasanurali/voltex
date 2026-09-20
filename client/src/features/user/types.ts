@@ -6,6 +6,7 @@ export interface SearchedUser {
     displayName: string;
     username: string;
     avatar: string;
+    isFollowing: boolean;
 };
 
 export type SearchUserResponse = ApiResponse<{
