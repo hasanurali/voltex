@@ -7,14 +7,15 @@ export const useSearchUser = (search: string, limit: number = 10) => {
         queryKey: userKeys.searchUser(search, limit),
         queryFn: ({ pageParam }) => searchUser({ search, page: pageParam, limit }),
         initialPageParam: 1,
-        getNextPageParam: (lastPage, allPages) => {
+        getNextPageParam: (lastPage) => {
 
-            if (!lastPage.data?.pagination?.hasNextPage) {
+            if (!lastPage.pagination?.hasNextPage) {
                 return undefined;
             };
 
-            return allPages.length + 1;
+            return lastPage.pagination?.page + 1;
         },
-        enabled: search.trim().length > 0
+        enabled: search.trim().length > 0,
+        select: (data) => data.pages.flatMap((page) => page.users)
     });
 };

@@ -1,0 +1,1 @@
+export { default as SearchUserPage } from './page/SearchUserPage';
