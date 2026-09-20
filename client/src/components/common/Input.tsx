@@ -12,7 +12,7 @@ const Input = ({ className = '', showPasswordToggle = false, type = 'text', ref,
     const [passwordToggle, setPasswordToggle] = useState<boolean>(false);
 
     return (
-        <div className="flex flex-col relative">
+        <div className="flex flex-col relative w-full">
 
             <input
                 ref={ref}

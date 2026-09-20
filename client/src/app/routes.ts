@@ -7,6 +7,7 @@ export const ROUTES = {
 
     home: '/',
     profile: '/profile/:username',
+    searchUser: '/user/search',
 
     notFound: '*',
 } as const;

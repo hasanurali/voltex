@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight } from "lucide-react";
-import { Button, Input } from "@/components";
+import { ArrowRight, CircleCheckBig, CircleX } from "lucide-react";
+import { Button, Input, Spinner } from "@/components";
 import { registerSchema, type RegisterFormValues } from '../schemas/authSchema';
 import { useRegisterUser } from '../hooks/useRegisterUser';
 import { fieldApiError, setSessionItem, getSessionItem } from '@/utils';
 import { useDebounce } from '@/hooks';
 import { AUTH_SESSION_KEYS } from '../sessionKeys';
+import { useCheckUsername } from "@/features/profile";
 
 
 interface RegisterDraftValues {
@@ -19,7 +20,7 @@ interface RegisterDraftValues {
 
 const RegisterForm = () => {
 
-    const { register, handleSubmit, setError, control, setValues, formState: { errors } } = useForm<RegisterFormValues>({
+    const { register, handleSubmit, setError, control, setValues, trigger, formState: { errors } } = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema)
     });
 
@@ -58,6 +59,16 @@ const RegisterForm = () => {
         });
     };
 
+    const watchedUsername = useWatch({
+        control,
+        name: 'username'
+    });
+
+    const debouncedUsername = useDebounce(watchedUsername, 500);
+
+    const { data: usernameAvailableData, isPending: isCheckUsernamePending } = useCheckUsername(debouncedUsername ?? '');
+    const isAvailableUsername = usernameAvailableData?.available;
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-7 p-3">
 
@@ -71,9 +82,22 @@ const RegisterForm = () => {
                 </div>
 
                 {/* Username */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 relative">
                     <label htmlFor="username" className="text-primary-700 font-label text-[15px] tracking-[0.2px]">Username</label>
-                    <Input {...register('username')} error={errors.username?.message} id="username" type="text" placeholder="e.g. jhondoe9" className={`py-3 px-4 bg-neutral-50 focus:bg-white ${!errors.username && 'focus:border-primary-800'} placeholder:text-neutral-400 focus:placeholder:text-neutral-500`} />
+                    <Input {...register('username', { onChange: (e) => (e.target.value.length >= 1 && trigger('username')) })} error={errors.username?.message} id="username" type="text" placeholder="e.g. jhondoe9" className={`py-3 px-4 pr-10 bg-neutral-50 focus:bg-white ${!errors.username && 'focus:border-primary-800'} ${debouncedUsername?.length >= 3 && (isAvailableUsername ? 'focus:border-green-600! border-green-600 focus:ring-1 focus:ring-green-400/30' : 'focus:border-red-600! border-red-600  focus:ring-1 focus:ring-red-400/30')} placeholder:text-neutral-400 focus:placeholder:text-neutral-500`} />
+                    <div className="absolute right-3.5 top-11">
+                        {
+                            debouncedUsername?.length >= 3 && (
+                                isCheckUsernamePending ?
+                                    <Spinner size="sm" />
+                                    :
+                                    isAvailableUsername ?
+                                        <CircleCheckBig size={17} color="green" />
+                                        :
+                                        <CircleX size={17} color="red" />
+                            )
+                        }
+                    </div>
                 </div>
 
                 {/* Email */}

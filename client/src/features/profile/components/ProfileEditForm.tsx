@@ -1,12 +1,14 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar, Check, Link2, MapPin, X } from 'lucide-react';
+import { Calendar, Check, CircleCheckBig, CircleX, Link2, MapPin, X } from 'lucide-react';
 import { editProfileSchema, type EditProfileFormValues } from '../schemas/profileSchema'
 import type { AuthUser } from '@/features/auth';
-import { Button, Input } from '@/components';
+import { Button, Input, Spinner } from '@/components';
 import { fieldApiError, filterDirtyInputs } from '@/utils';
 import { useUpdateProfile } from '../hooks/useUpdateProfile';
 import { useUpdateUsername } from '../hooks/useUpdateUsername';
+import { useDebounce } from '@/hooks';
+import { useCheckUsername } from '../hooks/useCheckUsername';
 
 
 interface ProfileEditFormProps {
@@ -17,7 +19,7 @@ interface ProfileEditFormProps {
 
 const ProfileEditForm = ({ profile, onClose }: ProfileEditFormProps) => {
 
-    const { register, handleSubmit, setError, formState: { errors } } = useForm<EditProfileFormValues>({
+    const { register, handleSubmit, setError, control, trigger, formState: { errors } } = useForm<EditProfileFormValues>({
         resolver: zodResolver(editProfileSchema),
         defaultValues: {
             displayName: profile?.user.displayName,
@@ -28,7 +30,7 @@ const ProfileEditForm = ({ profile, onClose }: ProfileEditFormProps) => {
         }
     });
 
-    const { mutateAsync: updateUsernameMutateAsync, isPending: isUsernameUpdatePending } = useUpdateUsername(profile?.user.username);
+    const { mutateAsync: updateUsernameMutateAsync, isPending: isUsernameUpdatePending } = useUpdateUsername();
     const { mutate: updateProfileMutate, isPending: isProfileUpdatePending } = useUpdateProfile(profile?.user.username);
     const isSaving = isUsernameUpdatePending || isProfileUpdatePending;
 
@@ -74,6 +76,16 @@ const ProfileEditForm = ({ profile, onClose }: ProfileEditFormProps) => {
             }
         });
     };
+
+    const watchedUsername = useWatch({
+        control,
+        name: 'username'
+    });
+
+    const debouncedUsername = useDebounce(watchedUsername, 500);
+    const usernameToCheck = debouncedUsername !== profile?.user.username ? debouncedUsername : '';
+    const { data: usernameAvailableData, isPending: isCheckUsernamePending } = useCheckUsername(usernameToCheck);
+    const isAvailableUsername = usernameAvailableData?.available;
 
     const date = new Date(profile?.user.createdAt ?? new Date().toISOString());
     const joinedDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
@@ -133,9 +145,22 @@ const ProfileEditForm = ({ profile, onClose }: ProfileEditFormProps) => {
                         </div>
 
                         {/* Username */}
-                        <div className='flex flex-col gap-1.5 text-sm font-semibold tracking-normal text-neutral-500'>
+                        <div className='flex flex-col gap-1.5 text-sm font-semibold tracking-normal text-neutral-500 relative'>
                             <label htmlFor='username'>Username</label>
-                            <Input {...register('username')} error={errors.username?.message} id='username' type='text' placeholder='e.g. johndoe9' className={`w-full py-3 px-4 text-sm bg-neutral-50 text-neutral-500 focus:bg-white ${!errors.username && 'focus:border-primary-800'} placeholder:text-neutral-400 focus:placeholder:text-neutral-500`} />
+                            <Input {...register('username', { onChange: (e) => (e.target.value !== profile?.user.username && trigger('username')) })} error={errors.username?.message} id='username' type='text' placeholder='e.g. johndoe9' className={`w-full py-3 px-4 pr-10 text-sm bg-neutral-50 text-neutral-500 focus:bg-white ${!errors.username && 'focus:border-primary-800'} ${debouncedUsername?.length >= 3 && debouncedUsername !== profile?.user.username && (isAvailableUsername ? 'focus:border-green-600! border-green-600 focus:ring-1 focus:ring-green-400/30' : 'focus:border-red-600! border-red-600  focus:ring-1 focus:ring-red-400/30')} placeholder:text-neutral-400 focus:placeholder:text-neutral-500`} />
+                            <div className="absolute right-3.5 top-10">
+                                {
+                                    debouncedUsername?.length >= 3 && debouncedUsername !== profile?.user.username && (
+                                        isCheckUsernamePending ?
+                                            <Spinner size="sm" />
+                                            :
+                                            isAvailableUsername ?
+                                                <CircleCheckBig size={17} color="green" />
+                                                :
+                                                <CircleX size={17} color="red" />
+                                    )
+                                }
+                            </div>
                         </div>
 
                         {/* Bio */}
