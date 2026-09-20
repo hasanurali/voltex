@@ -18,7 +18,7 @@ const Sidebar = () => {
 
     const navItems = [
         { label: 'Home', icon: Home, path: ROUTES.home },
-        { label: 'Search', icon: Search, path: '/n' },
+        { label: 'Search', icon: Search, path: ROUTES.searchUser },
         { label: 'Messages', icon: Mail, path: '/n' },
         { label: 'Notifications', icon: Bell, path: '/n' },
         { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` },

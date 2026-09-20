@@ -7,6 +7,7 @@ import { LoginPage, RegisterPage, VerifyEmailPage, ForgotPasswordPage, ResetPass
 import { ProfilePage } from '@/features/profile';
 import AppLayout from './AppLayout.tsx';
 import ProtectedRoute from './ProtectedRoute.tsx';
+import { SearchUserPage } from '@/features/user';
 
 
 export const router = createBrowserRouter([
@@ -47,6 +48,10 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         index: true
+                    },
+                    {
+                        path: ROUTES.searchUser,
+                        element: <SearchUserPage />
                     },
                     {
                         element: <ProtectedRoute />,
