@@ -2,7 +2,7 @@ import type { ApiResponse } from "@/lib";
 import type { ApiPaginationResponse } from "@/lib/types/api";
 
 export type FollowUserResponse = ApiResponse<null>;
-export type UnFollowUserResponse = ApiResponse<null>;
+export type UnfollowUserResponse = ApiResponse<null>;
 
 export interface FollowUserItem {
     _id: string;

@@ -8,9 +8,9 @@ export const followUser = async (username: string): Promise<void> => {
     await api.post<followTypes.FollowUserResponse>(FOLLOW_ENDPOINTS.followUser(username));
 };
 
-export const unFollowUser = async (username: string): Promise<void> => {
+export const unfollowUser = async (username: string): Promise<void> => {
 
-    await api.delete<followTypes.UnFollowUserResponse>(FOLLOW_ENDPOINTS.unFollowUser(username));
+    await api.delete<followTypes.UnfollowUserResponse>(FOLLOW_ENDPOINTS.unfollowUser(username));
 };
 
 export const fetchUserFollowers = async (payload: followTypes.FetchFollowersPayload): Promise<followTypes.UserFollowersResponse['data']> => {
