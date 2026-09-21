@@ -25,10 +25,10 @@ export const fetchUserProfileController = asyncHandler(async (req, res) => {
 
     const userId = req.user.id;
 
-    const { user, profile } = await services.fetchUserProfileService(userId, username);
+    const { user, profile, isFollowing } = await services.fetchUserProfileService(userId, username);
 
     return res.status(StatusCodes.OK)
-        .json(new ApiResponse(PROFILE_MESSAGES.PROFILE_FETCH_SUCCESS, { user, profile }));
+        .json(new ApiResponse(PROFILE_MESSAGES.PROFILE_FETCH_SUCCESS, { user, profile, isFollowing }));
 });
 
 export const updateUsernameController = asyncHandler(async (req, res) => {
