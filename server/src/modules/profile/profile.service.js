@@ -26,20 +26,24 @@ export const fetchUserProfileService = async (userId, username) => {
         throw new ApiError(StatusCodes.NOT_FOUND, PROFILE_MESSAGES.NOT_FOUND)
     };
 
-    const setting = await settingRepository.fetchSetting(user._id, { select: "privacy.profileVisibility", lean: true });
-    if (setting.privacy.profileVisibility === PROFILE_VISIBILITY.PRIVATE && userId?.toString() !== user._id.toString()) {
+    const isOwnProfile = userId?.toString() === user._id.toString();
 
-        const isFollower = await followRepository.checkFollowingExists(userId, user._id);
-        if (!isFollower) {
-            throw new ApiError(StatusCodes.FORBIDDEN, PROFILE_MESSAGES.PRIVATE_PROFILE);
-        };
+    const isFollowing = !isOwnProfile ?
+        await followRepository.checkFollowingExists(userId, user._id)
+        :
+        false;
+
+    const setting = await settingRepository.fetchSetting(user._id, { select: "privacy.profileVisibility", lean: true });
+    if (setting.privacy.profileVisibility === PROFILE_VISIBILITY.PRIVATE && !isOwnProfile && !isFollowing) {
+        throw new ApiError(StatusCodes.FORBIDDEN, PROFILE_MESSAGES.PRIVATE_PROFILE);
     };
 
     const profile = await profileRepository.getProfileByUserId(user._id, AUTH_OPTIONS.PROFILE_RESPONSE_PROJECTION);
 
     return {
         user,
-        profile: reshapeProfile(profile)
+        profile: reshapeProfile(profile),
+        isFollowing: !!isFollowing
     };
 };
 

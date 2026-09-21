@@ -59,6 +59,15 @@ export const searchUsers = async (search, skip, limit, userId = null) => {
             },
         },
 
+        // Add filter for remove current user
+        {
+            $match: {
+                $expr: {
+                    $ne: ['$_id', userId]
+                }
+            }
+        },
+
         // Return paginated results and the total matching user count
         {
             $facet: {
