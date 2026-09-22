@@ -1,8 +1,12 @@
 import type { ApiResponse } from '@/lib';
-import type { User, Profile, AuthUser } from '@/features/auth';
+import type { User, Profile } from '@/features/auth';
 
 export type UsernameCheckResponse = ApiResponse<{ available: boolean }>;
-export type ProfileResponse = ApiResponse<AuthUser>;
+export type ProfileResponse = ApiResponse<{
+    user: User;
+    profile: Profile;
+    isFollowing: boolean;
+}>;
 export type UpdateUsernameResponse = ApiResponse<User>;
 export type UpdateProfileResponse = ApiResponse<{
     updatedUser: User | null;
