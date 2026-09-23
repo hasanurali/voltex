@@ -1,52 +1,43 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components'
+import { Button, ConfirmDialog } from '@/components'
 import type { SearchedUser } from '../types';
-import { useFollowUser, useUnfollowUser } from '@/features/follow';
+import { useFollowToggle } from '@/hooks';
 
 
 interface UserCardProps {
     user: SearchedUser;
+    currentUserName: string | null;
 };
 
 
-const UserCard = ({ user }: UserCardProps) => {
+const UserCard = ({ user, currentUserName }: UserCardProps) => {
 
-    const [isFollowing, setIsFollowing] = useState(user.isFollowing);
+    const [isMouseLeave, setisMouseLeave] = useState(user.isFollowing);
+    const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
     const navigate = useNavigate();
 
-    const { mutate: followUserMutate, isPending: isFollowUserPending } = useFollowUser(user.username);
-    const { mutate: unfollowUserMutate, isPending: isUnfollowUserPending } = useUnfollowUser(user.username);
+    const { isFollowing, setIsFollowing, handleFollowUser, handleUnFollowUser } = useFollowToggle(currentUserName as string, user.username);
 
-    const handleFollowUser = () => {
+    useEffect(() => {
+        setIsFollowing(user.isFollowing);
+    }, [user.isFollowing]);
 
-        if (isFollowing || isFollowUserPending || isUnfollowUserPending) {
+    const handleCardClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+
+        e.stopPropagation();
+
+        if (!isFollowing) {
+            setisMouseLeave(false);
+        };
+
+        if (isFollowing) {
+            setIsConfirmDialogOpen(true);
             return;
         };
 
-        followUserMutate(user.username, {
-            onError: () => {
-                setIsFollowing(false);
-                return;
-            }
-        });
-        setIsFollowing(true);
-    };
-
-    const handleUnFollowUser = () => {
-
-        if (!isFollowing || isFollowUserPending || isUnfollowUserPending) {
-            return;
-        };
-
-        unfollowUserMutate(user.username, {
-            onError: () => {
-                setIsFollowing(true);
-                return;
-            }
-        });
-        setIsFollowing(false);
+        handleFollowUser();
     };
 
     return (
@@ -59,19 +50,37 @@ const UserCard = ({ user }: UserCardProps) => {
                 </div>
             </div>
 
-            <Button onClick={(e) => { e.stopPropagation(), handleFollowUser(), handleUnFollowUser() }} size="sm" variant={isFollowing ? 'outline' : 'primary'} className={`${isFollowing && 'group'} h-9 min-[400px]:h-10 px-5 min-[400px]:px-7 rounded-full! cursor-pointer transition-colors duration-200 ${isFollowing && 'hover:bg-red-200 hover:border-red-300!'}`}>
+            <>
+                <Button
+                    onClick={handleCardClick}
+                    onMouseLeave={() => setisMouseLeave(true)}
+                    size="sm"
+                    variant={isFollowing ? 'outline' : 'primary'}
+                    className={`${(isFollowing && isMouseLeave) && 'group'} h-9 min-[400px]:h-10 px-5 min-[400px]:px-7 rounded-full! cursor-pointer transition-colors duration-200 ${(isFollowing && isMouseLeave) && 'hover:bg-red-100 hover:border-red-300!'}`}>
 
-                <span className='group-hover:hidden'>
-                    {
-                        isFollowing ?
-                            'Following'
-                            :
-                            'Follow'
-                    }
-                </span>
+                    <span className='group-hover:hidden'>
+                        {
+                            isFollowing ?
+                                'Following'
+                                :
+                                'Follow'
+                        }
+                    </span>
 
-                <span className='hidden group-hover:inline text-danger'>Unfollow</span>
-            </Button>
+                    <span className='hidden group-hover:inline text-danger'>Unfollow</span>
+                </Button>
+                <ConfirmDialog
+                    isOpen={isConfirmDialogOpen}
+                    title={`Unfollow @${user.username}?`}
+                    description="You'll stop seeing their posts in your feed. You can still visit their profile and follow them again anytime."
+                    confirmLabel='Unfollow'
+                    onConfirm={() => {
+                        handleUnFollowUser();
+                        setIsConfirmDialogOpen(false);
+                    }}
+                    onCancel={() => setIsConfirmDialogOpen(false)}
+                />
+            </>
         </div>
     )
 };

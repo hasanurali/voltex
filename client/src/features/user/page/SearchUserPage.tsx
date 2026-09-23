@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import { useSearchUser } from "../hooks/useSearchUser";
 import UserCard from "../components/UserCard";
+import { useAuthStore } from "@/store";
 
 const SearchUserPage = () => {
 
   const [userSearchValue, setUserSearchValue] = useState('');
 
-  const observerTarget = useRef<HTMLDivElement | null>(null)
+  const observerTarget = useRef<HTMLDivElement | null>(null);
 
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useSearchUser(userSearchValue);
 
@@ -35,6 +36,8 @@ const SearchUserPage = () => {
     };
   }, [hasNextPage, isFetchingNextPage]);
 
+  const auth = useAuthStore((state) => state.auth);
+
   return (
     <div className="@container h-screen overflow-hidden">
 
@@ -47,7 +50,7 @@ const SearchUserPage = () => {
         <div className="h-[calc(100vh-150px)] flex flex-col pb-3 overflow-hidden overflow-y-auto border border-secondary-100 rounded-xl ">
           {
             data?.map(user => (
-              <UserCard key={user._id} user={user} />
+              <UserCard key={user._id} user={user} currentUserName={auth?.user.username || null} />
             ))
           }
 
