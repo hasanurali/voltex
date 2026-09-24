@@ -2,14 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import { useSearchUser } from "../hooks/useSearchUser";
 import UserCard from "../components/UserCard";
+import { useAuthStore } from "@/store";
+import { SentinelLoadingItem } from "@/components";
 
 const SearchUserPage = () => {
 
   const [userSearchValue, setUserSearchValue] = useState('');
 
-  const observerTarget = useRef<HTMLDivElement | null>(null)
+  const observerTarget = useRef<HTMLDivElement | null>(null);
 
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useSearchUser(userSearchValue);
+  const users = data ?? [];
 
   useEffect(() => {
 
@@ -35,6 +38,8 @@ const SearchUserPage = () => {
     };
   }, [hasNextPage, isFetchingNextPage]);
 
+  const auth = useAuthStore((state) => state.auth);
+
   return (
     <div className="@container h-screen overflow-hidden">
 
@@ -46,15 +51,15 @@ const SearchUserPage = () => {
         <h1 className="font-bold text-2xl pt-7 pb-3">People</h1>
         <div className="h-[calc(100vh-150px)] flex flex-col pb-3 overflow-hidden overflow-y-auto border border-secondary-100 rounded-xl ">
           {
-            data?.map(user => (
-              <UserCard key={user._id} user={user} />
+            users?.map(user => (
+              <UserCard key={user._id} user={user} currentUserName={auth?.user.username || null} />
             ))
           }
 
           {/* Discover and no result text items */}
           <div className="m-auto px-3 flex flex-col items-center">
             {
-              !data?.length && (
+              !users?.length && (
                 userSearchValue ?
                   <>
                     <p className="font-bold text-md sm:text-xl">No results for this search</p>
@@ -69,22 +74,13 @@ const SearchUserPage = () => {
             }
           </div>
 
-          {/* Bottom sentile div for intersection observer and loading more user */}
-          <div ref={observerTarget} className="py-6 w-full flex justify-center items-center shrink-0 mt-4">
-            {
-              isFetchingNextPage ? (
-                <p className="text-xs text-secondary-400 animate-pulse">Loading more...</p>
-              ) : (
-                !hasNextPage && data && data.length > 0 ? (
-                  <p className="text-xs font-medium text-secondary-400 tracking-wide">
-                    You've reached the end of the list
-                  </p>
-                ) :
-                  null
-              )
-            }
-          </div>
-
+          {/* Bottom sentinelLoadingItem for intersection observer and loading more user */}
+          <SentinelLoadingItem
+            ref={observerTarget}
+            isFetchingNextPage={isFetchingNextPage}
+            hasNextPage={hasNextPage}
+            hasItems={users?.length > 0}
+          />
         </div>
       </section>
     </div>

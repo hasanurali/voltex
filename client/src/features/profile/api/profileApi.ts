@@ -1,7 +1,7 @@
 import { api } from '@/lib';
 import type * as profileTypes from '../types';
 import { PROFILE_ENDPOINTS } from "./profileEndpoints";
-import type { AuthUser, User, Profile } from '@/features/auth';
+import type { User, Profile } from '@/features/auth';
 import type { UpdateUsernameFormValues, UpdateProfileFormValues } from '../schemas/profileSchema';
 
 
@@ -12,7 +12,7 @@ export const checkUsername = async (username: string): Promise<profileTypes.User
     return res.data.data;
 };
 
-export const fetchUserProfile = async (username: string): Promise<AuthUser> => {
+export const fetchUserProfile = async (username: string): Promise<profileTypes.ProfileResponse['data']> => {
 
     const res = await api.get<profileTypes.ProfileResponse>(PROFILE_ENDPOINTS.userProfile(username));
 

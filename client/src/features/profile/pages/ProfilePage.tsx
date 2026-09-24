@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
-import { Button } from '@/components';
+import { Button, ConfirmDialog } from '@/components';
 import { useAuthStore } from '@/store';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { ROUTES } from '@/app/routes';
@@ -11,32 +11,113 @@ import TopBar from '@/app/TopBar';
 import ProfileEditForm from '../components/ProfileEditForm';
 import ProfileImageSection from '../components/ProfileImageSection';
 import UserInfo from '../components/UserInfo';
+import FollowUserSideBar from '../components/FollowUserSideBar';
+import { useFollowToggle } from '@/hooks';
 
 const ProfilePage = () => {
 
     const [section, setSection] = useState<0 | 1>(0);
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+    const [isMouseLeave, setisMouseLeave] = useState<boolean | null>(null);
+    const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+    const [followSection, setFollowSection] = useState<'followers' | 'following' | null>(null);
+    const [isFollowSidebarClosing, setIsFollowSidebarClosing] = useState(false);
 
     const navigate = useNavigate();
+
+    const timeoutRef = useRef<number | null>(null);
+
     const params = useParams();
     const routeUsername = params.username as string;
 
     const auth = useAuthStore((state) => state.auth);
     const isOwnProfile = routeUsername === auth?.user.username;
 
-    const { data: viewedProfile, isPending: isUserProfilePending, error } = useUserProfile(routeUsername);
+    const { data: viewedProfile, isPending: isUserProfilePending, error: userProfileError } = useUserProfile(routeUsername);
 
     useEffect(() => {
 
-        if (isAxiosError(error) && error.response?.status !== 401) {
+        if (isAxiosError(userProfileError) && userProfileError.response?.status !== 401) {
             navigate(ROUTES.home);
-            toast.error(getApiErrorMessage(error));
+            toast.error(getApiErrorMessage(userProfileError));
         };
-    }, [error, navigate]);
+    }, [userProfileError]);
+
+    const { isFollowing, setIsFollowing, handleFollowUser, handleUnFollowUser } = useFollowToggle(auth?.user.username as string, viewedProfile?.user.username as string);
+
+    useEffect(() => {
+
+        if (!viewedProfile) {
+            return;
+        };
+
+        if (isMouseLeave === null) {
+            setisMouseLeave(viewedProfile?.isFollowing);
+        };
+
+        setIsFollowing(viewedProfile?.isFollowing);
+    }, [viewedProfile?.isFollowing]);
+
+    const handleProfileClick = () => {
+
+        if (!isFollowing) {
+            setisMouseLeave(false);
+        };
+
+        if (!isOwnProfile && isFollowing) {
+            setIsConfirmDialogOpen(true);
+            return;
+        };
+
+        isOwnProfile ?
+            setIsEditProfileOpen(true)
+            :
+            handleFollowUser();
+    };
+
+    const clearTimeout = () => {
+        if (timeoutRef.current) {
+            window.clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        };
+    };
+
+    const closeFollowSidebar = () => {
+
+        clearTimeout();
+
+        setIsFollowSidebarClosing(true);
+
+        timeoutRef.current = window.setTimeout(() => {
+
+            setFollowSection(null);
+            setIsFollowSidebarClosing(false);
+        }, 300);
+    };
+
+    useEffect(() => {
+        return () => {
+            clearTimeout();
+        };
+    }, []);
 
     return (
         <>
             <TopBar />
+
+            {followSection && viewedProfile && (
+                <div onMouseDown={(e) => (e.target === e.currentTarget) && closeFollowSidebar()} className='fixed inset-0 z-40 flex items-stretch justify-end bg-black/40'>
+                    <FollowUserSideBar
+                        username={viewedProfile.user.username}
+                        relationship={followSection}
+                        count={followSection === 'followers' ? viewedProfile.user.followersCount : viewedProfile.user.followingCount}
+                        isClosing={isFollowSidebarClosing}
+                        onClose={closeFollowSidebar}
+                        onRelationshipChange={setFollowSection}
+                        onFollowSection={setFollowSection}
+                    />
+                </div>
+            )}
 
             {/* Profile Edit form */}
             {(isEditProfileOpen && viewedProfile) && (
@@ -54,16 +135,47 @@ const ProfilePage = () => {
                     {/* Edit and follow button */}
                     <div className='flex justify-end'>
                         <Button
+                            onClick={handleProfileClick}
+                            onMouseLeave={() => setisMouseLeave(true)}
                             size='md'
-                            onClick={() => isOwnProfile && setIsEditProfileOpen(true)}
-                            className='w-fit rounded-full! cursor-pointer'
+                            variant={isFollowing ? 'outline' : 'primary'}
+                            className={`${(isFollowing && isMouseLeave) && 'group'} w-fit rounded-full! cursor-pointer sm:px-5 ${(isFollowing && isMouseLeave) && 'hover:bg-red-100 hover:border-red-300!'}`}
                         >
-                            {isOwnProfile ? 'Edit profile' : 'Follow'}
+                            <span className='group-hover:hidden'>
+                                {
+                                    isOwnProfile ?
+                                        'Edit profile'
+                                        :
+                                        isFollowing ?
+                                            'Following'
+                                            :
+                                            'Follow'
+                                }
+                            </span>
+
+                            <span className='hidden group-hover:inline text-danger'>Unfollow</span>
                         </Button>
+
+                        <ConfirmDialog
+                            isOpen={isConfirmDialogOpen}
+                            title={`Unfollow @${viewedProfile?.user.username}?`}
+                            description="You'll stop seeing their posts in your feed. You can still visit their profile and follow them again anytime."
+                            confirmLabel='Unfollow'
+                            onConfirm={() => {
+                                handleUnFollowUser();
+                                setIsConfirmDialogOpen(false);
+                            }}
+                            onCancel={() => setIsConfirmDialogOpen(false)}
+                        />
                     </div>
 
                     {/* User information */}
-                    <UserInfo viewedProfile={viewedProfile} isLoading={isUserProfilePending} />
+                    <UserInfo
+                        viewedProfile={viewedProfile}
+                        isLoading={isUserProfilePending}
+                        onFollowingClick={() => setFollowSection('following')}
+                        onFollowersClick={() => setFollowSection('followers')}
+                    />
 
                 </section>
 
