@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import TopBar from '@/app/TopBar';
 import ProfileEditForm from '../components/ProfileEditForm';
 import ProfileImageSection from '../components/ProfileImageSection';
 import UserInfo from '../components/UserInfo';
+import FollowUserSideBar from '../components/FollowUserSideBar';
 import { useFollowToggle } from '@/hooks';
 
 const ProfilePage = () => {
@@ -19,8 +20,12 @@ const ProfilePage = () => {
     const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
     const [isMouseLeave, setisMouseLeave] = useState<boolean | null>(null);
     const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+    const [followSection, setFollowSection] = useState<'followers' | 'following' | null>(null);
+    const [isFollowSidebarClosing, setIsFollowSidebarClosing] = useState(false);
 
     const navigate = useNavigate();
+
+    const timeoutRef = useRef<number | null>(null);
 
     const params = useParams();
     const routeUsername = params.username as string;
@@ -36,7 +41,7 @@ const ProfilePage = () => {
             navigate(ROUTES.home);
             toast.error(getApiErrorMessage(userProfileError));
         };
-    }, [userProfileError, navigate]);
+    }, [userProfileError]);
 
     const { isFollowing, setIsFollowing, handleFollowUser, handleUnFollowUser } = useFollowToggle(auth?.user.username as string, viewedProfile?.user.username as string);
 
@@ -70,9 +75,49 @@ const ProfilePage = () => {
             handleFollowUser();
     };
 
+    const clearTimeout = () => {
+        if (timeoutRef.current) {
+            window.clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        };
+    };
+
+    const closeFollowSidebar = () => {
+
+        clearTimeout();
+
+        setIsFollowSidebarClosing(true);
+
+        timeoutRef.current = window.setTimeout(() => {
+
+            setFollowSection(null);
+            setIsFollowSidebarClosing(false);
+        }, 300);
+    };
+
+    useEffect(() => {
+        return () => {
+            clearTimeout();
+        };
+    }, []);
+
     return (
         <>
             <TopBar />
+
+            {followSection && viewedProfile && (
+                <div onMouseDown={(e) => (e.target === e.currentTarget) && closeFollowSidebar()} className='fixed inset-0 z-40 flex items-stretch justify-end bg-black/40'>
+                    <FollowUserSideBar
+                        username={viewedProfile.user.username}
+                        relationship={followSection}
+                        count={followSection === 'followers' ? viewedProfile.user.followersCount : viewedProfile.user.followingCount}
+                        isClosing={isFollowSidebarClosing}
+                        onClose={closeFollowSidebar}
+                        onRelationshipChange={setFollowSection}
+                        onFollowSection={setFollowSection}
+                    />
+                </div>
+            )}
 
             {/* Profile Edit form */}
             {(isEditProfileOpen && viewedProfile) && (
@@ -125,7 +170,12 @@ const ProfilePage = () => {
                     </div>
 
                     {/* User information */}
-                    <UserInfo viewedProfile={viewedProfile} isLoading={isUserProfilePending} />
+                    <UserInfo
+                        viewedProfile={viewedProfile}
+                        isLoading={isUserProfilePending}
+                        onFollowingClick={() => setFollowSection('following')}
+                        onFollowersClick={() => setFollowSection('followers')}
+                    />
 
                 </section>
 

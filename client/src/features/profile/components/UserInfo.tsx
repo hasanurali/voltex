@@ -8,10 +8,12 @@ import UserInfoSkeleton from './UserInfoSkeleton';
 interface UserInfoProps {
     viewedProfile: AuthUser | undefined;
     isLoading: boolean;
+    onFollowingClick: () => void;
+    onFollowersClick: () => void;
 };
 
 
-const UserInfo = ({ viewedProfile, isLoading }: UserInfoProps) => {
+const UserInfo = ({ viewedProfile, isLoading, onFollowingClick, onFollowersClick }: UserInfoProps) => {
 
     const [isBioExpanded, setIsBioExpanded] = useState(false);
 
@@ -58,13 +60,13 @@ const UserInfo = ({ viewedProfile, isLoading }: UserInfoProps) => {
 
                         <div className='flex flex-wrap items-center gap-4 text-sm'>
                             {website && (
-                                <p className='flex items-center gap-2 wrap-break-word font-medium cursor-pointer'>
+                                <p className='flex items-center gap-2 wrap-break-word font-medium'>
                                     <Link2 size={20} />
                                     <Link
                                         to={website}
                                         target='_blank'
                                         rel='noopener noreferrer'
-                                        className='border-b-2 border-b-transparent hover:border-primary-950'
+                                        className='border-b-2 border-b-transparent hover:border-primary-950 cursor-pointer'
                                     >
                                         {website.split('/')?.at(-1)}
                                     </Link>
@@ -83,8 +85,12 @@ const UserInfo = ({ viewedProfile, isLoading }: UserInfoProps) => {
                         </div>
 
                         <div className='flex gap-4 text-sm font-bold'>
-                            <p>{viewedProfile?.user.followingCount} <span className='text-tertiary-400 font-normal'>Following</span></p>
-                            <p>{viewedProfile?.user.followersCount} <span className='text-tertiary-400 font-normal'>Followers</span></p>
+                            <button type='button' onClick={onFollowingClick} className='cursor-pointer hover:underline'>
+                                {viewedProfile?.user.followingCount} <span className='text-tertiary-400 font-normal'>Following</span>
+                            </button>
+                            <button type='button' onClick={onFollowersClick} className='cursor-pointer hover:underline'>
+                                {viewedProfile?.user.followersCount} <span className='text-tertiary-400 font-normal'>Followers</span>
+                            </button>
                         </div>
                     </>
                 )
