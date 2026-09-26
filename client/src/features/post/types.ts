@@ -43,6 +43,7 @@ export type FetchUserPostResponse = ApiResponse<{
 }>;
 
 export type UpdatePostResponse = ApiResponse<Post>;
+export type DeletePostResponse = ApiResponse<null>;
 
 export interface MediaPayloadItem {
     mediaType: 'image' | 'video';
