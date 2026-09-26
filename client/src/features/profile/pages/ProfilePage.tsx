@@ -103,7 +103,9 @@ const ProfilePage = () => {
 
     return (
         <>
-            <TopBar />
+            <TopBar>
+                Profile
+            </TopBar>
 
             {followSection && viewedProfile && (
                 <div onMouseDown={(e) => (e.target === e.currentTarget) && closeFollowSidebar()} className='fixed inset-0 z-40 flex items-stretch justify-end bg-black/40'>
