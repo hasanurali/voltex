@@ -1,11 +1,8 @@
+import type { ReactNode } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-const TopBar = () => {
-
-    const location = useLocation();
-    const path = location.pathname.split('/').at(1);
-    const currentPage = path?.slice(0, 1).toUpperCase().concat(path.slice(1));
+const TopBar = ({ children }: { children: ReactNode }) => {
 
     const navigate = useNavigate();
 
@@ -16,7 +13,7 @@ const TopBar = () => {
             </button>
 
             <p className='text-xl'>
-                {currentPage}
+                {children}
             </p>
         </div>
     )
