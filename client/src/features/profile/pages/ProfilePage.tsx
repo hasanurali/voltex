@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
-import { Button, ConfirmDialog } from '@/components';
+import { Button, ConfirmDialog, SentinelLoadingItem } from '@/components';
 import { useAuthStore } from '@/store';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { ROUTES } from '@/app/routes';
@@ -13,6 +13,8 @@ import ProfileImageSection from '../components/ProfileImageSection';
 import UserInfo from '../components/UserInfo';
 import FollowUserSideBar from '../components/FollowUserSideBar';
 import { useFollowToggle } from '@/hooks';
+import { useFetchUserPost } from '@/features/post';
+import { PostCard } from '@/features/post';
 
 const ProfilePage = () => {
 
@@ -26,6 +28,7 @@ const ProfilePage = () => {
     const navigate = useNavigate();
 
     const timeoutRef = useRef<number | null>(null);
+    const observerTarget = useRef<HTMLDivElement | null>(null);
 
     const params = useParams();
     const routeUsername = params.username as string;
@@ -100,6 +103,40 @@ const ProfilePage = () => {
             clearTimeout();
         };
     }, []);
+
+
+    const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useFetchUserPost(viewedProfile?.user.username as string);
+    const currentToggleItems = (
+        section ?
+            data?.filter(post => post.media.length)
+            :
+            data?.filter(post => !post.media.length)
+    ) ?? [];
+
+
+    useEffect(() => {
+
+        const observer = new IntersectionObserver((entries) => {
+
+            if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+            };
+
+        }, { threshold: 0.1 });
+
+        const currentTarget = observerTarget.current;
+        if (currentTarget) {
+            observer.observe(currentTarget);
+        };
+
+        return () => {
+
+            if (currentTarget) {
+
+                observer.unobserve(currentTarget);
+            };
+        };
+    }, [hasNextPage, isFetchingNextPage]);
 
     return (
         <>
@@ -196,8 +233,17 @@ const ProfilePage = () => {
                         </button>
                     </div>
 
-                    <div>
-                        {/* Media and Post */}
+                    <div className='@container max-w-215 min-h-0 min-w-0 w-full bg-secondary-50 flex flex-col overflow-hidden overflow-y-auto'>
+                        {
+                            currentToggleItems.map(post => <PostCard key={post._id} post={post} />)
+                        }
+
+                        <SentinelLoadingItem
+                            ref={observerTarget}
+                            hasNextPage={hasNextPage}
+                            hasItems={currentToggleItems.length > 0}
+                            isFetchingNextPage={isFetchingNextPage}
+                        />
                     </div>
                 </section>
             </div>
