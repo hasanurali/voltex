@@ -11,7 +11,6 @@ export interface Author {
 export interface Media {
     mediaType: 'image' | 'video';
     url: string;
-    publicId?: string;
 };
 
 export interface Post {
