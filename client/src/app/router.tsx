@@ -8,7 +8,7 @@ import { ProfilePage } from '@/features/profile';
 import AppLayout from './AppLayout.tsx';
 import ProtectedRoute from './ProtectedRoute.tsx';
 import { SearchUserPage } from '@/features/user';
-import { HomeFeed } from '@/features/post';
+import { HomeFeed, PostDetails } from '@/features/post';
 
 
 export const router = createBrowserRouter([
@@ -54,6 +54,10 @@ export const router = createBrowserRouter([
                     {
                         path: ROUTES.searchUser,
                         element: <SearchUserPage />
+                    },
+                    {
+                        path: ROUTES.postDetails,
+                        element: <PostDetails />
                     },
                     {
                         element: <ProtectedRoute />,
