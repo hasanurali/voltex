@@ -1,11 +1,13 @@
 import { NavLink } from 'react-router-dom';
 import { Home, Mail, Bell, Plus, User } from 'lucide-react';
-import { useAuthStore } from '@/store';
+import { useAuthStore, usePostStore } from '@/store';
 import { ROUTES } from './routes';
 
 const MobileBottomBar = () => {
 
     const auth = useAuthStore((state) => state.auth);
+
+    const setIsCreatePostModelOpen = usePostStore((state) => state.setIsCreatePostModelOpen);
 
     const leftItems = [
         { label: 'Home', icon: Home, path: ROUTES.home },
@@ -28,7 +30,7 @@ const MobileBottomBar = () => {
             ))}
 
             <div className="flex justify-center">
-                <button type="button" aria-label="Create post" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-950 text-white">
+                <button onClick={() => setIsCreatePostModelOpen(true)} type="button" aria-label="Create post" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-950 text-white">
                     <Plus className="h-5 w-5" />
                 </button>
             </div>

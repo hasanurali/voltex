@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { Bell, Ellipsis, Home, LogOut, Mail, Search, Settings, User } from "lucide-react";
 import { ROUTES } from "@/app/routes";
 import { Button, Logo } from "@/components";
-import { useAuthStore } from "@/store";
+import { useAuthStore, usePostStore } from "@/store";
 import { useLogoutUser } from "@/features/auth";
 import { ImageWithSkeleton } from "@/components/media";
 
@@ -15,6 +15,8 @@ const Sidebar = () => {
 
     const auth = useAuthStore((state) => state.auth);
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+    const setIsCreatePostModelOpen = usePostStore((state) => state.setIsCreatePostModelOpen);
 
     const navItems = [
         { label: 'Home', icon: Home, path: ROUTES.home },
@@ -75,7 +77,7 @@ const Sidebar = () => {
             </nav>
 
             <footer className="flex flex-col gap-5">
-                <Button size="lg" className="w-full rounded-full! cursor-pointer">
+                <Button onClick={() => setIsCreatePostModelOpen(true)} size="lg" className="w-full rounded-full! cursor-pointer">
                     Post
                 </Button>
 

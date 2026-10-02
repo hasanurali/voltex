@@ -3,6 +3,7 @@ import PostCard from '../components/PostCard';
 import { useFetchHomeFeed } from '../hooks/useFetchHomeFeed';
 import { useEffect, useRef } from 'react';
 import { SentinelLoadingItem } from '@/components';
+import PostCreateSection from '../components/PostCreateSection';
 
 const HomeFeed = () => {
 
@@ -41,6 +42,7 @@ const HomeFeed = () => {
             <TopBar>
                 Home
             </TopBar>
+            <PostCreateSection />
 
             {
                 posts?.map(post => <PostCard key={post._id} post={post} />)
