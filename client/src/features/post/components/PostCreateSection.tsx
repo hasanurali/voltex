@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
-import { Globe2, Image as ImageIcon, LoaderCircle, Smile, UsersRound, Video, X } from 'lucide-react';
+import { CircleAlert, Globe2, Image as ImageIcon, LoaderCircle, Smile, UsersRound, Video, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuthStore } from '@/store';
+import { useAuthStore, usePostStore } from '@/store';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { EditorContent, useEditor } from '@tiptap/react';
 import { Extension } from '@tiptap/core';
@@ -16,12 +16,14 @@ import { Placeholder } from '@tiptap/extensions';
 import { createPostSchema, type CreatePostFormValues } from '../schema/postSchema';
 import type { CreatePostPayload, MediaPayloadItem } from '../types';
 import { useCreatePost } from '../hooks/useCreatePost';
+import { useUpdatePost } from '../hooks/useUpdatePost';
 import { MAX_IMAGES, MAX_VIDEO_SIZE } from '../constants';
 import { fieldApiError } from '@/utils';
+import { usePostDetails } from '../hooks/usePostDetails';
 
 
 interface SelectedMedia {
-    file: File;
+    file?: File;
     previewUrl: string;
     mediaType: 'image' | 'video';
 };
@@ -70,13 +72,14 @@ const preventEditorDragDrop = (_view: EditorView, e: DragEvent) => {
 
 
 interface PostCreateSectionProps {
-    isModelOpen?: boolean,
-    setIsModelOpen?: (isModelOpen: boolean) => void
+    isModelOpen?: boolean;
+    setIsModelOpen?: (isModelOpen: boolean) => void;
+    updatePostId?: string | null;
     className?: string
 };
 
 
-const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = '' }: PostCreateSectionProps) => {
+const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId = null, className = '' }: PostCreateSectionProps) => {
 
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
     const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
@@ -84,14 +87,16 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
     const [uploadProgressByFile, setUploadProgressByFile] = useState<number[]>([]);
 
     const auth = useAuthStore((state) => state.auth);
+    const resetPostUpdateData = usePostStore((state) => state.resetPostUpdateData);
 
     const imageInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
     const previewUrlsRef = useRef(new Set<string>());
 
-    const { mutateAsync: createPost, isPending } = useCreatePost();
+    const { mutateAsync: createPost, isPending: isCreatePending } = useCreatePost();
+    const { mutateAsync: updatePost, isPending: isUpdatePending } = useUpdatePost();
 
-    const { handleSubmit, setValue, reset, watch, setError, formState: { errors } } = useForm<CreatePostFormValues>({
+    const { handleSubmit, setValue, reset, watch, setError, setValues, formState: { errors } } = useForm<CreatePostFormValues>({
         resolver: zodResolver(createPostSchema),
         defaultValues: {
             content: '',
@@ -102,6 +107,9 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
 
     const contentLength = watch('content')?.length ?? 0;
     const visibility = watch('visibility') ?? 'public';
+    const postDetails = usePostDetails(updatePostId);
+    const updatePostData = postDetails?.data;
+    const hasExistingMedia = Boolean(updatePostId && selectedMedia.some((media) => !media.file));
 
     const editor = useEditor({
         extensions: [
@@ -144,6 +152,10 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
     };
 
     const revokePreviewUrl = (previewUrl: string) => {
+        if (!previewUrlsRef.current.has(previewUrl)) {
+            return;
+        };
+
         URL.revokeObjectURL(previewUrl);
         previewUrlsRef.current.delete(previewUrl);
     };
@@ -182,6 +194,11 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
         e.target.value = '';
 
         if (!files.length) {
+            return;
+        };
+
+        if (hasExistingMedia) {
+            toast.error('Remove all current media before adding replacements');
             return;
         };
 
@@ -256,12 +273,13 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
         };
 
         setIsUploading(true);
-        setUploadProgressByFile(selectedMedia.map(() => 0));
+        const mediaToUpload = selectedMedia.filter((item): item is SelectedMedia & { file: File } => Boolean(item.file));
+        setUploadProgressByFile(mediaToUpload.map(() => 0));
 
         try {
             const media: MediaPayloadItem[] = await Promise.all(
 
-                selectedMedia.map(async ({ file, mediaType }, i) => {
+                mediaToUpload.map(async ({ file, mediaType }, i) => {
 
                     const upload = await uploadToCloudinary(file, {
                         resourceType: mediaType,
@@ -287,22 +305,33 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
                 })
             };
 
-            await createPost(payload);
+            if (updatePostId) {
+                const updatePayload: CreatePostPayload = {
+                    ...payload,
+                    ...(!media.length && updatePostData?.media.length && selectedMedia.length === 0 && { media: [] })
+                };
+
+                await updatePost({ postId: updatePostId, data: updatePayload });
+            } else {
+                await createPost(payload);
+            };
 
             selectedMedia.forEach(({ previewUrl }) => revokePreviewUrl(previewUrl));
             setSelectedMedia([]);
             reset({ content: '', media: [], visibility: 'public' });
             editor?.commands.clearContent();
 
-            if (setIsModelOpen) {
+            if (updatePostId) {
+                resetPostUpdateData();
+            } else if (setIsModelOpen) {
                 setIsModelOpen(false);
             };
 
-            toast.success('Your post is live');
+            toast.success(updatePostId ? 'Your post has been updated' : 'Your post is live');
         }
         catch (error) {
             fieldApiError(error, setError);
-            toast.error('Could not publish your post. Please try again');
+            toast.error(updatePostId ? 'Could not update your post. Please try again' : 'Could not publish your post. Please try again');
         }
         finally {
             setIsUploading(false);
@@ -310,19 +339,58 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
         };
     };
 
+    useEffect(() => {
+
+        if (updatePostId && updatePostData) {
+
+            const { content, media, hashtags, visibility } = updatePostData;
+
+            setSelectedMedia(media.map(({ url, mediaType }) => ({ previewUrl: url, mediaType })));
+
+            const hashtagsAtEnd = (hashtags ?? [])
+                .map((hashtag) => hashtag.trim())
+                .filter(Boolean)
+                .map((hashtag) => hashtag.startsWith('#') ? hashtag : `#${hashtag}`)
+                .join(' ');
+
+            const editorContent = [content?.trim(), hashtagsAtEnd].filter(Boolean).join('\n\n');
+
+            setValues({
+                content: editorContent,
+                media,
+                hashtags,
+                visibility
+            });
+
+            if (editor) {
+                editor.commands.setContent({
+                    type: 'doc',
+                    content: editorContent.split('\n').map((line) => (
+                        line ?
+                            { type: 'paragraph', content: [{ type: 'text', text: line }] }
+                            :
+                            { type: 'paragraph' }
+                    )),
+                }, { emitUpdate: false });
+            };
+        };
+    }, [editor, updatePostId, updatePostData]);
+
     if (!editor) {
         return null;
     };
 
+    const isPending = isCreatePending || isUpdatePending;
     const isBusy = isPending || isUploading;
-    const totalUploadSize = selectedMedia.reduce((total, { file }) => total + file.size, 0);
+    const mediaToUpload = selectedMedia.filter((item): item is SelectedMedia & { file: File } => Boolean(item.file));
+    const totalUploadSize = mediaToUpload.reduce((total, { file }) => total + file.size, 0);
     const uploadProgressPercent = totalUploadSize > 0 ?
-        Math.round(selectedMedia.reduce((total, { file }, index) => total + file.size * (uploadProgressByFile[index] ?? 0) / 100, 0) / totalUploadSize * 100)
+        Math.round(mediaToUpload.reduce((total, { file }, index) => total + file.size * (uploadProgressByFile[index] ?? 0) / 100, 0) / totalUploadSize * 100)
         :
         0;
     const isMediaUploading = isUploading && !isPending && selectedMedia.length > 0;
-    const canAddImages = !selectedMedia.some((media) => media.mediaType === 'video') && selectedMedia.length < MAX_IMAGES;
-    const canAddVideo = selectedMedia.length === 0;
+    const canAddImages = !hasExistingMedia && !selectedMedia.some((media) => media.mediaType === 'video') && selectedMedia.length < MAX_IMAGES;
+    const canAddVideo = !hasExistingMedia && selectedMedia.length === 0;
 
     return (
         <>
@@ -349,10 +417,10 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
                                 <div className={`mt-3 grid grid-cols-3 gap-2 ${selectedMedia[0].mediaType === 'image' ? 'sm:grid-cols-5' : 'grid-cols-1'}`}>
                                     {
                                         selectedMedia.map(({ file, previewUrl, mediaType }, index) => (
-                                            <div key={`${file.name}-${file.lastModified}-${index}`} className={`relative overflow-hidden rounded-md border border-gray-200 bg-gray-100 ${mediaType === 'image' ? 'aspect-square w-full max-w-28' : 'aspect-video w-full max-w-sm'}`}>
+                                            <div key={file ? `${file.name}-${file.lastModified}-${index}` : previewUrl} className={`relative overflow-hidden rounded-md border border-gray-200 bg-gray-100 ${mediaType === 'image' ? 'aspect-square w-full max-w-28' : 'aspect-video w-full max-w-sm'}`}>
                                                 {
                                                     mediaType === 'image' ? (
-                                                        <img src={previewUrl} alt={file.name} className="h-full w-full object-contain" />
+                                                        <img src={previewUrl} alt={file?.name ?? 'Post image'} className="h-full w-full object-contain" />
                                                     ) : (
                                                         <video src={previewUrl} controls className="h-full w-full bg-black object-contain" />
                                                     )
@@ -360,7 +428,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
                                                 <button
                                                     type="button"
                                                     onClick={() => removeMedia(index)}
-                                                    aria-label={`Remove ${file.name}`}
+                                                    aria-label={`Remove ${file?.name}`}
                                                     title="Remove media"
                                                     style={{ top: '0.5rem', right: '0.5rem', zIndex: 20 }}
                                                     className="absolute flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white text-gray-800 shadow-md ring-1 ring-black/10 transition hover:bg-red-600 hover:text-white"
@@ -401,8 +469,8 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
                 {/* Action buttons section */}
                 <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-2 sm:ml-14">
                     <div className="flex min-w-0 flex-wrap items-center gap-1">
-                        <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(event) => addFiles(event, 'image')} />
-                        <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={(event) => addFiles(event, 'video')} />
+                        <input ref={imageInputRef} type="file" accept="image/*" multiple disabled={hasExistingMedia || isBusy} className="hidden" onChange={(event) => addFiles(event, 'image')} />
+                        <input ref={videoInputRef} type="file" accept="video/*" disabled={hasExistingMedia || isBusy} className="hidden" onChange={(event) => addFiles(event, 'video')} />
                         <button
                             type="button"
                             onClick={() => imageInputRef.current?.click()}
@@ -454,10 +522,38 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, className = ''
                             className="inline-flex items-center gap-2 rounded-full bg-[#0f1419] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#272c30] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                         >
                             {isBusy && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                            {isPending ? 'Posting…' : isMediaUploading ? `Uploading ${uploadProgressPercent}%` : isUploading ? 'Uploading…' : 'Post'}
+                            {
+                                isPending ? (
+                                    updatePostData ?
+                                        'Updating…'
+                                        :
+                                        'Posting…'
+                                ) : (
+                                    isMediaUploading ?
+                                        `Uploading ${uploadProgressPercent}%`
+                                        :
+                                        isUploading ? (
+                                            'Uploading…'
+                                        ) : (
+                                            updatePostData ?
+                                                'Update'
+                                                :
+                                                'Post'
+                                        )
+                                )
+                            }
                         </button>
                     </div>
                 </div>
+
+                {hasExistingMedia && (
+                    <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs text-amber-800 sm:ml-14">
+                        <CircleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        <p>
+                            Remove all current media before adding replacements. Adding new media replaces all media on this post.
+                        </p>
+                    </div>
+                )}
 
                 {/* Upload progress bar */}
                 {

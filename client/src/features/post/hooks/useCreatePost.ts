@@ -9,7 +9,7 @@ export const useCreatePost = () => {
     return useMutation({
         mutationFn: createPost,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: postKeys.homeFeed() });
+            queryClient.invalidateQueries({ queryKey: postKeys.all });
         }
     });
 };
