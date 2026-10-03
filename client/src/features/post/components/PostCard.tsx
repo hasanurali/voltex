@@ -5,6 +5,9 @@ import type { Post } from "../types";
 import VideoPlayer from "./VideoPlayer";
 import { numberConverter, timeConverter } from "@/utils";
 import { useAuthStore, usePostStore } from "@/store";
+import { useDeletePost } from "../hooks/useDeletePost";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components";
 
 
 interface PostCardProps {
@@ -17,6 +20,7 @@ const PostCard = ({ post }: PostCardProps) => {
     const [expanded, setExpanded] = useState(false);
     const [isPostCenter, setisPostCenter] = useState(false);
     const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
+    const [isDeletePostModelOpen, setisDeletePostModelOpen] = useState(false);
 
     const postRef = useRef<HTMLDivElement>(null);
 
@@ -68,6 +72,16 @@ const PostCard = ({ post }: PostCardProps) => {
         };
     }, [post._id]);
 
+    const { mutate: deletePostMutate } = useDeletePost(post.author.username);
+    const handleDeletePost = () => {
+        deletePostMutate(post._id, {
+            onSuccess: () => {
+                setIsEditMenuOpen(false);
+                toast.success('Your post has been deleted');
+            }
+        });
+    };
+
     return (
         <>
 
@@ -90,7 +104,7 @@ const PostCard = ({ post }: PostCardProps) => {
                                     <p onClick={handleProfileNavigate} className="text-[16px] font-bold hover:underline decoration-1 underline-offset-1">{post.author.displayName}</p>
                                     <div className="text-sm font-medium text-secondary-400 flex gap-1">
                                         <span onClick={handleProfileNavigate}>{`@${post.author.username}`}</span>
-                                        <span>• {timeConverter(post.createdAt)}</span>
+                                        <span>· {timeConverter(post.createdAt)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -121,7 +135,15 @@ const PostCard = ({ post }: PostCardProps) => {
                                         <Pencil size={16} aria-hidden="true" />
                                         <span>Edit</span>
                                     </button>
-                                    <button type="button" className="flex items-center gap-2 border-t border-secondary-100 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:bg-red-50 focus-visible:outline-none cursor-pointer">
+                                    <button
+                                        onClick={() => {
+                                            setIsEditMenuOpen(false);
+                                            setisDeletePostModelOpen(true);
+                                        }}
+                                        type="button"
+                                        className="flex items-center gap-2 border-t border-secondary-100 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:bg-red-50 focus-visible:outline-none cursor-pointer"
+                                    >
+
                                         <Trash2 size={16} aria-hidden="true" />
                                         <span>Delete</span>
                                     </button>
@@ -215,6 +237,20 @@ const PostCard = ({ post }: PostCardProps) => {
                     aria-hidden="true"
                     className="absolute z-10 inset-0 bg-transparent"></div>
             }
+
+            {/* Confirm post delete model */}
+            <ConfirmDialog
+                isOpen={isDeletePostModelOpen}
+                title="Delete this post?"
+                description="This action can't be undone. Are you sure you want to delete this post?"
+                confirmLabel="Delete"
+                cancelLabel="Cancel"
+                onConfirm={() => {
+                    handleDeletePost();
+                    setisDeletePostModelOpen(false);
+                }}
+                onCancel={() => setisDeletePostModelOpen(false)}
+            />
         </>
     )
 };
