@@ -107,8 +107,6 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
 
     const contentLength = watch('content')?.length ?? 0;
     const visibility = watch('visibility') ?? 'public';
-    const postDetails = usePostDetails(updatePostId);
-    const updatePostData = postDetails?.data;
     const hasExistingMedia = Boolean(updatePostId && selectedMedia.some((media) => !media.file));
 
     const editor = useEditor({
@@ -338,6 +336,8 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
             setUploadProgressByFile([]);
         };
     };
+
+    const { data: updatePostData } = usePostDetails(updatePostId ?? "");
 
     useEffect(() => {
 
