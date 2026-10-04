@@ -187,7 +187,7 @@ const PostCard = ({ post }: PostCardProps) => {
                                             const showRemainingCount = isLastVisibleMedia && remainingMediaCount > 0;
 
                                             return (
-                                                <div key={media.url} className={`relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden bg-secondary-100 ${visibleMedia.length === 3 && i === 0 ? "row-span-2" : ""}`}>
+                                                <div key={`${media.url}-${i}`} className={`relative flex min-h-0 min-w-0 items-center justify-center overflow-hidden bg-secondary-100 ${visibleMedia.length === 3 && i === 0 ? "row-span-2" : ""}`}>
                                                     {
                                                         media.mediaType === "video" ?
                                                             <VideoPlayer url={media.url} isPostCenter={isPostCenter} />

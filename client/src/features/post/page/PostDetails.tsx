@@ -161,7 +161,7 @@ const PostDetails = () => {
                                             const hasMoreMedia = index === visibleMedia.length - 1 && media.length > visibleMedia.length;
 
                                             return (
-                                                <div key={item.url} className={`relative min-h-0 min-w-0 overflow-hidden bg-neutral-100 ${tileLayout}`}>
+                                                <div key={`${item.url}-${index}`} className={`relative min-h-0 min-w-0 overflow-hidden bg-neutral-100 ${tileLayout}`}>
                                                     {
                                                         item.mediaType === "video" ? (
                                                             <VideoPlayer url={item.url} />
@@ -282,15 +282,17 @@ const PostDetails = () => {
                                     {
                                         viewerImages.length > 1 && (
                                             <div className="mt-4 flex max-w-full items-center gap-2 overflow-x-auto px-2" onClick={(event) => event.stopPropagation()}>
-                                                {viewerImages.map(({ item, index }) => (
-                                                    <button
-                                                        key={item.url}
-                                                        onClick={() => setActiveViewerIndex(index)}
-                                                        className={`relative h-12 w-12 shrink-0 overflow-hidden rounded border-2 bg-neutral-800 sm:h-14 sm:w-14 ${activeViewerIndex === index ? "border-white" : "border-transparent opacity-60 hover:opacity-100"}`}
-                                                    >
-                                                        <img src={item.url} alt="" className="h-full w-full object-cover" />
-                                                    </button>
-                                                ))}
+                                                {
+                                                    viewerImages.map(({ item, index }) => (
+                                                        <button
+                                                            key={`${item.url}-${index}`}
+                                                            onClick={() => setActiveViewerIndex(index)}
+                                                            className={`relative h-12 w-12 shrink-0 overflow-hidden rounded border-2 bg-neutral-800 sm:h-14 sm:w-14 ${activeViewerIndex === index ? "border-white" : "border-transparent opacity-60 hover:opacity-100"}`}
+                                                        >
+                                                            <img src={item.url} alt="" className="h-full w-full object-cover" />
+                                                        </button>
+                                                    ))
+                                                }
                                             </div>
                                         )
                                     }
