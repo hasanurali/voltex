@@ -14,7 +14,7 @@ const PostCardSkeleton = () => {
                 {/* Header */}
                 <section className="flex flex-col gap-3 min-[1000px]:pt-2 min-[1155px]:pt-0 min-[1400px]:pt-2">
                     <div className="flex items-center gap-3">
-                        <Skeleton className="w-12 h-12 rounded-full min-[1000px]:hidden min-[1155px]:block min-[1400px]:hidden" />
+                        <Skeleton className="w-12 h-12 rounded-full! min-[1000px]:hidden min-[1155px]:block min-[1400px]:hidden" />
                         <div className="flex flex-col gap-2">
                             <Skeleton className="h-4 w-32" />
                             <Skeleton className="h-3 w-24" />
