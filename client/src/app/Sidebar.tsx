@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { Bell, Ellipsis, Home, LogOut, Mail, Search, Settings, User } from "lucide-react";
 import { ROUTES } from "@/app/routes";
 import { Button, Logo } from "@/components";
-import { useAuthStore } from "@/store";
+import { useAuthStore, usePostStore } from "@/store";
 import { useLogoutUser } from "@/features/auth";
 import { ImageWithSkeleton } from "@/components/media";
 
@@ -15,6 +15,8 @@ const Sidebar = () => {
 
     const auth = useAuthStore((state) => state.auth);
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+    const setIsCreatePostModelOpen = usePostStore((state) => state.setIsCreatePostModelOpen);
 
     const navItems = [
         { label: 'Home', icon: Home, path: ROUTES.home },
@@ -47,7 +49,7 @@ const Sidebar = () => {
     };
 
     return (
-        <aside className="w-full md:w-75 min-[851px]:w-[clamp(320px,25vw,360px)] md:max-w-none md:shrink-0 max-h-screen h-screen overflow-y-auto pr-5 pl-[clamp(36px,3vw,72px)] py-5 md:max-[850px]:pr-[clamp(12px,2vw,16px)] md:max-[850px]:pl-[clamp(20px,3vw,24px)] hidden md:flex flex-col justify-between bg-primary-50 border-r border-r-secondary-100 font-label">
+        <aside className="w-full md:w-75 min-[851px]:w-[clamp(320px,25vw,360px)] md:max-w-none md:shrink-0 max-h-screen h-screen overflow-y-auto pr-5 pl-[clamp(36px,3vw,72px)] py-5 md:max-[850px]:pr-[clamp(12px,2vw,16px)] md:max-[850px]:pl-[clamp(20px,3vw,24px)] hidden md:flex flex-col justify-between bg-white border-r border-r-secondary-100 font-label">
 
             <header className="flex gap-3 items-center">
                 <Logo />
@@ -75,7 +77,7 @@ const Sidebar = () => {
             </nav>
 
             <footer className="flex flex-col gap-5">
-                <Button size="lg" className="w-full rounded-full! cursor-pointer">
+                <Button onClick={() => setIsCreatePostModelOpen(true)} size="lg" className="w-full rounded-full! cursor-pointer">
                     Post
                 </Button>
 

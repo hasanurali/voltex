@@ -9,5 +9,7 @@ export const ROUTES = {
     profile: '/profile/:username',
     searchUser: '/user/search',
 
+    postDetails: '/posts/:postId',
+
     notFound: '*',
 } as const;

@@ -42,3 +42,27 @@ export const uploadToCloudinary = async (file: File, options: SingleUploadCloudi
         publicId: res.data.public_id
     };
 };
+
+export const transformVideoUrl = (url: string): string => {
+
+    if (!url) {
+        return '';
+    };
+
+    return url.replace('/upload/', '/upload/q_auto,f_auto/');
+};
+
+export const transformVideoUrlToPoster = (videoUrl: string, seconds: number = 1): string => {
+
+    if (!videoUrl) {
+        return '';
+    };
+
+    let posterUrl = videoUrl.replace(/\.[^/.]+\$/, '.jpg');
+
+    if (posterUrl.includes('/upload/')) {
+        posterUrl = posterUrl.replace('/upload/', `/upload/so_${seconds}/`);
+    };
+
+    return posterUrl;
+};
