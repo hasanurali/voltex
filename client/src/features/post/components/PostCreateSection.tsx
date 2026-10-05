@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
@@ -20,6 +21,7 @@ import { useUpdatePost } from '../hooks/useUpdatePost';
 import { MAX_IMAGES, MAX_VIDEO_SIZE } from '../constants';
 import { fieldApiError } from '@/utils';
 import { usePostDetails } from '../hooks/usePostDetails';
+import { ImageWithSkeleton } from '@/components/media';
 
 
 interface SelectedMedia {
@@ -82,6 +84,7 @@ interface PostCreateSectionProps {
 const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId = null, className = '' }: PostCreateSectionProps) => {
 
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+    const [emojiPickerPosition, setEmojiPickerPosition] = useState<{ top: number; left: number; width: number } | null>(null);
     const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgressByFile, setUploadProgressByFile] = useState<number[]>([]);
@@ -91,12 +94,13 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
 
     const imageInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
+    const emojiButtonRef = useRef<HTMLButtonElement>(null);
     const previewUrlsRef = useRef(new Set<string>());
 
     const { mutateAsync: createPost, isPending: isCreatePending } = useCreatePost();
     const { mutateAsync: updatePost, isPending: isUpdatePending } = useUpdatePost();
 
-    const { handleSubmit, setValue, reset, watch, setError, setValues, formState: { errors } } = useForm<CreatePostFormValues>({
+    const { handleSubmit, setValue, reset, watch, setError, setValues, formState: { errors, isDirty } } = useForm<CreatePostFormValues>({
         resolver: zodResolver(createPostSchema),
         defaultValues: {
             content: '',
@@ -114,7 +118,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
             starterKit,
             HashtagHighlight,
             Placeholder.configure({ placeholder: 'What’s happening?', emptyNodeClass: 'post-composer-empty' }),
-            Image.configure({ inline: false }),
+            Image.configure({ inline: false })
         ],
         editorProps: {
             handleDOMEvents: {
@@ -134,7 +138,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                 shouldDirty: true,
                 shouldValidate: true
             });
-        },
+        }
     });
 
     useEffect(() => {
@@ -175,6 +179,43 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
 
         return () => {
             window.removeEventListener('click', removeEmojiPicker);
+        };
+    }, [isEmojiPickerOpen]);
+
+    useEffect(() => {
+
+        if (!isEmojiPickerOpen) {
+            setEmojiPickerPosition(null);
+            return;
+        };
+
+        const updateEmojiPickerPosition = () => {
+
+            const button = emojiButtonRef.current;
+            if (!button) {
+                return;
+            };
+
+            const rect = button.getBoundingClientRect();
+            const width = Math.min(350, Math.max(0, window.innerWidth - 24));
+            const height = 340;
+            const left = Math.max(12, Math.min(rect.left, window.innerWidth - width - 12));
+            const belowTop = rect.bottom + 8;
+            const top = belowTop + height <= window.innerHeight - 12 ?
+                belowTop
+                :
+                Math.max(12, rect.top - height - 8);
+
+            setEmojiPickerPosition({ top, left, width });
+        };
+
+        updateEmojiPickerPosition();
+        window.addEventListener('resize', updateEmojiPickerPosition);
+        window.addEventListener('scroll', updateEmojiPickerPosition, true);
+
+        return () => {
+            window.removeEventListener('resize', updateEmojiPickerPosition);
+            window.removeEventListener('scroll', updateEmojiPickerPosition, true);
         };
     }, [isEmojiPickerOpen]);
 
@@ -337,7 +378,9 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
         };
     };
 
-    const { data: updatePostData } = usePostDetails(updatePostId ?? "");
+    const { data: updatePostData, isPending: isPostDetailsPending } = usePostDetails(updatePostId ?? "");
+
+    const isFetchingDetails = Boolean(updatePostId && isPostDetailsPending);
 
     useEffect(() => {
 
@@ -401,47 +444,54 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                 className={`w-full max-w-215 border-b border-gray-200 bg-white px-4 py-4 font-sans sm:px-5 ${className}`}
             >
                 <div className="flex min-w-0 gap-3">
-                    <img
+                    <ImageWithSkeleton
                         src={auth?.profile.avatar}
-                        alt={auth?.user.displayName ?? 'Your profile'}
-                        className="h-11 w-11 shrink-0 rounded-full object-cover"
+                        alt={auth?.user.displayName ?? 'Profile avatar'}
+                        containerClassName="h-11 w-11 rounded-full shrink-0"
+                        className="h-full w-full object-cover rounded-full"
                     />
 
                     {/* Editor */}
-                    <div className="min-w-0 flex-1">
-
-                        <EditorContent editor={editor} />
-                        {errors.content?.message && <p className="mt-2 text-sm text-red-600">{errors.content.message}</p>}
-                        {
-                            selectedMedia.length > 0 && (
-                                <div className={`mt-3 grid grid-cols-3 gap-2 ${selectedMedia[0].mediaType === 'image' ? 'sm:grid-cols-5' : 'grid-cols-1'}`}>
-                                    {
-                                        selectedMedia.map(({ file, previewUrl, mediaType }, index) => (
-                                            <div key={file ? `${file.name}-${file.lastModified}-${index}` : previewUrl} className={`relative overflow-hidden rounded-md border border-gray-200 bg-gray-100 ${mediaType === 'image' ? 'aspect-square w-full max-w-28' : 'aspect-video w-full max-w-sm'}`}>
-                                                {
-                                                    mediaType === 'image' ? (
-                                                        <img src={previewUrl} alt={file?.name ?? 'Post image'} className="h-full w-full object-contain" />
-                                                    ) : (
-                                                        <video src={previewUrl} controls className="h-full w-full bg-black object-contain" />
-                                                    )
-                                                }
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeMedia(index)}
-                                                    aria-label={`Remove ${file?.name}`}
-                                                    title="Remove media"
-                                                    style={{ top: '0.5rem', right: '0.5rem', zIndex: 20 }}
-                                                    className="absolute flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white text-gray-800 shadow-md ring-1 ring-black/10 transition hover:bg-red-600 hover:text-white"
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        ))
-                                    }
-                                </div>
-                            )
-                        }
-                    </div>
+                    {
+                        isFetchingDetails ?
+                            <span className="text-sm font-medium text-neutral-400 animate-pulse py-3 pb-20 select-none">
+                                Getting your post ready for editing...
+                            </span>
+                            :
+                            <div className="min-w-0 flex-1">
+                                <EditorContent editor={editor} />
+                                {errors.content?.message && <p className="mt-2 text-sm text-red-600">{errors.content.message}</p>}
+                                {
+                                    selectedMedia.length > 0 && (
+                                        <div className={`mt-3 grid grid-cols-3 gap-2 ${selectedMedia[0].mediaType === 'image' ? 'sm:grid-cols-5' : 'grid-cols-1'}`}>
+                                            {
+                                                selectedMedia.map(({ file, previewUrl, mediaType }, index) => (
+                                                    <div key={file ? `${file.name}-${file.lastModified}-${index}` : previewUrl} className={`relative overflow-hidden rounded-md border border-gray-200 bg-gray-100 ${mediaType === 'image' ? 'aspect-square w-full max-w-28' : 'aspect-video w-full max-w-sm'}`}>
+                                                        {
+                                                            mediaType === 'image' ? (
+                                                                <img src={previewUrl} alt={file?.name ?? 'Post image'} className="h-full w-full object-contain" />
+                                                            ) : (
+                                                                <video src={previewUrl} controls className="h-full w-full bg-black object-contain" />
+                                                            )
+                                                        }
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeMedia(index)}
+                                                            aria-label={`Remove ${file?.name}`}
+                                                            title="Remove media"
+                                                            style={{ top: '0.5rem', right: '0.5rem', zIndex: 20 }}
+                                                            className="absolute flex h-6 w-6 sm:h-8 sm:w-8 cursor-pointer items-center justify-center rounded-full bg-white text-gray-800 shadow-md ring-1 ring-black/10 transition hover:bg-red-600 hover:text-white"
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                ))
+                                            }
+                                        </div>
+                                    )
+                                }
+                            </div>
+                    }
                 </div>
 
                 {/* Set visibility button */}
@@ -455,7 +505,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                     <select
                         aria-label="Post audience"
                         value={visibility}
-                        disabled={isBusy}
+                        disabled={isBusy || isFetchingDetails}
                         onChange={(event) => setValue('visibility', event.currentTarget.value as 'public' | 'followers', { shouldDirty: true, shouldValidate: true })}
                         className="h-full cursor-pointer bg-transparent text-sm font-semibold outline-none disabled:cursor-not-allowed"
                     >
@@ -474,7 +524,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                         <button
                             type="button"
                             onClick={() => imageInputRef.current?.click()}
-                            disabled={!canAddImages || isBusy}
+                            disabled={!canAddImages || isBusy || isFetchingDetails}
                             title="Add images"
                             aria-label="Add images"
                             className="rounded-full p-2 text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
@@ -484,31 +534,50 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                         <button
                             type="button"
                             onClick={() => videoInputRef.current?.click()}
-                            disabled={!canAddVideo || isBusy}
-                            title="Add video"
+                            disabled={!canAddVideo || isBusy || isFetchingDetails}
                             aria-label="Add video"
                             className="rounded-full p-2 text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                         >
                             <Video className="h-5 w-5" />
                         </button>
-                        <div className="relative">
-                            {isEmojiPickerOpen && (
-                                <div onClick={(e) => e.stopPropagation()} className="absolute left-0 top-full z-20 mt-2">
-                                    <EmojiPicker onEmojiClick={addEmoji} />
-                                </div>
-                            )}
+                        <div>
                             <button
+                                ref={emojiButtonRef}
                                 type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setIsEmojiPickerOpen((isOpen) => !isOpen)
                                 }}
-                                title="Add emoji"
+                                disabled={isBusy || isFetchingDetails}
                                 aria-label="Add emoji"
-                                className="rounded-full p-2 text-sky-700 transition hover:bg-sky-50 cursor-pointer"
+                                className="rounded-full p-2 text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                             >
                                 <Smile className="h-5 w-5" />
                             </button>
+                            {
+                                isEmojiPickerOpen && emojiPickerPosition && createPortal(
+                                    <div
+                                        onClick={(e) => e.stopPropagation()}
+                                        style={{
+                                            position: 'fixed',
+                                            top: emojiPickerPosition.top,
+                                            left: emojiPickerPosition.left,
+                                            width: emojiPickerPosition.width,
+                                            zIndex: 1000,
+                                        }}
+                                        className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_18px_40px_rgba(15,23,42,0.18)] ring-1 ring-black/5"
+                                    >
+                                        <EmojiPicker
+                                            onEmojiClick={addEmoji}
+                                            width={emojiPickerPosition.width}
+                                            height={340}
+                                            searchPlaceHolder="Search emoji"
+                                            previewConfig={{ showPreview: false }}
+                                        />
+                                    </div>,
+                                    document.body
+                                )
+                            }
                         </div>
                     </div>
 
@@ -518,7 +587,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                         </span>
                         <button
                             type="submit"
-                            disabled={isBusy}
+                            disabled={isBusy || isFetchingDetails || !isDirty}
                             className="inline-flex items-center gap-2 rounded-full bg-[#0f1419] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#272c30] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                         >
                             {isBusy && <LoaderCircle className="h-4 w-4 animate-spin" />}
@@ -546,14 +615,16 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                     </div>
                 </div>
 
-                {hasExistingMedia && (
-                    <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs text-amber-800 sm:ml-14">
-                        <CircleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
-                        <p>
-                            Remove all current media before adding replacements. Adding new media replaces all media on this post.
-                        </p>
-                    </div>
-                )}
+                {
+                    hasExistingMedia && (
+                        <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs text-amber-800 sm:ml-14">
+                            <CircleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+                            <p>
+                                Remove all current media before adding replacements. Adding new media replaces all media on this post.
+                            </p>
+                        </div>
+                    )
+                }
 
                 {/* Upload progress bar */}
                 {

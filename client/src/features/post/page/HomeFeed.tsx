@@ -4,12 +4,13 @@ import { useFetchHomeFeed } from '../hooks/useFetchHomeFeed';
 import { useEffect, useRef } from 'react';
 import { SentinelLoadingItem } from '@/components';
 import PostCreateSection from '../components/PostCreateSection';
+import PostCardSkeleton from '../components/PostCardSkeleton';
 
 const HomeFeed = () => {
 
     const observerTarget = useRef<HTMLDivElement | null>(null);
 
-    const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useFetchHomeFeed();
+    const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchHomeFeedPending } = useFetchHomeFeed();
     const posts = data ?? [];
 
     useEffect(() => {
@@ -36,7 +37,6 @@ const HomeFeed = () => {
         };
     }, [hasNextPage, isFetchingNextPage]);
 
-
     return (
         <div className='@container max-w-215 min-h-0 min-w-0 w-full bg-secondary-50 flex flex-col overflow-hidden overflow-y-auto'>
             <TopBar>
@@ -45,15 +45,19 @@ const HomeFeed = () => {
             <PostCreateSection />
 
             {
-                posts?.map(post => <PostCard key={post._id} post={post} />)
+                isFetchHomeFeedPending ?
+                    Array.from({ length: 3 }).map((_, i) => <PostCardSkeleton key={i} />)
+                    :
+                    posts?.map(post => <PostCard key={post._id} post={post} />)
             }
-
-            <SentinelLoadingItem
-                ref={observerTarget}
-                hasNextPage={hasNextPage}
-                hasItems={posts.length > 0}
-                isFetchingNextPage={isFetchingNextPage}
-            />
+            {
+                !isFetchHomeFeedPending && <SentinelLoadingItem
+                    ref={observerTarget}
+                    hasNextPage={hasNextPage}
+                    hasItems={posts.length > 0}
+                    isFetchingNextPage={isFetchingNextPage}
+                />
+            }
         </div>
     )
 }

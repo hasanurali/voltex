@@ -27,7 +27,14 @@ const AppLayout = () => {
                 isCreatePostModelOpen && <div onClick={handleCloseForm} className='fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/30 px-2 sm:px-4 py-10'>
                     <div onClick={(e) => e.stopPropagation()} className='h-fit w-full max-w-215 overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/10'>
                         <div className='flex items-center justify-between border-b border-gray-100 px-5 py-3'>
-                            <h2 className='text-base font-semibold text-gray-900'>Create post</h2>
+                            <h2 className='text-base font-semibold text-gray-900'>
+                                {
+                                    updatePostId ?
+                                        'Update post'
+                                        :
+                                        'Create post'
+                                }
+                            </h2>
                             <button
                                 type='button'
                                 onClick={handleCloseForm}
