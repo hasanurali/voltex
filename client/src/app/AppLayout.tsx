@@ -24,33 +24,35 @@ const AppLayout = () => {
     return (
         <>
             {
-                isCreatePostModelOpen && <div onClick={handleCloseForm} className='fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/30 px-2 sm:px-4 py-10'>
-                    <div onClick={(e) => e.stopPropagation()} className='h-fit w-full max-w-215 overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/10'>
-                        <div className='flex items-center justify-between border-b border-gray-100 px-5 py-3'>
-                            <h2 className='text-base font-semibold text-gray-900'>
-                                {
-                                    updatePostId ?
-                                        'Update post'
-                                        :
-                                        'Create post'
-                                }
-                            </h2>
-                            <button
-                                type='button'
-                                onClick={handleCloseForm}
-                                aria-label='Close post model'
-                                className='inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-700 cursor-pointer'
-                            >
-                                <X className='h-5 w-5' />
-                            </button>
+                isCreatePostModelOpen && (
+                    <div onClick={handleCloseForm} className='fixed inset-0 z-50 flex justify-center overflow-y-auto bg-black/30 px-2 sm:px-4 py-10'>
+                        <div onClick={(e) => e.stopPropagation()} className='h-fit w-full max-w-215 overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-black/10'>
+                            <div className='flex items-center justify-between border-b border-gray-100 px-3 sm:px-5 py-2 sm:py-3'>
+                                <h2 className='text-base font-semibold text-gray-900'>
+                                    {
+                                        updatePostId ?
+                                            'Update post'
+                                            :
+                                            'Create post'
+                                    }
+                                </h2>
+                                <button
+                                    type='button'
+                                    onClick={handleCloseForm}
+                                    aria-label='Close post model'
+                                    className='inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-700 cursor-pointer'
+                                >
+                                    <X className='h-5 w-5' />
+                                </button>
+                            </div>
+                            <PostCreateSection
+                                isModelOpen={isCreatePostModelOpen}
+                                setIsModelOpen={setIsCreatePostModelOpen}
+                                updatePostId={updatePostId}
+                            />
                         </div>
-                        <PostCreateSection
-                            isModelOpen={isCreatePostModelOpen}
-                            setIsModelOpen={setIsCreatePostModelOpen}
-                            updatePostId={updatePostId}
-                        />
                     </div>
-                </div>
+                )
             }
             <div className="flex min-h-screen md:h-screen md:overflow-hidden">
                 <Sidebar />

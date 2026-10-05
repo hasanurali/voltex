@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
-import { CircleAlert, Globe2, Image as ImageIcon, LoaderCircle, Smile, UsersRound, Video, X } from 'lucide-react';
+import { CircleAlert, Globe2, Image as ImageIcon, LoaderCircle, Smile, Trash2, UsersRound, Video, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore, usePostStore } from '@/store';
 import { uploadToCloudinary } from '@/lib/cloudinary';
@@ -19,7 +19,7 @@ import type { CreatePostPayload, MediaPayloadItem } from '../types';
 import { useCreatePost } from '../hooks/useCreatePost';
 import { useUpdatePost } from '../hooks/useUpdatePost';
 import { MAX_IMAGES, MAX_VIDEO_SIZE } from '../constants';
-import { fieldApiError } from '@/utils';
+import { fieldApiError, filterDirtyInputs } from '@/utils';
 import { usePostDetails } from '../hooks/usePostDetails';
 import { ImageWithSkeleton } from '@/components/media';
 
@@ -86,6 +86,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
     const [emojiPickerPosition, setEmojiPickerPosition] = useState<{ top: number; left: number; width: number } | null>(null);
     const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
+    const [canRemoveAllMedia, setCanRemoveAllMedia] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgressByFile, setUploadProgressByFile] = useState<number[]>([]);
 
@@ -100,7 +101,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
     const { mutateAsync: createPost, isPending: isCreatePending } = useCreatePost();
     const { mutateAsync: updatePost, isPending: isUpdatePending } = useUpdatePost();
 
-    const { handleSubmit, setValue, reset, watch, setError, setValues, formState: { errors, isDirty } } = useForm<CreatePostFormValues>({
+    const { handleSubmit, setValue, reset, watch, setError, setValues, formState: { errors } } = useForm<CreatePostFormValues>({
         resolver: zodResolver(createPostSchema),
         defaultValues: {
             content: '',
@@ -112,6 +113,9 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
     const contentLength = watch('content')?.length ?? 0;
     const visibility = watch('visibility') ?? 'public';
     const hasExistingMedia = Boolean(updatePostId && selectedMedia.some((media) => !media.file));
+
+    const { data: updatePostData, isPending: isPostDetailsPending } = usePostDetails(updatePostId ?? "");
+    const isFetchingDetails = Boolean(updatePostId && isPostDetailsPending);
 
     const editor = useEditor({
         extensions: [
@@ -293,6 +297,13 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
         });
     };
 
+    const removeAllMedia = () => {
+        selectedMedia.forEach(({ previewUrl }) => revokePreviewUrl(previewUrl));
+        setSelectedMedia([]);
+        setValue('media', [], { shouldDirty: true, shouldValidate: true });
+        setCanRemoveAllMedia(false);
+    };
+
     const onSubmit = async (values: CreatePostFormValues) => {
 
         const originalContent = values.content?.trim() ?? '';
@@ -306,7 +317,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
             .replace(/ *\n */g, '\n')
             .trim();
 
-        if (!originalContent && selectedMedia.length === 0) {
+        if (!content && selectedMedia.length === 0) {
             toast.error('Write something or add media before posting');
             return;
         };
@@ -316,7 +327,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
         setUploadProgressByFile(mediaToUpload.map(() => 0));
 
         try {
-            const media: MediaPayloadItem[] = await Promise.all(
+            const medias: MediaPayloadItem[] = await Promise.all(
 
                 mediaToUpload.map(async ({ file, mediaType }, i) => {
 
@@ -339,15 +350,40 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                 ...(content && { content }),
                 ...(hashtags.length && { hashtags }),
                 visibility: values.visibility ?? 'public',
-                ...(media.length && {
-                    media: media.map(item => ({ ...item, url: item.url.replace('/upload/', '/upload/f_auto,q_auto,vc_h264,w_1280/') }))
+                ...(medias.length && {
+                    media: medias.map(item => ({ ...item, url: item.url.replace('/upload/', '/upload/f_auto,q_auto,vc_h264,w_1280/') }))
                 })
             };
 
             if (updatePostId) {
+
                 const updatePayload: CreatePostPayload = {
                     ...payload,
-                    ...(!media.length && updatePostData?.media.length && selectedMedia.length === 0 && { media: [] })
+                    content,
+                    hashtags,
+                    ...(!medias.length && updatePostData?.media.length && selectedMedia.length === 0 && { media: [] })
+                };
+
+                const { media, hashtags: payloadHashtags, ...postContent } = updatePayload;
+
+                const isSameContent = Boolean(updatePostData && !Object.keys(filterDirtyInputs(updatePostData, postContent)).length);
+                const isSameHashtags = Boolean(
+                    (updatePostData?.hashtags ?? []).length === (payloadHashtags ?? []).length
+                    &&
+                    !payloadHashtags?.filter((hashtag, i) => (
+                        updatePostData?.hashtags
+                        &&
+                        updatePostData?.hashtags[i] !== hashtag
+                    )).length
+                );
+
+                if (isSameContent && isSameHashtags && !media) {
+                    selectedMedia.forEach(({ previewUrl }) => revokePreviewUrl(previewUrl));
+                    setSelectedMedia([]);
+                    reset({ content: '', media: [], visibility: 'public' });
+                    editor?.commands.clearContent();
+                    resetPostUpdateData();
+                    return;
                 };
 
                 await updatePost({ postId: updatePostId, data: updatePayload });
@@ -378,10 +414,6 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
         };
     };
 
-    const { data: updatePostData, isPending: isPostDetailsPending } = usePostDetails(updatePostId ?? "");
-
-    const isFetchingDetails = Boolean(updatePostId && isPostDetailsPending);
-
     useEffect(() => {
 
         if (updatePostId && updatePostData) {
@@ -389,6 +421,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
             const { content, media, hashtags, visibility } = updatePostData;
 
             setSelectedMedia(media.map(({ url, mediaType }) => ({ previewUrl: url, mediaType })));
+            setCanRemoveAllMedia(media.some(({ mediaType }) => mediaType === 'image'));
 
             const hashtagsAtEnd = (hashtags ?? [])
                 .map((hashtag) => hashtag.trim())
@@ -441,7 +474,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                 onSubmit={handleSubmit(onSubmit)}
                 onDragOver={preventDragDrop}
                 onDrop={preventDragDrop}
-                className={`w-full max-w-215 border-b border-gray-200 bg-white px-4 py-4 font-sans sm:px-5 ${className}`}
+                className={`w-full max-w-215 border-b border-gray-200 bg-white p-3 sm:px-5 sm:py-4 font-sans ${className}`}
             >
                 <div className="flex min-w-0 gap-3">
                     <ImageWithSkeleton
@@ -463,30 +496,57 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                                 {errors.content?.message && <p className="mt-2 text-sm text-red-600">{errors.content.message}</p>}
                                 {
                                     selectedMedia.length > 0 && (
-                                        <div className={`mt-3 grid grid-cols-3 gap-2 ${selectedMedia[0].mediaType === 'image' ? 'sm:grid-cols-5' : 'grid-cols-1'}`}>
+                                        <div className="mt-3">
                                             {
-                                                selectedMedia.map(({ file, previewUrl, mediaType }, index) => (
-                                                    <div key={file ? `${file.name}-${file.lastModified}-${index}` : previewUrl} className={`relative overflow-hidden rounded-md border border-gray-200 bg-gray-100 ${mediaType === 'image' ? 'aspect-square w-full max-w-28' : 'aspect-video w-full max-w-sm'}`}>
-                                                        {
-                                                            mediaType === 'image' ? (
-                                                                <img src={previewUrl} alt={file?.name ?? 'Post image'} className="h-full w-full object-contain" />
-                                                            ) : (
-                                                                <video src={previewUrl} controls className="h-full w-full bg-black object-contain" />
-                                                            )
-                                                        }
+                                                updatePostId && canRemoveAllMedia && (
+                                                    <div className="mb-2 flex min-w-0 flex-nowrap items-center justify-between gap-1">
+                                                        <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-gray-500 sm:text-xs">Attached media</span>
                                                         <button
                                                             type="button"
-                                                            onClick={() => removeMedia(index)}
-                                                            aria-label={`Remove ${file?.name}`}
-                                                            title="Remove media"
-                                                            style={{ top: '0.5rem', right: '0.5rem', zIndex: 20 }}
-                                                            className="absolute flex h-6 w-6 sm:h-8 sm:w-8 cursor-pointer items-center justify-center rounded-full bg-white text-gray-800 shadow-md ring-1 ring-black/10 transition hover:bg-red-600 hover:text-white"
+                                                            onClick={removeAllMedia}
+                                                            disabled={isBusy}
+                                                            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-1.5 py-1.5 text-[11px] font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 sm:gap-1.5 sm:px-2.5 sm:text-xs cursor-pointer"
                                                         >
-                                                            <X className="h-4 w-4" />
+                                                            <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+                                                            Remove all media
                                                         </button>
                                                     </div>
-                                                ))
+                                                )
                                             }
+                                            <div className={selectedMedia[0].mediaType === 'image' ? 'grid grid-cols-3 gap-2 sm:grid-cols-5' : 'flex w-full'}>
+                                                {
+                                                    selectedMedia.map(({ file, previewUrl, mediaType }, index) => (
+                                                        <div
+                                                            key={file ? `${file.name}-${file.lastModified}-${index}` : previewUrl}
+                                                            className={mediaType === 'image' ?
+                                                                'relative aspect-square w-full max-w-28 overflow-hidden rounded-md border border-gray-200 bg-gray-100'
+                                                                :
+                                                                'relative w-full max-w-md overflow-hidden rounded-xl border border-gray-200 bg-black shadow-sm'}
+                                                        >
+                                                            {
+                                                                mediaType === 'image' ? (
+                                                                    <img src={previewUrl} alt={file?.name ?? 'Post image'} className="h-full w-full object-contain" />
+                                                                ) : (
+                                                                    <video src={previewUrl} controls className="block aspect-video w-full bg-black object-contain" />
+                                                                )
+                                                            }
+                                                            {
+                                                                !canRemoveAllMedia && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeMedia(index)}
+                                                                        aria-label={`Remove ${file?.name ?? 'media'}`}
+                                                                        title="Remove media"
+                                                                        className="absolute right-2 top-2 z-20 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-white/95 text-gray-800 shadow-md ring-1 ring-black/10 transition hover:bg-red-600 hover:text-white sm:h-8 sm:w-8"
+                                                                    >
+                                                                        <X className="h-4 w-4" />
+                                                                    </button>
+                                                                )
+                                                            }
+                                                        </div>
+                                                    ))
+                                                }
+                                            </div>
                                         </div>
                                     )
                                 }
@@ -525,7 +585,6 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                             type="button"
                             onClick={() => imageInputRef.current?.click()}
                             disabled={!canAddImages || isBusy || isFetchingDetails}
-                            title="Add images"
                             aria-label="Add images"
                             className="rounded-full p-2 text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                         >
@@ -587,7 +646,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                         </span>
                         <button
                             type="submit"
-                            disabled={isBusy || isFetchingDetails || !isDirty}
+                            disabled={isBusy || isFetchingDetails}
                             className="inline-flex items-center gap-2 rounded-full bg-[#0f1419] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#272c30] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                         >
                             {isBusy && <LoaderCircle className="h-4 w-4 animate-spin" />}
@@ -599,7 +658,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                                         'Posting…'
                                 ) : (
                                     isMediaUploading ?
-                                        `Uploading ${uploadProgressPercent}%`
+                                        'Uploading…'
                                         :
                                         isUploading ? (
                                             'Uploading…'
@@ -617,9 +676,9 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
 
                 {
                     hasExistingMedia && (
-                        <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs text-amber-800 sm:ml-14">
+                        <div className="mt-3 flex w-full min-w-0 items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 sm:ml-14 sm:w-auto">
                             <CircleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
-                            <p>
+                            <p className="min-w-0 flex-1 wrap-break-word text-left">
                                 Remove all current media before adding replacements. Adding new media replaces all media on this post.
                             </p>
                         </div>
