@@ -38,7 +38,7 @@ const HomeFeed = () => {
     }, [hasNextPage, isFetchingNextPage]);
 
     return (
-        <div className='@container max-w-215 min-h-0 min-w-0 w-full bg-secondary-50 flex flex-col overflow-hidden overflow-y-auto'>
+        <div className='@container max-w-215 min-h-0 min-w-0 w-full bg-secondary-50 flex flex-col overflow-hidden overflow-y-auto md:h-full'>
             <TopBar>
                 Home
             </TopBar>
