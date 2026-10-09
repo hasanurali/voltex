@@ -34,18 +34,11 @@ export interface Pagination {
     limit?: number;
 };
 
-export type CreateCommentPayload = CreateCommentFormValues & (
-    |
-    {
-        post: string;
-        parentComment?: never
-    }
-    |
-    {
-        parentComment: string;
-        post?: never
-    }
-);
+export interface CreateCommentPayload extends CreateCommentFormValues {
+    post: string;
+    parentComment?: string;
+};
+
 export interface FetchCommentPayload extends Pagination {
     postId: string;
 };
