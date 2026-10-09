@@ -7,6 +7,7 @@ import VideoPlayer from "../components/VideoPlayer";
 import { usePostDetails } from "../hooks/usePostDetails";
 import { Button } from "@/components";
 import PostDetailsSkeleton from "../components/PostDetailsSkeleton";
+import { CommentSection } from "@/features/comment";
 
 const PostDetails = () => {
 
@@ -91,7 +92,7 @@ const PostDetails = () => {
                 isPostDetailsPending ?
                     <PostDetailsSkeleton />
                     :
-                    <div className="w-full min-w-0 flex-1 px-4 pb-20 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+                    <div className="w-full min-w-0 flex-1 px-3 pb-20 pt-4 sm:px-6 sm:pt-6 lg:px-8">
                         <div className="mx-auto w-full min-w-0 max-w-5xl">
 
                             <article className="flex w-full min-w-0 flex-col">
@@ -219,15 +220,7 @@ const PostDetails = () => {
 
                                 {/* Comment section */}
                                 <section className="border-t border-secondary-200 py-5" aria-labelledby="comments-heading">
-                                    <div className="flex items-center gap-2">
-                                        <MessageCircle className="h-4.5 w-4.5 text-secondary-500" />
-                                        <h2 id="comments-heading" className="text-base font-bold text-secondary-900">Discussion</h2>
-                                        <span className="text-sm text-secondary-500">{numberConverter(post.commentsCount)}</span>
-                                    </div>
-
-                                    <p className="mt-3 text-sm text-secondary-500">
-                                        {post.commentsCount === 0 ? "No comments yet." : "Comments aren't available in this view yet."}
-                                    </p>
+                                    <CommentSection post={post}/>
                                 </section>
                             </article >
                         </div >
