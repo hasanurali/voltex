@@ -11,16 +11,21 @@ import { useCreateComment } from "../hooks/useCreateComment";
 import { fieldApiError } from "@/utils";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useUpdateComment } from "../hooks/useUpdateComment";
 
 
 interface CreateCommentSectionProps {
-  postId: string;
+  postId?: string;
   parentComment?: string;
+  commentUpdateData?: {
+    content: string,
+    commentId: string
+  };
   onClose?: () => void;
 };
 
 
-const CreateCommentSection = ({ postId, parentComment, onClose }: CreateCommentSectionProps) => {
+const CommentForm = ({ postId, parentComment, commentUpdateData, onClose }: CreateCommentSectionProps) => {
 
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [emojiPickerPosition, setEmojiPickerPosition] = useState<{ top: number; left: number; width: number } | null>(null);
@@ -101,26 +106,57 @@ const CreateCommentSection = ({ postId, parentComment, onClose }: CreateCommentS
   };
 
   const { mutate: createCommentMutate, isPending: isCreateCommentPending } = useCreateComment();
+  const { mutate: updateCommentMutate, isPending: isUpdateCommentPending } = useUpdateComment();
+  const isPending = isCreateCommentPending || isUpdateCommentPending;
+
   const onSubmit = ({ content }: CreateCommentFormValues) => {
 
-    const createCommentpayload = {
-      content,
-      post: postId,
-      ...(parentComment && { parentComment })
-    };
+    if (commentUpdateData) {
 
-    createCommentMutate(createCommentpayload, {
-      onSuccess: () => {
-        reset();
-        if (onClose) {
-          onClose();
-        };
-      },
-      onError: (error) => {
-        fieldApiError(error, setError);
-      }
-    });
+      const updateCommentpayload = {
+        content,
+        commentId: commentUpdateData?.commentId
+      };
+
+      updateCommentMutate(updateCommentpayload, {
+        onSuccess: () => {
+          reset();
+          if (onClose) {
+            onClose();
+          };
+        },
+        onError: (error) => {
+          fieldApiError(error, setError);
+        }
+      });
+    }
+    else {
+
+      const createCommentpayload = {
+        content,
+        post: postId as string,
+        ...(parentComment && { parentComment })
+      };
+
+      createCommentMutate(createCommentpayload, {
+        onSuccess: () => {
+          reset();
+          if (onClose) {
+            onClose();
+          };
+        },
+        onError: (error) => {
+          fieldApiError(error, setError);
+        }
+      });
+    }
   };
+
+  useEffect(() => {
+    if (commentUpdateData) {
+      setValue("content", commentUpdateData?.content)
+    };
+  }, [commentUpdateData?.content]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`${!onClose ? 'border-b border-secondary-200 pb-5' : ''}`}>
@@ -128,30 +164,32 @@ const CreateCommentSection = ({ postId, parentComment, onClose }: CreateCommentS
         <div className="flex items-start gap-3">
 
           {/* Avatar */}
-          <button
-            type="button"
-            onClick={() => navigate(`/profile/${auth?.user.username}`)}
-            className="text-start cursor-pointer"
-          >
-            <ImageWithSkeleton
-              src={auth?.profile.avatar}
-              alt={auth?.user.displayName as string}
-              className="h-full w-full rounded-full object-cover"
-              containerClassName={`${onClose ? 'h-8 w-8' : 'h-11 w-11'} shrink-0`}
-            />
-          </button>
+          {
+            !commentUpdateData && <button
+              type="button"
+              onClick={() => navigate(`/profile/${auth?.user.username}`)}
+              className="text-start cursor-pointer"
+            >
+              <ImageWithSkeleton
+                src={auth?.profile.avatar}
+                alt={auth?.user.displayName as string}
+                className="h-full w-full rounded-full object-cover"
+                containerClassName={`${onClose ? 'h-8 w-8' : 'h-11 w-11'} shrink-0`}
+              />
+            </button>
+          }
 
           <textarea
             {...register('content')}
             id="comment"
             placeholder="Write a thoughtful reply..."
-            className={`w-full my-auto max-h-80 resize-none field-sizing-content border-b border-secondary-200 bg-neutral-50 ${onClose ? 'p-1' : 'p-2'} text-sm leading-relaxed text-secondary-900 outline-none transition placeholder:text-neutral-400 hover:border-secondary-300 focus:border-primary-800 focus:bg-white`}
+            className={`w-full my-auto max-h-80 resize-none field-sizing-content border-b border-secondary-200 ${!commentUpdateData && 'bg-neutral-50'} ${onClose ? 'p-1' : 'p-2'} text-sm leading-relaxed text-secondary-900 outline-none transition placeholder:text-neutral-400 hover:border-secondary-300 focus:border-primary-800 focus:bg-white`}
           />
         </div>
 
         {/* smooth animated error container */}
         {
-          errors.content?.message && <div className={`grid pl-11 transition-all duration-200 ease-out ${errors ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
+          errors.content?.message && <div className={`grid ${!commentUpdateData && 'pl-11'} transition-all duration-200 ease-out ${errors ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
             <div className="overflow-hidden">
               <span className="text-[13px] text-danger block leading-tight">
                 {errors.content.message}
@@ -162,7 +200,7 @@ const CreateCommentSection = ({ postId, parentComment, onClose }: CreateCommentS
       </>
 
       {/* Bottom action buttons */}
-      <div className={`mt-2 ${onClose ? 'pl-11' : 'pl-14'} flex w-full items-center justify-between gap-2`}>
+      <div className={`mt-2 ${!commentUpdateData && (onClose ? 'pl-11' : 'pl-14')} flex w-full items-center justify-between gap-2`}>
         <>
           <button
             ref={emojiButtonRef}
@@ -171,7 +209,7 @@ const CreateCommentSection = ({ postId, parentComment, onClose }: CreateCommentS
               e.stopPropagation();
               setIsEmojiPickerOpen((isOpen) => !isOpen)
             }}
-            disabled={isCreateCommentPending}
+            disabled={isPending}
             aria-label="Add emoji"
             className="rounded-full p-2 text-sky-700 transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
           >
@@ -204,19 +242,47 @@ const CreateCommentSection = ({ postId, parentComment, onClose }: CreateCommentS
           }
         </>
 
-        {/* Submit button */}
-        <Button
-          disabled={isCreateCommentPending || !isDirty}
-          loading={isCreateCommentPending}
-          type="submit"
-          size="sm"
-          className="shrink-0 rounded-full! px-2 sm:px-4 py-1 text-xs font-semibold cursor-pointer"
-        >
-          {isCreateCommentPending ? 'Replying...' : 'Reply'}
-        </Button>
+        {/* Submit and cancel button */}
+        <div className="flex gap-2">
+          {
+            !isPending && (
+              commentUpdateData && <Button
+                onClick={onClose}
+                disabled={isPending}
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="shrink-0 rounded-full! px-2 sm:px-4 py-1 text-xs font-semibold hover:bg-secondary-200! cursor-pointer"
+              >
+                Cancel
+              </Button>
+            )
+          }
+
+          <Button
+            disabled={isPending || !isDirty}
+            loading={isPending}
+            type="submit"
+            size="sm"
+            className="shrink-0 rounded-full! px-2 sm:px-4 py-1 text-xs font-semibold cursor-pointer"
+          >
+            {
+              isPending ?
+                commentUpdateData ?
+                  'Saving...'
+                  :
+                  'Replying...'
+                :
+                commentUpdateData ?
+                  'Save'
+                  :
+                  'Reply'
+            }
+          </Button>
+        </div>
       </div>
     </form>
   )
 };
 
-export default CreateCommentSection;
+export default CommentForm;

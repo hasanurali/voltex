@@ -3,7 +3,7 @@ import { MessageCircle } from 'lucide-react';
 import { numberConverter } from '@/utils';
 import type { Post } from '@/features/post';
 import CommentCard from './CommentCard';
-import CreateCommentSection from './CreateCommentSection';
+import CommentForm from './CommentForm';
 import { useFetchComment } from '../hooks/useFetchComment';
 import { useEffect, useRef } from 'react';
 
@@ -46,7 +46,7 @@ const CommentSection = ({ post }: CommentSectionProps) => {
 
     return (
         <div>
-            <CreateCommentSection postId={post._id} />
+            <CommentForm postId={post._id} />
 
             <div className="flex items-center gap-2 pt-5">
                 <MessageCircle className="h-4.5 w-4.5 text-secondary-500" />

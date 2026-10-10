@@ -1,13 +1,14 @@
 import { ImageWithSkeleton } from "@/components/media";
 import { numberConverter, timeConverter } from "@/utils";
-import { ChevronDown, ChevronUp, Heart, MessageSquare } from "lucide-react";
+import { ChevronDown, ChevronUp, EllipsisVertical, Heart, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CreateCommentSection from "./CreateCommentSection";
+import CommentForm from "./CommentForm";
 import type { Comment } from "../type";
 import { useFetchCommentReplies } from "../hooks/useFetchCommentReplies";
 import Line from "./Line";
 import Curve from "./Curve";
+import { createPortal } from "react-dom";
 
 
 interface CommentCardProps {
@@ -19,6 +20,8 @@ const CommentCard = ({ comment }: CommentCardProps) => {
 
     const [isReplying, setIsReplying] = useState(false);
     const [areRepliesExpanded, setAreRepliesExpanded] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isEditComment, setIsEditComment] = useState(false);
 
     const navigate = useNavigate();
 
@@ -56,32 +59,90 @@ const CommentCard = ({ comment }: CommentCardProps) => {
             <div className="min-w-0 flex-1">
 
                 {/* Author info and content */}
-                <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-secondary-200/70">
-                    <div className="flex flex-wrap min-w-0 items-center gap-x-2">
-                        <button
-                            type="button"
-                            onClick={openAuthorProfile}
-                            className="max-w-full truncate text-left text-sm font-semibold text-secondary-900 hover:underline"
-                        >
-                            {comment.author.displayName}
-                        </button>
-
-                        <div className="flex gap-1">
-                            <span className="truncate text-xs text-secondary-500">@{comment.author.username}</span>
-                            <span aria-hidden="true" className="text-xs text-secondary-400">·</span>
-                            <time
-                                dateTime={comment.createdAt}
-                                title={new Date(comment.createdAt).toLocaleString()}
-                                className="text-xs text-secondary-500"
+                <div className="rounded-xl sm:rounded-2xl bg-white px-2 py-1.5 sm:px-4 sm:py-3 ring-1 ring-secondary-200/70 relative">
+                    <div className="min-w-0 flex justify-between">
+                        <div className="flex flex-wrap  items-center gap-x-2">
+                            <button
+                                type="button"
+                                onClick={openAuthorProfile}
+                                className="max-w-full truncate text-left text-sm font-semibold text-secondary-900 hover:underline"
                             >
-                                {timeConverter(comment.createdAt)}
-                            </time>
+                                {comment.author.displayName}
+                            </button>
+
+                            <div className="flex gap-1">
+                                <span className="truncate text-xs text-secondary-500">@{comment.author.username}</span>
+                                <span aria-hidden="true" className="text-xs text-secondary-400">·</span>
+                                <time
+                                    dateTime={comment.createdAt}
+                                    title={new Date(comment.createdAt).toLocaleString()}
+                                    className="text-xs text-secondary-500"
+                                >
+                                    {timeConverter(comment.createdAt)}
+                                </time>
+                            </div>
                         </div>
+
+                        {
+                            !isEditComment && <button
+                                onClick={() => setIsMenuOpen(true)}
+                                type="button"
+                                className="cursor-pointer"
+                            >
+                                <EllipsisVertical aria-hidden="true" size={20} color="gray" />
+                            </button>
+                        }
+
+                        {/* Post edit menu */}
+                        {
+                            isMenuOpen && <div onClick={(e) => e.stopPropagation()} className="absolute z-20 top-3 right-3 w-36 h-fit overflow-hidden rounded-md border border-secondary-100 bg-white shadow-2xl flex flex-col">
+                                <button
+                                    onClick={() => {
+                                        setIsMenuOpen(false);
+                                        setIsEditComment(true);
+                                    }}
+                                    type="button"
+                                    className="flex items-center gap-2 px-3 py-2 text-left text-sm text-secondary-800 transition-colors hover:bg-sky-50 hover:text-sky-700 focus-visible:bg-sky-50 focus-visible:outline-none cursor-pointer"
+                                >
+                                    <Pencil size={16} aria-hidden="true" />
+                                    <span>Edit</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-2 border-t border-secondary-100 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:bg-red-50 focus-visible:outline-none cursor-pointer"
+                                >
+                                    <Trash2 size={16} aria-hidden="true" />
+                                    <span>Delete</span>
+                                </button>
+                            </div>
+                        }
+
+                        {/* Edit menu overlay */}
+                        {
+                            isMenuOpen && createPortal(
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsMenuOpen(false);
+                                    }}
+                                    aria-hidden="true"
+                                    className="absolute z-10 inset-0 bg-transparent"></div>,
+                                document.body
+                            )
+                        }
                     </div>
 
-                    <p className="mt-2 whitespace-pre-wrap wrap-break-word text-sm leading-6 text-secondary-800">
-                        {comment.content}
-                    </p>
+                    {/* Edit form and content */}
+                    <div className="mt-2">
+                        {
+                            isEditComment ?
+                                <CommentForm commentUpdateData={{ content: comment.content, commentId: comment._id }} onClose={() => setIsEditComment(false)} />
+                                :
+                                <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6 text-secondary-800">
+                                    {comment.content}
+                                </p>
+                        }
+                    </div>
                 </div>
 
                 {/* Bottom action buttons */}
@@ -124,7 +185,7 @@ const CommentCard = ({ comment }: CommentCardProps) => {
                 {
                     isReplying && (
                         <div className="mt-3">
-                            <CreateCommentSection
+                            <CommentForm
                                 postId={comment.post}
                                 parentComment={comment._id}
                                 onClose={() => setIsReplying(false)}
