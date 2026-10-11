@@ -6,6 +6,7 @@ import CommentCard from './CommentCard';
 import CommentForm from './CommentForm';
 import { useFetchComment } from '../hooks/useFetchComment';
 import { useEffect, useRef } from 'react';
+import CommentCardSkeleton from './CommentCardSkeleton';
 
 
 interface CommentSectionProps {
@@ -55,11 +56,7 @@ const CommentSection = ({ post }: CommentSectionProps) => {
             </div>
 
             {
-                isFetchCommentPending && (
-                    <p className="py-6 text-center text-sm text-secondary-500">
-                        Loading comments...
-                    </p>
-                )
+                isFetchCommentPending && Array.from({ length: Math.min(3, post.commentsCount) }).map((_, i) => <CommentCardSkeleton key={i} />)
             }
             {
                 !isFetchCommentPending && !isFetchCommentError && comments.length === 0 && (
