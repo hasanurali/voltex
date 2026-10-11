@@ -7,6 +7,7 @@ import VideoPlayer from "../components/VideoPlayer";
 import { usePostDetails } from "../hooks/usePostDetails";
 import { Button } from "@/components";
 import PostDetailsSkeleton from "../components/PostDetailsSkeleton";
+import { CommentSection } from "@/features/comment";
 
 const PostDetails = () => {
 
@@ -72,15 +73,19 @@ const PostDetails = () => {
 
     const media = post?.media ?? [];
     const visibleMedia = media.slice(0, 6);
-    const galleryLayout = visibleMedia.length === 1
-        ? "grid-cols-1 grid-rows-1 aspect-[4/3] sm:aspect-[16/10]"
-        : visibleMedia.length === 2
-            ? "grid-cols-2 grid-rows-1 aspect-[4/3] sm:aspect-[16/10]"
-            : visibleMedia.length === 3 || visibleMedia.length === 4
-                ? "grid-cols-2 grid-rows-2 aspect-[4/3] sm:aspect-[16/10]"
-                : visibleMedia.length === 5
-                    ? "grid-cols-6 grid-rows-2 aspect-[4/3] sm:aspect-[16/10]"
-                    : "grid-cols-3 grid-rows-2 aspect-[4/3] sm:aspect-[16/10]";
+    const galleryLayout = visibleMedia.length === 1 ?
+        "grid-cols-1 grid-rows-1"
+        :
+        visibleMedia.length === 2 ?
+            "grid-cols-2 grid-rows-1"
+            :
+            visibleMedia.length === 3 || visibleMedia.length === 4 ?
+                "grid-cols-2 grid-rows-2"
+                :
+                visibleMedia.length === 5 ?
+                    "grid-cols-6 grid-rows-2"
+                    :
+                    "grid-cols-3 grid-rows-2";
 
     return (
         <div className="flex min-h-full min-w-0 w-full flex-col bg-secondary-50">
@@ -91,7 +96,7 @@ const PostDetails = () => {
                 isPostDetailsPending ?
                     <PostDetailsSkeleton />
                     :
-                    <div className="w-full min-w-0 flex-1 px-4 pb-20 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+                    <div className="w-full min-w-0 flex-1 px-3 pt-4 sm:px-6 sm:pt-6 lg:px-8">
                         <div className="mx-auto w-full min-w-0 max-w-5xl">
 
                             <article className="flex w-full min-w-0 flex-col">
@@ -137,7 +142,7 @@ const PostDetails = () => {
                                 {/* Media rendering section */}
                                 {
                                     visibleMedia.length > 0 && (
-                                        <section className={`grid min-w-0 gap-1 overflow-hidden rounded-xl bg-secondary-100 ${galleryLayout}`} aria-label="Post media">
+                                        <section className={`grid min-w-0 gap-1 overflow-hidden rounded-xl bg-secondary-100 aspect-4/3 sm:aspect-16/10 ${galleryLayout}`} aria-label="Post media">
                                             {
                                                 visibleMedia.map((item, index) => {
 
@@ -219,15 +224,7 @@ const PostDetails = () => {
 
                                 {/* Comment section */}
                                 <section className="border-t border-secondary-200 py-5" aria-labelledby="comments-heading">
-                                    <div className="flex items-center gap-2">
-                                        <MessageCircle className="h-4.5 w-4.5 text-secondary-500" />
-                                        <h2 id="comments-heading" className="text-base font-bold text-secondary-900">Discussion</h2>
-                                        <span className="text-sm text-secondary-500">{numberConverter(post.commentsCount)}</span>
-                                    </div>
-
-                                    <p className="mt-3 text-sm text-secondary-500">
-                                        {post.commentsCount === 0 ? "No comments yet." : "Comments aren't available in this view yet."}
-                                    </p>
+                                    <CommentSection post={post} />
                                 </section>
                             </article >
                         </div >

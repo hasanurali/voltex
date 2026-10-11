@@ -3,4 +3,5 @@ export { default as PostDetails } from './page/PostDetails.tsx';
 export { default as PostCard } from './components/PostCard.tsx';
 export { default as PostCreateSection } from './components/PostCreateSection.tsx';
 export { useFetchUserPost } from './hooks/useFetchUserPost.ts';
-export type { Post } from './types.ts';
+export type { Post, Author } from './types.ts';
+export { postKeys } from './api/postKeys.ts';
