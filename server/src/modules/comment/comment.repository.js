@@ -352,7 +352,7 @@ export const incrementLikeCount = async (commentId, session) => {
     await commentModel.updateOne(
         {
             _id: commentId,
-            isDeleted: true
+            isDeleted: false
         },
         {
             $inc: {
@@ -370,7 +370,7 @@ export const decrementLikeCount = async (commentId, session) => {
     await commentModel.updateOne(
         {
             _id: commentId,
-            isDeleted: true
+            isDeleted: false
         },
         {
             $inc: {
