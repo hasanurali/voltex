@@ -8,6 +8,7 @@ import { usePostDetails } from "../hooks/usePostDetails";
 import { Button } from "@/components";
 import PostDetailsSkeleton from "../components/PostDetailsSkeleton";
 import { CommentSection } from "@/features/comment";
+import { useReactionToggle } from "@/hooks";
 
 const PostDetails = () => {
 
@@ -54,6 +55,21 @@ const PostDetails = () => {
 
     const handleProfileNavigation = () => {
         navigate(`/profile/${post?.author.username}`);
+    };
+
+    const { createReactionMutate, removeReactionMutate } = useReactionToggle({ targetType: 'post', targetId: post?._id as string });
+    const handleReaction = () => {
+
+        if (!post) {
+            return;
+        };
+
+        if (post.hasReacted) {
+            removeReactionMutate();
+        }
+        else {
+            createReactionMutate();
+        };
     };
 
     if (isError) {
@@ -214,7 +230,7 @@ const PostDetails = () => {
                                             <span className="hidden sm:inline">Comments</span>
                                         </button>
 
-                                        <button className="inline-flex items-center gap-1">
+                                        <button onClick={handleReaction} type="button" className="inline-flex items-center gap-1 cursor-pointer">
                                             <Heart className={`h-4 w-4 ${post.hasReacted ? "fill-rose-500 text-rose-500" : ""}`} />
                                             <span className="font-semibold text-secondary-900">{numberConverter(post.likesCount)}</span>
                                             <span className="hidden sm:inline">Likes</span>

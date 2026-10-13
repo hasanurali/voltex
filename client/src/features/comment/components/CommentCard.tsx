@@ -11,6 +11,7 @@ import Curve from "./Curve";
 import { createPortal } from "react-dom";
 import { ConfirmDialog } from "@/components";
 import { useDeleteComment } from "../hooks/useDeleteComment";
+import { useReactionToggle } from "@/hooks";
 
 
 interface CommentCardProps {
@@ -38,6 +39,17 @@ const CommentCard = ({ comment }: CommentCardProps) => {
     const { mutate: deleteCommentMutate } = useDeleteComment(comment.post, comment.repliesCount, comment.parentComment);
     const handleDeleteComment = () => {
         deleteCommentMutate(comment._id);
+    };
+
+    const { createReactionMutate, removeReactionMutate } = useReactionToggle({ targetType: 'comment', targetId: comment._id });
+    const handleReaction = () => {
+
+        if (comment.hasReacted) {
+            removeReactionMutate();
+        }
+        else {
+            createReactionMutate();
+        };
     };
 
     return (
@@ -161,9 +173,10 @@ const CommentCard = ({ comment }: CommentCardProps) => {
                     {/* Bottom action buttons */}
                     <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 pl-2 text-xs text-secondary-500">
                         <button
+                            onClick={handleReaction}
                             type="button"
                             aria-label={`${comment.hasReacted ? "Unlike" : "Like"}`}
-                            className={`inline-flex items-center gap-1.5 rounded-full transition hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-800 ${comment.hasReacted ? "font-medium text-rose-600" : "cursor-pointer"}`}
+                            className={`inline-flex items-center gap-1.5 rounded-full transition hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-800 ${comment.hasReacted ? "font-medium text-rose-600" : ""} cursor-pointer`}
                         >
                             <Heart aria-hidden="true" className={`h-4 w-4 ${comment.hasReacted ? "fill-rose-500 text-rose-500" : ""}`} />
                             {numberConverter(comment.likesCount)}

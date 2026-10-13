@@ -8,6 +8,7 @@ import { useAuthStore, usePostStore } from "@/store";
 import { useDeletePost } from "../hooks/useDeletePost";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components";
+import { useReactionToggle } from "@/hooks";
 
 
 interface PostCardProps {
@@ -82,9 +83,21 @@ const PostCard = ({ post }: PostCardProps) => {
         });
     };
 
+    const { createReactionMutate, removeReactionMutate } = useReactionToggle({ targetType: 'post', targetId: post._id });
+    const handleReaction = (e: React.MouseEvent<HTMLButtonElement>) => {
+
+        e.stopPropagation();
+
+        if (post.hasReacted) {
+            removeReactionMutate();
+        }
+        else {
+            createReactionMutate();
+        };
+    };
+
     return (
         <>
-
             <div ref={postRef} onClick={() => navigate(`/posts/${post._id}`)} className={`relative max-w-215 w-full min-w-0 h-fit flex gap-1 bg-white border-b border-b-secondary-200 p-3 sm:p-4 md:p-6 py-5 cursor-pointer transition-colors duration-200 ${isEditMenuOpen ? "" : "hover:bg-[#f9f9f9]"}`}>
 
                 {/* User avatar: display in specific width */}
@@ -219,7 +232,7 @@ const PostCard = ({ post }: PostCardProps) => {
                             <span className="text-sm">{numberConverter(post.commentsCount)}</span>
                         </button>
 
-                        <button type="button" className="flex items-center gap-2 hover:text-rose-600 cursor-pointer">
+                        <button onClick={handleReaction} type="button" className="flex items-center gap-2 hover:text-rose-600 cursor-pointer">
                             <Heart width={20} className={`${post.hasReacted ? "fill-rose-500 text-rose-500" : ""}`} />
                             <span className={`text-sm ${post.hasReacted && 'text-rose-500'}`}>{numberConverter(post.likesCount)}</span>
                         </button>
