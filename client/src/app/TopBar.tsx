@@ -12,7 +12,7 @@ const TopBar = ({ children }: { children: ReactNode }) => {
                 <ArrowLeft />
             </button>
 
-            <p className='text-xl'>
+            <p className='text-xl w-full'>
                 {children}
             </p>
         </div>
