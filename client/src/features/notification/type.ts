@@ -12,7 +12,7 @@ export type TypeEnum =
 
 
 export interface NotificationMetaData {
-    post: {
+    post?: {
         _id: string;
         author: string;
         content: string;
@@ -21,10 +21,11 @@ export interface NotificationMetaData {
             url: string;
         };
     };
-    comment: {
+    comment?: {
         _id: string;
         author: string;
         content: string;
+        post: string;
     };
 };
 
@@ -35,7 +36,7 @@ export interface Notification {
     entityId: string;
     entityType: 'user' | 'post' | 'comment';
     type: TypeEnum;
-    metadata: NotificationMetaData;
+    metadata?: NotificationMetaData;
     isRead: boolean;
     createdAt: string;
 };
