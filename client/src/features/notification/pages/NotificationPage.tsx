@@ -1,9 +1,11 @@
+import { useEffect, useRef } from "react";
+import { CheckCheck } from "lucide-react";
 import TopBar from "@/app/TopBar";
 import NotificationCard from "../components/NotificationCard";
-import { CheckCheck } from "lucide-react";
 import { useFetchNotifications } from "../hooks/useFetchNotifications";
 import { Button, SentinelLoadingItem } from "@/components";
-import { useEffect, useRef } from "react";
+import { useMarkNotificationAsRead } from "../hooks/useMarkNotificationAsRead";
+import { useMarkAllNotificationsAsRead } from "../hooks/useMarkAllNotificationsAsRead";
 
 const NotificationPage = () => {
 
@@ -37,20 +39,28 @@ const NotificationPage = () => {
     };
   }, [hasNextPage, isFetchingNextPage]);
 
+  const { mutate: markNotificationAsReadMutate } = useMarkNotificationAsRead();
+  const { mutate: markAllNotificationsAsReadMutate } = useMarkAllNotificationsAsRead();
+
   return (
     <>
       <TopBar>
         <span className="flex justify-between items-center">
           Notification
 
-          <Button
-            variant="ghost"
-            type="button"
-            className="text-xs text-secondary-600 flex items-center gap-2 p-3 rounded-full! cursor-pointer hover:bg-secondary-100"
-          >
-            <CheckCheck size={14} />
-            Mark all notifications
-          </Button>
+          {
+            unreadCount > 0 && (
+              <Button
+                onClick={() => markAllNotificationsAsReadMutate()}
+                variant="ghost"
+                type="button"
+                className="text-xs text-secondary-600 flex items-center gap-2 p-3 rounded-full! cursor-pointer hover:bg-secondary-100"
+              >
+                <CheckCheck size={14} />
+                Mark all as read
+              </Button>
+            )
+          }
         </span>
       </TopBar>
 
@@ -60,6 +70,7 @@ const NotificationPage = () => {
         {
           unreadCount > 0 && (
             <Button
+              onClick={() => markAllNotificationsAsReadMutate()}
               size="sm"
               variant="primary"
               type="button"
@@ -84,6 +95,7 @@ const NotificationPage = () => {
             <NotificationCard
               key={notification._id}
               notification={notification}
+              onOpen={() => markNotificationAsReadMutate(notification)}
             />
           ))
         }
