@@ -72,7 +72,7 @@ const Sidebar = () => {
                                     <div className={`${isActive ? 'font-bold text-primary-950 bg-primary-100 hover:bg-primary-200' : ''} flex min-w-0 items-center gap-5 px-7 py-3 md:max-[850px]:gap-4 md:max-[850px]:px-4 text-lg rounded-full hover:bg-primary-100 relative`}>
                                         {IconComponent && <IconComponent className={`shrink-0 ${isActive ? 'text-black stroke-[2.5]' : ''}`} />}
                                         <p className="min-w-0 wrap-break-word">{item.label}</p>
-                                        {item.label === "Notifications" && <p className="min-w-7.5 max-w-full text-center bg-[#1d9bf0] text-white text-xs rounded-2xl px-1 py-px absolute right-11 min-[850px]:right-3 top-4.75">{unreadCount <= 99 ? unreadCount : `99+`}</p>}
+                                        {(item.label === "Notifications" && !!unreadCount) && <p className="min-w-7.5 max-w-full text-center bg-[#1d9bf0] text-white text-xs rounded-2xl px-1 py-px absolute right-11 min-[850px]:right-3 top-4.75">{unreadCount <= 99 ? unreadCount : `99+`}</p>}
                                     </div>
                                 )}
                             </NavLink>

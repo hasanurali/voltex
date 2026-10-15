@@ -44,7 +44,7 @@ const MobileBottomBar = () => {
                     {({ isActive }) => (
                         <span className='relative'>
                             <item.icon className={`h-6 w-6 ${isActive ? 'text-primary-950' : 'text-neutral-500'}`} strokeWidth={isActive ? 2.5 : 2} />
-                            {item.label === "Notifications" && <p className="min-w-6 max-w-full text-center bg-[#1d9bf0] text-white text-xs rounded-2xl px-1 absolute -right-2.75 -top-1">{unreadCount <= 9 ? unreadCount : `9+`}</p>}
+                            {(item.label === "Notifications" && !!unreadCount) && <p className="min-w-6 max-w-full text-center bg-[#1d9bf0] text-white text-xs rounded-2xl px-1 absolute -right-2.75 -top-1">{unreadCount <= 9 ? unreadCount : `9+`}</p>}
                         </span>
                     )}
                 </NavLink>
