@@ -1,0 +1,1 @@
+export { default as NotificationPage } from './pages/NotificationPage.tsx';

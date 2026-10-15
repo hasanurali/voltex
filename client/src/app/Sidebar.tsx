@@ -22,7 +22,7 @@ const Sidebar = () => {
         { label: 'Home', icon: Home, path: ROUTES.home },
         { label: 'Search', icon: Search, path: ROUTES.searchUser },
         { label: 'Messages', icon: Mail, path: '/n' },
-        { label: 'Notifications', icon: Bell, path: '/n' },
+        { label: 'Notifications', icon: Bell, path: ROUTES.notification },
         { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` },
         { label: 'Settings', icon: Settings, path: '/n' },
     ];

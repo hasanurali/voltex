@@ -15,6 +15,6 @@ export const useFetchNotifications = (limit: number = 10) => {
 
             return lastPage.pagination?.page + 1;
         },
-        select: (data) => data.pages.flatMap((page) => page.notifications)
+        select: (data) => data.pages.flatMap((page) => page)
     });
 };

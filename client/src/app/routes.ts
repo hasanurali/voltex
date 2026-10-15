@@ -11,5 +11,7 @@ export const ROUTES = {
 
     postDetails: '/posts/:postId',
 
+    notification: '/notifications',
+
     notFound: '*',
 } as const;

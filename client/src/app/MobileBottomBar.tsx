@@ -15,7 +15,7 @@ const MobileBottomBar = () => {
     ];
 
     const rightItems = [
-        { label: 'Notifications', icon: Bell, path: '/n' },
+        { label: 'Notifications', icon: Bell, path: ROUTES.notification },
         { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` },
     ];
 
