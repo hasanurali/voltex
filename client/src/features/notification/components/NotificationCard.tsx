@@ -1,9 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { EllipsisVertical, Play } from "lucide-react";
+import { EllipsisVertical, Play, Trash2 } from "lucide-react";
 import { ImageWithSkeleton } from "@/components/media";
 import { timeConverter } from "@/utils";
 import type { Notification } from "../type";
 import { NOTIFICATION_CONFIG } from "../constants";
+import { createPortal } from "react-dom";
+import { ConfirmDialog } from "@/components";
+import { useState } from "react";
+import { useDeleteNotification } from "../hooks/useDeleteNotification";
 
 
 interface NotificationCardProps {
@@ -13,6 +17,9 @@ interface NotificationCardProps {
 
 
 const NotificationCard = ({ notification, onOpen }: NotificationCardProps) => {
+
+  const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState(false);
+  const [isDeleteNotificationModelOpen, setIsDeleteNotificationModelOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -40,10 +47,15 @@ const NotificationCard = ({ notification, onOpen }: NotificationCardProps) => {
     };
   };
 
+  const { mutate: deleteNotificationMutate } = useDeleteNotification();
+  const handleDeleteNotification = () => {
+    deleteNotificationMutate(notification);
+  };
+
   return (
     <div
       onClick={handleOpen}
-      className={`flex w-full items-start gap-3 border-b border-secondary-200 px-3 py-4 text-left transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-800 cursor-pointer sm:px-4 ${isRead ? "bg-white hover:bg-[#f9f9f9]" : "bg-sky-50/70 hover:bg-sky-50"}`}
+      className={`flex w-full items-start gap-3 border-b border-secondary-200 px-3 py-4 text-left transition-colors duration-200 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-800 cursor-pointer sm:px-4 ${isRead ? "bg-white hover:bg-[#f9f9f9]" : "bg-sky-50/70 hover:bg-sky-50"} relative`}
     >
 
       {/* Avatar with notification type badge */}
@@ -116,9 +128,12 @@ const NotificationCard = ({ notification, onOpen }: NotificationCardProps) => {
         )
       }
 
-      {/* Notification options */}
+      {/* Notification option */}
       <button
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsNotificationMenuOpen(true);
+        }}
         type="button"
         aria-label="Notification options"
         aria-haspopup="true"
@@ -126,6 +141,58 @@ const NotificationCard = ({ notification, onOpen }: NotificationCardProps) => {
       >
         <EllipsisVertical aria-hidden="true" color="gray" size={20} />
       </button>
+
+      {/* Notification menu */}
+      {
+        isNotificationMenuOpen && (
+          <div onClick={(e) => e.stopPropagation()} className="absolute z-20 top-4 right-3 w-36 h-fit overflow-hidden rounded-md border border-secondary-100 bg-white shadow-2xl">
+            <button
+              onClick={() => {
+                setIsNotificationMenuOpen(false);
+                setIsDeleteNotificationModelOpen(true);
+              }}
+              type="button"
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:bg-red-50 focus-visible:outline-none cursor-pointer"
+            >
+              <Trash2 size={16} aria-hidden="true" />
+              <span>Delete</span>
+            </button>
+          </div>
+        )
+      }
+
+      {
+        createPortal(
+          <>
+
+            {/* Notification menu overlay */}
+            {
+              isNotificationMenuOpen && <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsNotificationMenuOpen(false);
+                }}
+                aria-hidden="true"
+                className="absolute z-10 inset-0 bg-transparent"></div>
+            }
+
+            {/* Confirm post delete model */}
+            <ConfirmDialog
+              isOpen={isDeleteNotificationModelOpen}
+              title="Delete this notification?"
+              description="This action can't be undone. Are you sure you want to delete this notification?"
+              confirmLabel="Delete"
+              cancelLabel="Cancel"
+              onConfirm={() => {
+                handleDeleteNotification();
+                setIsDeleteNotificationModelOpen(false);
+              }}
+              onCancel={() => setIsDeleteNotificationModelOpen(false)}
+            />
+          </>,
+          document.body
+        )
+      }
     </div>
   );
 };
