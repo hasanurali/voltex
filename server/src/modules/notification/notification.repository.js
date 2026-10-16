@@ -119,10 +119,11 @@ const notificationResponsePipeline = [
                             content: {
                                 $substrCP: ["$comment.content", 0, 60]
                             },
+                            post: "$comment.post"
                         }
                     }
                 }
-
+                
             },
             isRead: 1,
             createdAt: 1

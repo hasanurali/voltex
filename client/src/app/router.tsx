@@ -9,6 +9,7 @@ import AppLayout from './AppLayout.tsx';
 import ProtectedRoute from './ProtectedRoute.tsx';
 import { SearchUserPage } from '@/features/user';
 import { HomeFeed, PostDetails } from '@/features/post';
+import { NotificationPage } from '@/features/notification';
 
 
 export const router = createBrowserRouter([
@@ -65,6 +66,10 @@ export const router = createBrowserRouter([
                             {
                                 path: ROUTES.profile,
                                 element: <ProfilePage />
+                            },
+                            {
+                                path: ROUTES.notification,
+                                element: <NotificationPage />
                             }
                         ]
                     }

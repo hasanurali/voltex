@@ -111,7 +111,7 @@ const PostCard = ({ post }: PostCardProps) => {
                     <section className="flex flex-col gap-3 min-[1000px]:pt-2 min-[1155px]:pt-0 min-[1400px]:pt-2">
                         <div className="flex justify-between items-center relative">
                             <div className="flex items-center gap-3">
-                                <img className="w-12 rounded-full min-[1000px]:hidden min-[1155px]:block min-[1400px]:hidden" src={post.author.avatar} alt={post.author.displayName} />
+                                <img className="w-12 h-12 rounded-full min-[1000px]:hidden min-[1155px]:block min-[1400px]:hidden" src={post.author.avatar} alt={post.author.displayName} />
 
                                 <div>
                                     <p onClick={handleProfileNavigate} className="text-[16px] font-bold hover:underline decoration-1 underline-offset-1">{post.author.displayName}</p>
