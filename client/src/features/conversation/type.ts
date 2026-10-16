@@ -15,7 +15,7 @@ export interface Conversation {
 };
 
 export type FetchConversationsResponse = ApiResponse<{
-    conversations: Conversation;
+    conversations: Conversation[];
     pagination: ApiPaginationResponse;
 }>;
 export type FetchConversationDetailsResponse = ApiResponse<{
