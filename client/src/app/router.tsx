@@ -10,6 +10,7 @@ import ProtectedRoute from './ProtectedRoute.tsx';
 import { SearchUserPage } from '@/features/user';
 import { HomeFeed, PostDetails } from '@/features/post';
 import { NotificationPage } from '@/features/notification';
+import { ConversationsPage } from '@/features/conversation';
 
 
 export const router = createBrowserRouter([
@@ -70,6 +71,10 @@ export const router = createBrowserRouter([
                             {
                                 path: ROUTES.notification,
                                 element: <NotificationPage />
+                            },
+                            {
+                                path: ROUTES.conversation,
+                                element: <ConversationsPage />
                             }
                         ]
                     }

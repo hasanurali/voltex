@@ -12,12 +12,12 @@ const MobileBottomBar = () => {
 
     const leftItems = [
         { label: 'Home', icon: Home, path: ROUTES.home },
-        { label: 'Messages', icon: Mail, path: '/n' },
+        { label: 'Messages', icon: Mail, path: ROUTES.notification }
     ];
 
     const rightItems = [
         { label: 'Notifications', icon: Bell, path: ROUTES.notification },
-        { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` },
+        { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` }
     ];
 
     const { data } = useFetchNotifications();
