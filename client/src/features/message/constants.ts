@@ -1,0 +1,3 @@
+export const MAX_MESSAGE_IMAGES_LENGTH = 5;
+export const MAX_MESSAGE_IMAGE_SIZE = 5;
+export const MAX_MESSAGE_VIDEO_SIZE = 25 * 1024 * 1024;
