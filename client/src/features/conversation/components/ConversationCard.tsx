@@ -13,7 +13,7 @@ const ConversationCard = ({ conversation }: ConversationCardProps) => {
 
   const navigate = useNavigate();
 
-  const { participant, lastMessage, unreadMessages } = conversation;
+  const { _id, participant, lastMessage, unreadMessages } = conversation;
 
   const navigateToProfile = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -21,7 +21,7 @@ const ConversationCard = ({ conversation }: ConversationCardProps) => {
   };
 
   return (
-    <article className="flex w-full items-center gap-3 border-b border-secondary-200 px-4 py-3 transition-colors hover:bg-secondary-50 cursor-pointer">
+    <article onClick={() => navigate(`/conversations/${_id}`)} className="flex w-full items-center gap-3 border-b border-secondary-200 px-4 py-3 transition-colors hover:bg-secondary-50 cursor-pointer">
 
       <button
         type="button"

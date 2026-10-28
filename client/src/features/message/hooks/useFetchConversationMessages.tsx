@@ -16,6 +16,9 @@ export const useFetchConversationMessages = (conversationId: string, limit: numb
             return lastPage.pagination?.page + 1;
         },
         enabled: !!conversationId,
-        select: (data) => data.pages.flatMap((page) => page.messages)
+        select: (data) => ({
+            data: data.pages.slice().reverse().flatMap((page) => page.messages),
+            cursorLength: data.pageParams.length
+        })
     });
 };

@@ -12,7 +12,7 @@ const MobileBottomBar = () => {
 
     const leftItems = [
         { label: 'Home', icon: Home, path: ROUTES.home },
-        { label: 'Messages', icon: Mail, path: ROUTES.notification }
+        { label: 'Messages', icon: Mail, path: ROUTES.conversation }
     ];
 
     const rightItems = [
