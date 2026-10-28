@@ -31,12 +31,27 @@ export interface PayloadMedia extends Media {
 };
 
 export type CreateMessagePayload = (
-    | { conversation: string; participant?: string }
     | { conversation?: string; participant: string }
-) & {
-    content: string;
-    media: PayloadMedia[];
-};
+    | { conversation: string; participant?: string }
+) & (
+        | { content?: string; media: PayloadMedia[]; }
+        | { content: string; media?: PayloadMedia[]; }
+    );
+
 export interface FetchMessagesPayload extends Pagination {
     conversationId: string;
+};
+
+export interface TemporaryMessage {
+    _id: string;
+    conversation?: string;
+    sender?: Author;
+    content: string;
+    media: Media[];
+    isSeen?: boolean;
+    seenAt?: string;
+    isDeleted?: boolean;
+    createdAt: string;
+    progress?: number[];
+    isTemporary?: boolean;
 };

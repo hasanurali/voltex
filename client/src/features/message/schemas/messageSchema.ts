@@ -13,11 +13,7 @@ export const createMessageSchema = z.object({
         .optional()
         .or(z.literal('')),
 
-    media: z.array(mediaItemSchema).optional(),
-
-}).refine((data) => !!data.content || (data.media?.length ?? 0) > 0, {
-    message: 'Message cannot be empty',
-    path: ['content'],
+    media: z.array(mediaItemSchema).optional()
 });
 
 export type CreateMessageFormValues = z.infer<typeof createMessageSchema>;
