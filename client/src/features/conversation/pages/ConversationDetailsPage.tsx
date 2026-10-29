@@ -9,6 +9,7 @@ import { CreateMessageInput, MessageCard, TemporaryMessageCard, useFetchConversa
 import type { Message, TemporaryMessage } from "@/features/message/type";
 import { messageKeys } from "@/features/message/api/messageKeys";
 import { useQueryClient } from "@tanstack/react-query";
+import { useMarkAllConversationMessagesAsRead } from "../hooks/useMarkAllConversationMessagesAsRead";
 
 const ConversationDetailsPage = () => {
 
@@ -31,6 +32,8 @@ const ConversationDetailsPage = () => {
 
     const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationId ?? '');
     const messages = data?.data ?? [];
+
+    const { mutate: markAllConversationMessagesAsReadMutate } = useMarkAllConversationMessagesAsRead();
 
     useEffect(() => {
 
@@ -104,6 +107,12 @@ const ConversationDetailsPage = () => {
         return () => {
             queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationDetails?._id ?? '') })
         }
+    }, []);
+
+    useEffect(() => {
+        if (conversationDetails?._id) {
+            markAllConversationMessagesAsReadMutate(conversationDetails._id);
+        };
     }, []);
 
     if (!conversationDetails || isError) {
