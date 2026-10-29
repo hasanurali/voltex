@@ -45,10 +45,26 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
     const messageMediaPreviewUrlsRef = useRef(new Set<string>());
     const mediaContainerRef = useRef<HTMLDivElement>(null);
     const emojiButtonRef = useRef<HTMLButtonElement>(null);
+    const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
     const { register, handleSubmit, reset, setError, setValue, getValues, formState: { errors } } = useForm<CreateMessageFormValues>({
         resolver: zodResolver(createMessageSchema)
     });
+
+    const contentField = register('content');
+
+    const resizeMessageInput = () => {
+        const textArea = messageInputRef.current;
+        if (!textArea) {
+            return;
+        };
+
+        textArea.style.height = 'auto';
+        const contentHeight = textArea.scrollHeight;
+
+        textArea.style.height = `${Math.min(maxHeight, contentHeight)}px`;
+        textArea.style.overflowY = contentHeight > maxHeight ? 'auto' : 'hidden';
+    };
 
     const createPreviewUrl = (file: File) => {
 
@@ -164,6 +180,7 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
 
     const addEmoji = (emojiData: EmojiClickData) => {
         setValue('content', getValues('content') + emojiData.emoji);
+        resizeMessageInput();
         setIsEmojiPickerOpen(false);
     };
 
@@ -192,6 +209,7 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
 
         const teporaryMediaFiles = [...messageMediaFiles];
         reset();
+        resizeMessageInput();
         setMessageMediaFiles([]);
 
         try {
@@ -460,16 +478,14 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
                     <PlusCircle size={20} strokeWidth={1.8} />
                 </button>
                 <textarea
-                    {...register('content')}
+                    {...contentField}
+                    ref={(element) => {
+                        contentField.ref(element);
+                        messageInputRef.current = element;
+                    }}
                     onChange={(e) => {
-
-                        const textArea = e.currentTarget;
-
-                        textArea.style.height = 'auto';
-                        const contentHeight = textArea.scrollHeight;
-
-                        textArea.style.height = `${Math.min(maxHeight, contentHeight)}px`;
-                        textArea.style.overflowY = contentHeight > maxHeight ? 'auto' : 'hidden';
+                        void contentField.onChange(e);
+                        resizeMessageInput();
                     }}
                     rows={1}
                     placeholder="Message"

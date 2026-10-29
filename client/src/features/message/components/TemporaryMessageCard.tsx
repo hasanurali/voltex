@@ -90,7 +90,7 @@ const TemporaryMessageCard = ({ temporaryMessage, isOwnMessage }: MessageCardPro
 
                     {/* Content, Time and seened info */}
                     <div className={`flex items-end gap-3 ${previewMedia ? 'px-2 pt-2 pb-1' : 'px-2 pt-1.5 pb-1'}`}>
-                        <p className={`min-w-0 flex-1 wrap-break-word text-sm leading-5 ${isOwnMessage ? 'text-blue-950' : 'text-secondary-900'}`}>
+                        <p className={`min-w-0 flex-1 wrap-anywhere whitespace-pre-wrap text-sm leading-5 ${isOwnMessage ? 'text-blue-950' : 'text-secondary-900'}`}>
                             {content}
                         </p>
                         <time
