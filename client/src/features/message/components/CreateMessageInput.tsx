@@ -266,15 +266,32 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
                             return;
                         };
 
-                        const img: HTMLImageElement = document.createElement('img');
-                        img.src = data.media[0].url;
+                        if (data.media[0].mediaType === 'video') {
 
-                        img.onload = () => {
-                            setMessage(key, data);
-                        };
+                            const video: HTMLVideoElement = document.createElement('video');
+                            video.src = data.media[0].url;
+                            video.preload = 'auto';
 
-                        img.onerror = () => {
-                            setMessage(key, data);
+                            video.onloadeddata = () => {
+                                setMessage(key, data);
+                            };
+
+                            video.onerror = () => {
+                                setMessage(key, data);
+                            };
+                        }
+                        else {
+
+                            const img: HTMLImageElement = document.createElement('img');
+                            img.src = data.media[0].url;
+
+                            img.onload = () => {
+                                setMessage(key, data);
+                            };
+
+                            img.onerror = () => {
+                                setMessage(key, data);
+                            };
                         };
                     });
                 }

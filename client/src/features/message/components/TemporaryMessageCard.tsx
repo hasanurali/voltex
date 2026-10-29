@@ -57,7 +57,7 @@ const TemporaryMessageCard = ({ temporaryMessage, isOwnMessage }: MessageCardPro
                                         <video
                                             src={previewMedia.url}
                                             aria-label="Message video attachment"
-                                            controls
+                                            controls={false}
                                             className="h-full w-full object-cover"
                                         />
                                     )
