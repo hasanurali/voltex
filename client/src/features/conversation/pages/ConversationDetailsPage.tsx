@@ -24,6 +24,7 @@ const ConversationDetailsPage = () => {
     const messageListLastItemRef = useRef<HTMLDivElement>(null);
     const firstMessageRef = useRef<HTMLDivElement>(null);
     const previousCursorLength = useRef(0);
+    const previousMessagesLength = useRef(0);
     const isCompleteInitialRender = useRef(false);
 
     const auth = useAuthStore((state) => state.auth);
@@ -32,6 +33,7 @@ const ConversationDetailsPage = () => {
 
     const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationId ?? '');
     const messages = data?.data ?? [];
+    const messagesLength = messages.length + temporaryMessages.size;
 
     const { mutate: markAllConversationMessagesAsReadMutate } = useMarkAllConversationMessagesAsRead();
 
@@ -60,6 +62,10 @@ const ConversationDetailsPage = () => {
     }, [hasNextPage, isFetchingNextPage]);
 
     useEffect(() => {
+
+        if (messagesLength === previousMessagesLength.current - 1) {
+            return;
+        };
 
         const container = containerRef.current;
         const firstMessage = firstMessageRef.current;
@@ -135,6 +141,10 @@ const ConversationDetailsPage = () => {
         navigate(`/profile/${messagedUser.username}`);
     };
 
+    const setPreviousMessagesLength = () => {
+        previousMessagesLength.current = messagesLength;
+    };
+
     return (
         <>
             <TopBar>
@@ -182,7 +192,8 @@ const ConversationDetailsPage = () => {
                             key={message._id}
                             message={message}
                             isOwnMessage={message.sender._id !== messagedUser._id}
-                            ref={i === messages.length - 10 ? firstMessageRef : undefined}
+                            setPreviousMessagesLength={setPreviousMessagesLength}
+                            ref={i === 9 ? firstMessageRef : undefined}
                         />
                         )
                     }
@@ -201,6 +212,7 @@ const ConversationDetailsPage = () => {
                                 key={message._id}
                                 message={message as Message}
                                 isOwnMessage={true}
+                                setPreviousMessagesLength={setPreviousMessagesLength}
                                 deleteMessage={(messageId: string) => setTemporaryMessages(tm => {
 
                                     const newMap = new Map(tm);

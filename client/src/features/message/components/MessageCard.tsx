@@ -10,11 +10,12 @@ import { useDeleteMessage } from "../hooks/useDeleteMessage";
 interface MessageCardProps {
     message: Message;
     isOwnMessage: boolean;
+    setPreviousMessagesLength: () => void;
     deleteMessage?: (messageId: string) => void;
     ref?: React.Ref<HTMLDivElement>;
 };
 
-const MessageCard = ({ message, isOwnMessage, deleteMessage, ref }: MessageCardProps) => {
+const MessageCard = ({ message, isOwnMessage, setPreviousMessagesLength, deleteMessage, ref }: MessageCardProps) => {
 
     const [currentMediaIndex, setCurrentMediaIndex] = useState<number | null>(null);
     const [isDeleteMenuOpen, setIsDeleteMenuOpen] = useState(false);
@@ -32,6 +33,8 @@ const MessageCard = ({ message, isOwnMessage, deleteMessage, ref }: MessageCardP
 
     const { mutate: deleteMessageMutate } = useDeleteMessage(conversation, !!deleteMessage);
     const handleDeleteMessage = () => {
+
+        setPreviousMessagesLength();
 
         if (deleteMessage) {
             deleteMessage(_id);
