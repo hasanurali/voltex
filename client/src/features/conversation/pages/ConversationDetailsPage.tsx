@@ -192,6 +192,19 @@ const ConversationDetailsPage = () => {
                                 key={message._id}
                                 message={message as Message}
                                 isOwnMessage={true}
+                                deleteMessage={(messageId: string) => setTemporaryMessages(tm => {
+
+                                    const newMap = new Map(tm);
+
+                                    for (const [key, message] of newMap.entries()) {
+                                        if (message._id === messageId) {
+                                            newMap.delete(key);
+                                            break;
+                                        };
+                                    }
+
+                                    return newMap;
+                                })}
                             />
                         })
                     }
