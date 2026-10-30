@@ -1792,7 +1792,7 @@ paths:
           description: Authentication required
 
 
-  /conversations/{conversationId}:
+  /conversations/{id}:
     get:
       tags:
         - Conversation
@@ -1809,10 +1809,10 @@ paths:
 
       parameters:
 
-        - name: conversationId
+        - name: id
           in: path
           required: true
-          description: ID of the conversation to fetch.
+          description: ID of the conversation or target user to fetch.
           schema:
             type: string
           example: 665f1a2b3c4d5e6f78901234
@@ -1827,7 +1827,10 @@ paths:
                 $ref: '#/components/schemas/ConversationDetailsResponse'
 
         '400':
-          description: Invalid conversation ID
+          description: |
+            Possible messages:
+            - Invalid conversation or participant ID
+            - You cannot fetch conversation details using your own user ID
 
         '401':
           description: Authentication required

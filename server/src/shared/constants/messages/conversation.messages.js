@@ -4,7 +4,8 @@ const CONVERSATION_MESSAGES = Object.freeze({
     CONVERSATION_MESSAGES_MARK_READ_ALL_SUCCESS: "All conversation messages marked as read successfully",
 
     CONVERSATION_OR_PARTICIPANT_REQUIRED: "Conversation or participant is required",
-    INVALID_CONVERSATION_ID: "Invalid conversation ID",
+    INVALID_CONVERSATION_OR_PARTICIPANT_ID: "Invalid conversation or participant ID",
+    CANNOT_FETCH_SELF: "You cannot fetch conversation details using your own user ID",
     NOT_FOUND: "Conversation not found"
 });
 

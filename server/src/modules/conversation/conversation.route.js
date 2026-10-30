@@ -10,7 +10,7 @@ conversationRoutes.get("/",
     controllers.fetchConversationsController
 );
 
-conversationRoutes.get("/:conversationId",
+conversationRoutes.get("/:id",
     middlewares.authMiddleware,
     controllers.fetchConversationDetailsController
 );

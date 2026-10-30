@@ -135,12 +135,15 @@ export const fetchConversations = async (userId, skip, limit) => {
     return result;
 };
 
-export const fetchConversationDetails = async (userId, conversationId) => {
+export const fetchConversationDetails = async (userId, id) => {
 
     const [conversationDetails] = await conversationModel.aggregate([
         {
             $match: {
-                _id: conversationId,
+                $or: [
+                    { _id: id },
+                    { participants: id }
+                ],
                 participants: userId
             },
         },

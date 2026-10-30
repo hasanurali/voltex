@@ -48,14 +48,18 @@ export const fetchConversationsService = async (userId, page, limit) => {
     };
 };
 
-export const fetchConversationDetailsService = async (userId, conversationId) => {
+export const fetchConversationDetailsService = async (userId, id) => {
 
-    const conversationObjectId = convertToObjectId(conversationId);
-    if (!conversationObjectId) {
-        throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_ID);
+    const objectId = convertToObjectId(id);
+    if (!objectId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.INVALID_CONVERSATION_OR_PARTICIPANT_ID);
     };
 
-    const conversationDetails = await conversationRepository.fetchConversationDetails(userId, conversationObjectId);
+    if (userId.toString() === objectId.toString()) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, CONVERSATION_MESSAGES.CANNOT_FETCH_SELF);
+    };
+
+    const conversationDetails = await conversationRepository.fetchConversationDetails(userId, objectId);
     if (!conversationDetails) {
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND);
     };

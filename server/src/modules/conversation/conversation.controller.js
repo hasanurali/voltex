@@ -19,11 +19,11 @@ export const fetchConversationsController = asyncHandler(async (req, res) => {
 
 export const fetchConversationDetailsController = asyncHandler(async (req, res) => {
 
-    const conversationId = req.params.conversationId;
+    const id = req.params.id;
 
     const userId = req.user.id;
 
-    const conversationDetails = await services.fetchConversationDetailsService(userId, conversationId);
+    const conversationDetails = await services.fetchConversationDetailsService(userId, id);
 
     return res.status(StatusCodes.OK)
         .json(new ApiResponse(CONVERSATION_MESSAGES.CONVERSATION_DETAILS_FETCH_SUCCESS, conversationDetails));
