@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 import { Button, ConfirmDialog, SentinelLoadingItem } from '@/components';
+import { MessageCircle } from 'lucide-react';
 import { useAuthStore } from '@/store';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { ROUTES } from '@/app/routes';
@@ -138,6 +139,21 @@ const ProfilePage = () => {
         };
     }, [hasNextPage, isFetchingNextPage]);
 
+    const handleMessage = () => {
+        if (viewedProfile) {
+            const { user, profile } = viewedProfile;
+            navigate(`/conversations/${user._id}`,
+                {
+                    state: {
+                        displayName: user.displayName,
+                        username: user.username,
+                        avatar: profile.avatar
+                    }
+                }
+            );
+        };
+    };
+
     return (
         <>
             <TopBar>
@@ -171,8 +187,20 @@ const ProfilePage = () => {
                 {/* User information section*/}
                 <section className='p-3 sm:p-4 md:p-6 lg:p-8 flex flex-col gap-5'>
 
-                    {/* Edit and follow button */}
-                    <div className='flex justify-end'>
+                    {/* Edit, follow and message button */}
+                    <div className='flex justify-end gap-2'>
+                        {!isOwnProfile && (
+                            <Button
+                                onClick={handleMessage}
+                                type='button'
+                                size='md'
+                                variant='outline'
+                                aria-label={`Message @${viewedProfile?.user.username}`}
+                                className='h-10 w-10 shrink-0 rounded-full! px-0! py-0! cursor-pointer'
+                            >
+                                <MessageCircle className='h-5 w-5 shrink-0' aria-hidden='true' />
+                            </Button>
+                        )}
                         <Button
                             onClick={handleProfileClick}
                             onMouseLeave={() => setisMouseLeave(true)}

@@ -9,9 +9,9 @@ export const fetchConversations = async (payload: conversationTypes.FetchConvers
     return res.data.data;
 };
 
-export const fetchConversationDetails = async (conversationId: string): Promise<conversationTypes.FetchConversationDetailsResponse['data']> => {
+export const fetchConversationDetails = async (id: string): Promise<conversationTypes.FetchConversationDetailsResponse['data']> => {
 
-    const res = await api.get<conversationTypes.FetchConversationDetailsResponse>(CONVERSATION_ENDPOINTS.fetchDetails(conversationId));
+    const res = await api.get<conversationTypes.FetchConversationDetailsResponse>(CONVERSATION_ENDPOINTS.fetchDetails(id));
 
     return res.data.data;
 };

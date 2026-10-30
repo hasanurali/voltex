@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import TopBar from "@/app/TopBar";
 import { useAuthStore } from "@/store";
 import { ImageWithSkeleton } from "@/components/media";
@@ -10,14 +10,22 @@ import type { Message, TemporaryMessage } from "@/features/message/type";
 import { messageKeys } from "@/features/message/api/messageKeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMarkAllConversationMessagesAsRead } from "../hooks/useMarkAllConversationMessagesAsRead";
+import { toast } from "sonner";
+
+interface UserInfo {
+    displayName: string;
+    username: string;
+    avatar: string;
+};
 
 const ConversationDetailsPage = () => {
 
+    const { id } = useParams<{ id: string }>();
+    if (!id) {
+        return;
+    };
+
     const [temporaryMessages, setTemporaryMessages] = useState(new Map<string, TemporaryMessage>());
-
-    const { conversationId } = useParams<{ conversationId: string }>();
-
-    const navigate = useNavigate();
 
     const observerTarget = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -29,9 +37,15 @@ const ConversationDetailsPage = () => {
 
     const auth = useAuthStore((state) => state.auth);
 
-    const { data: conversationDetails, isError } = useFetchConversationDetails(conversationId ?? '');
+    const queryClient = useQueryClient();
 
-    const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationId ?? '');
+    const location = useLocation();
+
+    const navigate = useNavigate();
+
+    const { data: conversationDetails, isError } = useFetchConversationDetails(id);
+
+    const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationDetails?._id ?? '');
     const messages = data?.data ?? [];
     const messagesLength = messages.length + temporaryMessages.size;
 
@@ -107,8 +121,6 @@ const ConversationDetailsPage = () => {
         };
     }, [messages, temporaryMessages, data?.cursorLength]);
 
-    const queryClient = useQueryClient();
-
     useEffect(() => {
         return () => {
             queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationDetails?._id ?? '') })
@@ -121,28 +133,22 @@ const ConversationDetailsPage = () => {
         };
     }, []);
 
-    if (!conversationDetails || isError) {
-        return (
-            <>
-                <TopBar>Conversation</TopBar>
-
-                <div className="flex min-h-[60vh] items-center justify-center">
-                    <Spinner size="lg" />
-                </div>
-            </>
-        );
-    };
-
-    const { _id, participants } = conversationDetails;
-    const messagedUser = participants.filter(participant => participant._id !== auth?.user._id)[0];
+    const messagedUser = conversationDetails?.participants.filter(participant => participant._id !== auth?.user._id)[0];
+    const userInfo: UserInfo | null = location.state;
 
     const navigateToProfile = (e: React.MouseEvent) => {
         e.stopPropagation();
-        navigate(`/profile/${messagedUser.username}`);
+        navigate(`/profile/${messagedUser?.username || userInfo?.username}`);
     };
 
     const setPreviousMessagesLength = () => {
         previousMessagesLength.current = messagesLength;
+    };
+
+    if (isError && !userInfo) {
+        navigate('/conversations');
+        toast.error('Conversation not found or unavailable')
+        return;
     };
 
     return (
@@ -155,14 +161,14 @@ const ConversationDetailsPage = () => {
                         className="cursor-pointer"
                     >
                         <ImageWithSkeleton
-                            src={messagedUser.avatar}
-                            alt={messagedUser.displayName}
+                            src={messagedUser?.avatar || userInfo?.avatar}
+                            alt={(messagedUser?.displayName || userInfo?.displayName) as string}
                             className="h-full w-full rounded-full object-cover"
                             containerClassName="h-12 w-12 shrink-0 rounded-full bg-secondary-100"
                         />
                     </button>
                     <span className="flex flex-col">
-                        <span onClick={navigateToProfile} className="text-[18px] font-medium cursor-pointer">{messagedUser.displayName}</span>
+                        <span onClick={navigateToProfile} className="text-[18px] font-medium cursor-pointer">{messagedUser?.displayName || userInfo?.displayName}</span>
                         <span className="text-sm text-secondary-500">online</span>
                     </span>
                 </span>
@@ -191,7 +197,7 @@ const ConversationDetailsPage = () => {
                         messages?.map((message, i) => <MessageCard
                             key={message._id}
                             message={message}
-                            isOwnMessage={message.sender._id !== messagedUser._id}
+                            isOwnMessage={message.sender._id !== messagedUser?._id}
                             setPreviousMessagesLength={setPreviousMessagesLength}
                             ref={i === 9 ? firstMessageRef : undefined}
                         />
@@ -233,8 +239,8 @@ const ConversationDetailsPage = () => {
                 </div>
 
                 <CreateMessageInput
-                    createId={_id}
-                    createIdType="conversation"
+                    createId={conversationDetails?._id || id}
+                    createIdType={conversationDetails?._id ? "conversation" : "participant"}
                     setMessage={(key: string, val: TemporaryMessage) => setTemporaryMessages(tm => {
 
                         const newMap = new Map(tm);
