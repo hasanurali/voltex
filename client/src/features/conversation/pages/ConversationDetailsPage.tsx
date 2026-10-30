@@ -11,6 +11,7 @@ import { messageKeys } from "@/features/message/api/messageKeys";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMarkAllConversationMessagesAsRead } from "../hooks/useMarkAllConversationMessagesAsRead";
 import { toast } from "sonner";
+import UserInfoSkeleton from "../components/UserInfoSkeleton";
 
 interface UserInfo {
     displayName: string;
@@ -43,7 +44,7 @@ const ConversationDetailsPage = () => {
 
     const navigate = useNavigate();
 
-    const { data: conversationDetails, isError } = useFetchConversationDetails(id);
+    const { data: conversationDetails, isPending: isFetchConversationPending, isError } = useFetchConversationDetails(id);
 
     const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationDetails?._id ?? '');
     const messages = data?.data ?? [];
@@ -167,15 +168,23 @@ const ConversationDetailsPage = () => {
                             containerClassName="h-12 w-12 shrink-0 rounded-full bg-secondary-100"
                         />
                     </button>
-                    <span className="flex flex-col">
-                        <span onClick={navigateToProfile} className="text-[18px] font-medium cursor-pointer">{messagedUser?.displayName || userInfo?.displayName}</span>
-                        <span className="text-sm text-secondary-500">online</span>
-                    </span>
+                    {
+                        isFetchConversationPending && !userInfo ?
+                            <UserInfoSkeleton />
+                            :
+                            <span className="flex flex-col">
+                                <span onClick={navigateToProfile} className="text-[18px] font-medium cursor-pointer">{messagedUser?.displayName || userInfo?.displayName}</span>
+                                <span className="text-sm text-secondary-500">online</span>
+                            </span>
+                    }
                 </span>
             </TopBar>
 
             <section className="flex flex-col justify-between gap-1 min-h-0 h-[calc(100vh-109.6px)] md:h-[calc(100vh-64.8px)] px-2 md:px-5 pb-2 md:pb-5 overflow-hidden">
                 <div ref={containerRef} className="flex flex-col gap-3 h-full overflow-y-scroll pt-2">
+                    {
+                        (isFetchMessagePending && conversationDetails) && <Spinner size="md" className="m-auto" />
+                    }
                     {
                         !isFetchMessagePending && !isFetchMessageError && messages.length === 0 && (
                             <p className="pt-50 text-center text-sm text-secondary-500">
