@@ -22,10 +22,10 @@ const Sidebar = () => {
     const navItems = [
         { label: 'Home', icon: Home, path: ROUTES.home },
         { label: 'Search', icon: Search, path: ROUTES.searchUser },
-        { label: 'Messages', icon: Mail, path: '/n' },
+        { label: 'Messages', icon: Mail, path: ROUTES.conversation },
         { label: 'Notifications', icon: Bell, path: ROUTES.notification },
         { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` },
-        { label: 'Settings', icon: Settings, path: '/n' },
+        { label: 'Settings', icon: Settings, path: '/n' }
     ];
 
     useEffect(() => {

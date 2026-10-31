@@ -10,9 +10,28 @@ interface ImageWithSkeletonProps {
 
 const ImageWithSkeleton = ({ src, alt, className = '', containerClassName = '' }: ImageWithSkeletonProps) => {
 
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(() => {
+        if (!src) {
+            return false;
+        };
+
+        const img = new Image();
+        img.src = src;
+
+        return img.complete;
+    });
 
     useEffect(() => {
+        if (src) {
+            const img = new Image();
+            img.src = src;
+
+            if (img.complete) {
+                setIsLoaded(true);
+                return;
+            };
+        };
+
         setIsLoaded(false);
     }, [src]);
 
@@ -24,6 +43,7 @@ const ImageWithSkeleton = ({ src, alt, className = '', containerClassName = '' }
                     src={src}
                     alt={alt}
                     onLoad={() => setIsLoaded(true)}
+                    onError={() => setIsLoaded(true)}
                     className={`transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} ${className}`}
                 />
             )}

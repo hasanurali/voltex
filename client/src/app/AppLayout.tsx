@@ -61,7 +61,7 @@ const AppLayout = () => {
                     <MobileTopBar />
 
                     <div className="flex flex-1 min-h-0 overflow-hidden">
-                        <main className="min-w-0 w-full max-w-215 pb-16 md:overflow-y-auto md:pb-0">
+                        <main className="min-w-0 w-full max-w-215 pb-[56.8px] md:overflow-y-auto md:pb-0">
                             <Outlet />
                         </main>
 
