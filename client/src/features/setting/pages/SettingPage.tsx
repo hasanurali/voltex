@@ -1,4 +1,4 @@
-import { Bell, LoaderCircle, Shield } from "lucide-react";
+import { Bell, Shield } from "lucide-react";
 import TopBar from "@/app/TopBar";
 import { useFetchUserSetting } from "../hooks/useFetchUserSetting";
 import { useUpdateUserSetting } from "../hooks/useUpdateUserSetting";
@@ -6,6 +6,7 @@ import type { Setting } from "../type";
 import NotificationSettingCard from "../components/NotificationSettingCard";
 import PrivacySettingCard from "../components/PrivacySettingCard";
 import { notificationSettingItems, privacySettingItems } from "../constants";
+import SettingPageSkeleton from "../components/SettingPageSkeleton";
 
 
 const SettingPage = () => {
@@ -44,12 +45,7 @@ const SettingPage = () => {
       <div className="min-h-[calc(100vh-109.6px)] md:min-h-[calc(100vh-64.8px)] bg-[#f7f8fa] p-3 md:p-5">
         <div className="mx-auto max-w-3xl">
           {
-            isSettingPending && (
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-secondary-100 bg-white px-4 py-10 text-sm text-secondary-500">
-                <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
-                Loading settings...
-              </div>
-            )
+            isSettingPending && <SettingPageSkeleton />
           }
 
           {/* Setting section */}
