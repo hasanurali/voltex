@@ -11,6 +11,7 @@ import { SearchUserPage } from '@/features/user';
 import { HomeFeed, PostDetails } from '@/features/post';
 import { NotificationPage } from '@/features/notification';
 import { ConversationDetailsPage, ConversationsPage } from '@/features/conversation';
+import { SettingPage } from '@/features/setting';
 
 
 export const router = createBrowserRouter([
@@ -79,6 +80,10 @@ export const router = createBrowserRouter([
                             {
                                 path: ROUTES.conversationDetails,
                                 element: <ConversationDetailsPage />
+                            },
+                            {
+                                path: ROUTES.setting,
+                                element: <SettingPage />
                             }
                         ]
                     }

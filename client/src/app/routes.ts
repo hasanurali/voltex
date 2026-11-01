@@ -16,5 +16,7 @@ export const ROUTES = {
     conversation: '/conversations',
     conversationDetails: '/conversations/:id',
 
-    notFound: '*',
+    setting: '/setting',
+
+    notFound: '*'
 } as const;
