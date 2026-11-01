@@ -12,7 +12,6 @@ export interface Setting {
         likes: boolean;
         comments: boolean;
         follows: boolean;
-        messages: boolean;
     };
 };
 
@@ -28,6 +27,5 @@ export interface UpdateSettingPayload {
         likes?: boolean;
         comments?: boolean;
         follows?: boolean;
-        messages?: boolean;
     };
 };
