@@ -2827,10 +2827,6 @@ components:
               type: boolean
               example: false
 
-            messages:
-              type: boolean
-              example: true
-
 
     # ============================================================
     # RESPONSE SCHEMAS
@@ -3414,8 +3410,6 @@ components:
         comments:
           type: boolean
         follows:
-          type: boolean
-        messages:
           type: boolean
 
 
