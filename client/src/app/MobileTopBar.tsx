@@ -24,7 +24,7 @@ const MobileTopBar = () => {
                         <Search className="h-6 w-6" />
                     </Link>
                 }
-                <Link to="/n" aria-label="Settings">
+                <Link to={ROUTES.setting} aria-label="Settings">
                     <Settings className="h-6 w-6" />
                 </Link>
             </div>

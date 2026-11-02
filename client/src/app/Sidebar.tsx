@@ -25,7 +25,7 @@ const Sidebar = () => {
         { label: 'Messages', icon: Mail, path: ROUTES.conversation },
         { label: 'Notifications', icon: Bell, path: ROUTES.notification },
         { label: 'Profile', icon: User, path: `/profile/${auth?.user.username}` },
-        { label: 'Settings', icon: Settings, path: '/n' }
+        { label: 'Settings', icon: Settings, path: ROUTES.setting }
     ];
 
     useEffect(() => {
