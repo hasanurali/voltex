@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 
 import * as profileRepository from "./profile.repository.js";
+import * as blockRepository from "../block/block.repository.js";
 import { ApiError, whitelistInput, reshapeProfile } from "../../shared/utils/index.js";
 import { PROFILE_MESSAGES } from "../../shared/constants/messages/index.js";
 import { authRepository } from "../auth/index.js";
@@ -38,12 +39,19 @@ export const fetchUserProfileService = async (userId, username) => {
         throw new ApiError(StatusCodes.FORBIDDEN, PROFILE_MESSAGES.PRIVATE_PROFILE);
     };
 
+    const [isBlocked, isBlockedByTarget] = await Promise.all([
+        blockRepository.checkBlockExistsByBlockerAndBlocked(userId, user._id),
+        blockRepository.checkBlockExistsByBlockerAndBlocked(user._id, userId)
+    ]);
+
     const profile = await profileRepository.getProfileByUserId(user._id, AUTH_OPTIONS.PROFILE_RESPONSE_PROJECTION);
 
     return {
         user,
         profile: reshapeProfile(profile),
-        isFollowing: !!isFollowing
+        isFollowing: !!isFollowing,
+        isBlocked: !!isBlocked,
+        isBlockedByUser: !!isBlockedByTarget
     };
 };
 
