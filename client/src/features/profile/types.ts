@@ -6,6 +6,8 @@ export type ProfileResponse = ApiResponse<{
     user: User;
     profile: Profile;
     isFollowing: boolean;
+    isBlocked: boolean;
+    isBlockedByUser: boolean;
 }>;
 export type UpdateUsernameResponse = ApiResponse<User>;
 export type UpdateProfileResponse = ApiResponse<{
