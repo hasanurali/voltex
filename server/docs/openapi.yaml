@@ -466,7 +466,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileResponseWithFollowing'
+                $ref: '#/components/schemas/UserProfileResponseWithFollowingAndBlockInfo'
 
         '401':
           description: You are not authorized.
@@ -3007,7 +3007,7 @@ components:
             profile:
               $ref: '#/components/schemas/Profile'
 
-    UserProfileResponseWithFollowing:
+    UserProfileResponseWithFollowingAndBlockInfo:
       type: object
       required: [success, message, data]
       properties:
@@ -3025,6 +3025,10 @@ components:
             profile:
               $ref: '#/components/schemas/Profile'
             isFollowing:
+               type: boolean
+            isBlocked: 
+               type: boolean
+            isBlockedByUser: 
                type: boolean
 
     LoginVerifyEmailResponse:
