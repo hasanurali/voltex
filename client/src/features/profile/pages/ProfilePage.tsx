@@ -191,6 +191,26 @@ const ProfilePage = () => {
         unblockUserMutate(viewedProfile?.user.username ?? '');
     };
 
+    const handleCopyProfileLink = async () => {
+
+        const username = viewedProfile?.user.username;
+
+        if (!username) {
+            return;
+        };
+
+        try {
+
+            const profileUrl = `${window.location.origin}/profile/${username}`;
+            await navigator.clipboard.writeText(profileUrl);
+
+            toast.success("Profile link copied");
+
+        } catch (error) {
+            toast.error("Failed to copy link");
+        };
+    };
+
     return (
         <>
             <TopBar>
@@ -246,7 +266,10 @@ const ProfilePage = () => {
                                 isMoreOptionsMenuOpen && (
                                     <div onClick={(e) => e.stopPropagation()} className={`absolute z-20 -top-1 right-0 hidden sm:flex ${isOwnProfile ? 'w-48' : 'w-56'} h-fit overflow-hidden rounded-md border border-secondary-100 bg-white shadow-2xl flex-col`}>
                                         <button
-                                            onClick={() => setIsMoreOptionsMenuOpen(false)}
+                                            onClick={() => {
+                                                handleCopyProfileLink();
+                                                setIsMoreOptionsMenuOpen(false)
+                                            }}
                                             type="button"
                                             className="flex items-center gap-3 px-3 py-2 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none cursor-pointer"
                                         >
