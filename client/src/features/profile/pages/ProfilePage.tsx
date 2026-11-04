@@ -13,6 +13,7 @@ import ProfileEditForm from '../components/ProfileEditForm';
 import ProfileImageSection from '../components/ProfileImageSection';
 import UserInfo from '../components/UserInfo';
 import FollowUserSideBar from '../components/FollowUserSideBar';
+import BlockedUserSidebar from '../components/BlockedUserSidebar';
 import { useFollowToggle } from '@/hooks';
 import { useFetchUserPost } from '@/features/post';
 import { PostCard } from '@/features/post';
@@ -28,6 +29,8 @@ const ProfilePage = () => {
     const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
     const [followSection, setFollowSection] = useState<'followers' | 'following' | null>(null);
     const [isFollowSidebarClosing, setIsFollowSidebarClosing] = useState(false);
+    const [isBlockedUsersOpen, setIsBlockedUsersOpen] = useState(false);
+    const [isBlockedUsersSidebarClosing, setIsBlockedUsersSidebarClosing] = useState(false);
     const [isMoreOptionsMenuOpen, setIsMoreOptionsMenuOpen] = useState(false);
     const [isBlockUnblockUserModelOpen, setIsBlockUnblockUserModelOpen] = useState(false);
 
@@ -110,6 +113,26 @@ const ProfilePage = () => {
             setFollowSection(null);
             setIsFollowSidebarClosing(false);
         }, 300);
+    };
+
+    const closeBlockedUsersSidebar = () => {
+
+        clearTimeout();
+
+        setIsBlockedUsersSidebarClosing(true);
+
+        timeoutRef.current = window.setTimeout(() => {
+
+            setIsBlockedUsersOpen(false);
+            setIsBlockedUsersSidebarClosing(false);
+        }, 300);
+    };
+
+    const openBlockedUsersSidebar = () => {
+        setIsMoreOptionsMenuOpen(false);
+        setFollowSection(null);
+        setIsBlockedUsersSidebarClosing(false);
+        setIsBlockedUsersOpen(true);
     };
 
     useEffect(() => {
@@ -217,6 +240,7 @@ const ProfilePage = () => {
                 Profile
             </TopBar>
 
+            {/* Follow user sidebar */}
             {
                 (followSection && viewedProfile) && (
                     <div onMouseDown={(e) => (e.target === e.currentTarget) && closeFollowSidebar()} className='fixed inset-0 z-40 flex items-stretch justify-end bg-black/40'>
@@ -228,6 +252,18 @@ const ProfilePage = () => {
                             onClose={closeFollowSidebar}
                             onRelationshipChange={setFollowSection}
                             onFollowSection={setFollowSection}
+                        />
+                    </div>
+                )
+            }
+
+            {/* Blocked user sidebar */}
+            {
+                isBlockedUsersOpen && (
+                    <div onMouseDown={(e) => (e.target === e.currentTarget) && closeBlockedUsersSidebar()} className='fixed inset-0 z-40 flex items-stretch justify-end bg-black/40'>
+                        <BlockedUserSidebar
+                            isClosing={isBlockedUsersSidebarClosing}
+                            onClose={closeBlockedUsersSidebar}
                         />
                     </div>
                 )
@@ -292,7 +328,7 @@ const ProfilePage = () => {
                                         {
                                             isOwnProfile && (
                                                 <button
-                                                    onClick={() => setIsMoreOptionsMenuOpen(false)}
+                                                    onClick={openBlockedUsersSidebar}
                                                     type="button"
                                                     className="flex items-center gap-3 px-3 py-2 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none cursor-pointer"
                                                 >
@@ -344,7 +380,7 @@ const ProfilePage = () => {
                                                 }
                                                 {
                                                     isOwnProfile && <button
-                                                        onClick={() => setIsMoreOptionsMenuOpen(false)}
+                                                        onClick={openBlockedUsersSidebar}
                                                         type="button"
                                                         className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none"
                                                     >
