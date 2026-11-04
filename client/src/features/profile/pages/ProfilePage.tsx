@@ -20,6 +20,7 @@ import { PostCard } from '@/features/post';
 import { useBlockUser } from '@/features/block/hooks/useBlockUser';
 import { useUnblockUser } from '@/features/block/hooks/useUnblockUser';
 import { useUnfollowUser } from '@/features/follow';
+import IconsSkeleton from '../components/IconsSkeleton';
 
 const ProfilePage = () => {
 
@@ -286,173 +287,183 @@ const ProfilePage = () => {
 
                     {/* Edit, follow, message and more options button */}
                     <div className='flex justify-end gap-2 h-9'>
-                        <div className='relative'>
-                            <Button
-                                onClick={() => setIsMoreOptionsMenuOpen(true)}
-                                type='button'
-                                size='md'
-                                variant='outline'
-                                className='w-9 h-9 shrink-0 rounded-full! px-0! py-0! cursor-pointer'
-                            >
-                                <Ellipsis className='w-4.5 h-4.5 shrink-0' aria-hidden='true' />
-                            </Button>
 
-                            {/* More options menu */}
-                            {
-                                isMoreOptionsMenuOpen && (
-                                    <div onClick={(e) => e.stopPropagation()} className={`absolute z-20 -top-1 right-0 hidden sm:flex ${isOwnProfile ? 'w-48' : 'w-56'} h-fit overflow-hidden rounded-md border border-secondary-100 bg-white shadow-2xl flex-col`}>
-                                        <button
-                                            onClick={() => {
-                                                handleCopyProfileLink();
-                                                setIsMoreOptionsMenuOpen(false)
-                                            }}
-                                            type="button"
-                                            className="flex items-center gap-3 px-3 py-2 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none cursor-pointer"
+                        {
+                            isUserProfilePending ?
+                                <IconsSkeleton
+                                    isOwnProfile={isOwnProfile}
+                                />
+                                :
+                                <>
+                                    <div className='relative'>
+                                        <Button
+                                            onClick={() => setIsMoreOptionsMenuOpen(true)}
+                                            type='button'
+                                            size='md'
+                                            variant='outline'
+                                            className='w-9 h-9 shrink-0 rounded-full! px-0! py-0! cursor-pointer'
                                         >
-                                            <Link size={16} aria-hidden="true" />
-                                            <span>Copy profile link</span>
-                                        </button>
-                                        {
-                                            !isOwnProfile && <button
-                                                onClick={() => {
-                                                    setIsMoreOptionsMenuOpen(false);
-                                                    setIsBlockUnblockUserModelOpen(true);
-                                                }}
-                                                type="button"
-                                                className="flex items-center gap-3 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:bg-red-50 focus-visible:outline-none cursor-pointer"
-                                            >
-                                                <Ban size={16} aria-hidden="true" className='pb-0.5' />
-                                                <span>{`${isBlockedUser ? 'Unblock' : 'Block'} @${viewedProfile?.user.username}`}</span>
-                                            </button>
-                                        }
-                                        {
-                                            isOwnProfile && (
-                                                <button
-                                                    onClick={openBlockedUsersSidebar}
-                                                    type="button"
-                                                    className="flex items-center gap-3 px-3 py-2 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none cursor-pointer"
-                                                >
-                                                    <UsersRound size={16} aria-hidden="true" />
-                                                    <span>Blocked users</span>
-                                                </button>
-                                            )
-                                        }
-                                    </div>
-                                )
-                            }
+                                            <Ellipsis className='w-4.5 h-4.5 shrink-0' aria-hidden='true' />
+                                        </Button>
 
-                            {/* Bottom more options Popupmenu */}
-                            {
-                                isMoreOptionsMenuOpen && (
-                                    <div onClick={() => setIsMoreOptionsMenuOpen(false)} className="fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-sm sm:hidden">
-                                        <div onClick={(e) => e.stopPropagation()} role="dialog" className="w-full rounded-t-xl bg-white px-3 pb-3 pt-2">
-                                            <div aria-hidden="true" className="mx-auto mb-3 h-1 w-8 rounded-full bg-secondary-300" />
-                                            <h2 className="px-0.5 text-sm font-semibold text-secondary-900">
-                                                More options
-                                            </h2>
-                                            <p className="px-0.5 text-xs text-secondary-500">
-                                                @{viewedProfile?.user.username}
-                                            </p>
-
-                                            <div className="mt-2 flex flex-col">
-                                                <button
-                                                    onClick={() => setIsMoreOptionsMenuOpen(false)}
-                                                    type="button"
-                                                    className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none"
-                                                >
-                                                    <Link size={16} aria-hidden="true" />
-                                                    <span>Copy profile link</span>
-                                                </button>
-                                                {
-                                                    !isOwnProfile && (
-                                                        <button
+                                        {/* More options menu */}
+                                        {
+                                            isMoreOptionsMenuOpen && (
+                                                <div onClick={(e) => e.stopPropagation()} className={`absolute z-20 -top-1 right-0 hidden sm:flex ${isOwnProfile ? 'w-48' : 'w-56'} h-fit overflow-hidden rounded-md border border-secondary-100 bg-white shadow-2xl flex-col`}>
+                                                    <button
+                                                        onClick={() => {
+                                                            handleCopyProfileLink();
+                                                            setIsMoreOptionsMenuOpen(false)
+                                                        }}
+                                                        type="button"
+                                                        className="flex items-center gap-3 px-3 py-2 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none cursor-pointer"
+                                                    >
+                                                        <Link size={16} aria-hidden="true" />
+                                                        <span>Copy profile link</span>
+                                                    </button>
+                                                    {
+                                                        !isOwnProfile && <button
                                                             onClick={() => {
                                                                 setIsMoreOptionsMenuOpen(false);
                                                                 setIsBlockUnblockUserModelOpen(true);
                                                             }}
                                                             type="button"
-                                                            className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none"
+                                                            className="flex items-center gap-3 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-800 focus-visible:bg-red-50 focus-visible:outline-none cursor-pointer"
                                                         >
-                                                            <Ban size={16} aria-hidden="true" />
-                                                            <span>Block @{viewedProfile?.user.username}</span>
+                                                            <Ban size={16} aria-hidden="true" className='pb-0.5' />
+                                                            <span>{`${isBlockedUser ? 'Unblock' : 'Block'} @${viewedProfile?.user.username}`}</span>
                                                         </button>
-                                                    )
-                                                }
-                                                {
-                                                    isOwnProfile && <button
-                                                        onClick={openBlockedUsersSidebar}
-                                                        type="button"
-                                                        className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none"
-                                                    >
-                                                        <Shield size={16} aria-hidden="true" />
-                                                        <span>Blocked users</span>
-                                                    </button>
-                                                }
-                                            </div>
+                                                    }
+                                                    {
+                                                        isOwnProfile && (
+                                                            <button
+                                                                onClick={openBlockedUsersSidebar}
+                                                                type="button"
+                                                                className="flex items-center gap-3 px-3 py-2 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none cursor-pointer"
+                                                            >
+                                                                <UsersRound size={16} aria-hidden="true" />
+                                                                <span>Blocked users</span>
+                                                            </button>
+                                                        )
+                                                    }
+                                                </div>
+                                            )
+                                        }
 
-                                            <button
-                                                onClick={() => setIsMoreOptionsMenuOpen(false)}
-                                                type="button"
-                                                className="mt-2 flex min-h-11 w-full items-center justify-center rounded-xl bg-secondary-200 text-sm font-semibold text-secondary-900 transition-colors hover:bg-secondary-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-950"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
+                                        {/* Bottom more options Popupmenu */}
+                                        {
+                                            isMoreOptionsMenuOpen && (
+                                                <div onClick={() => setIsMoreOptionsMenuOpen(false)} className="fixed inset-0 z-50 flex items-end bg-black/40 backdrop-blur-sm sm:hidden">
+                                                    <div onClick={(e) => e.stopPropagation()} role="dialog" className="w-full rounded-t-xl bg-white px-3 pb-3 pt-2">
+                                                        <div aria-hidden="true" className="mx-auto mb-3 h-1 w-8 rounded-full bg-secondary-300" />
+                                                        <h2 className="px-0.5 text-sm font-semibold text-secondary-900">
+                                                            More options
+                                                        </h2>
+                                                        <p className="px-0.5 text-xs text-secondary-500">
+                                                            @{viewedProfile?.user.username}
+                                                        </p>
+
+                                                        <div className="mt-2 flex flex-col">
+                                                            <button
+                                                                onClick={() => setIsMoreOptionsMenuOpen(false)}
+                                                                type="button"
+                                                                className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none"
+                                                            >
+                                                                <Link size={16} aria-hidden="true" />
+                                                                <span>Copy profile link</span>
+                                                            </button>
+                                                            {
+                                                                !isOwnProfile && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setIsMoreOptionsMenuOpen(false);
+                                                                            setIsBlockUnblockUserModelOpen(true);
+                                                                        }}
+                                                                        type="button"
+                                                                        className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none"
+                                                                    >
+                                                                        <Ban size={16} aria-hidden="true" />
+                                                                        <span>Block @{viewedProfile?.user.username}</span>
+                                                                    </button>
+                                                                )
+                                                            }
+                                                            {
+                                                                isOwnProfile && <button
+                                                                    onClick={openBlockedUsersSidebar}
+                                                                    type="button"
+                                                                    className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none"
+                                                                >
+                                                                    <Shield size={16} aria-hidden="true" />
+                                                                    <span>Blocked users</span>
+                                                                </button>
+                                                            }
+                                                        </div>
+
+                                                        <button
+                                                            onClick={() => setIsMoreOptionsMenuOpen(false)}
+                                                            type="button"
+                                                            className="mt-2 flex min-h-11 w-full items-center justify-center rounded-xl bg-secondary-200 text-sm font-semibold text-secondary-900 transition-colors hover:bg-secondary-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-950"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        }
                                     </div>
-                                )
-                            }
-                        </div>
 
-                        {
-                            (!isOwnProfile && !isBlockedUser && !isBlockedByUser) && (
-                                <Button
-                                    onClick={handleMessage}
-                                    type='button'
-                                    size='md'
-                                    variant='outline'
-                                    className='w-9 h-9 shrink-0 rounded-full! px-0! py-0! cursor-pointer'
-                                >
-                                    <MessageCircle className='w-4.5 h-4.5 shrink-0' aria-hidden='true' />
-                                </Button>
-                            )
+                                    {
+                                        (!isOwnProfile && !isBlockedUser && !isBlockedByUser) && (
+                                            <Button
+                                                onClick={handleMessage}
+                                                type='button'
+                                                size='md'
+                                                variant='outline'
+                                                className='w-9 h-9 shrink-0 rounded-full! px-0! py-0! cursor-pointer'
+                                            >
+                                                <MessageCircle className='w-4.5 h-4.5 shrink-0' aria-hidden='true' />
+                                            </Button>
+                                        )
+                                    }
+
+                                    <Button
+                                        onClick={() => isBlockedUser ? setIsBlockUnblockUserModelOpen(true) : handleProfileClick()}
+                                        onMouseLeave={() => !isBlockedUser && setisMouseLeave(true)}
+                                        size='md'
+                                        variant={isFollowing ? 'outline' : 'primary'}
+                                        className={`${isBlockedUser ? 'group' : (isFollowing && isMouseLeave) && 'group'} ${isBlockedUser ? 'text-white bg-danger! hover:bg-danger!' : ''} w-fit h-9 sm:h-full rounded-full! cursor-pointer sm:px-5 ${(isFollowing && isMouseLeave && !isBlockedUser) && 'hover:bg-red-100 hover:border-red-300!'}`}
+                                    >
+                                        <span className='group-hover:hidden'>
+                                            {
+                                                isBlockedUser ?
+                                                    'Blocked'
+                                                    :
+                                                    isOwnProfile ?
+                                                        'Edit profile'
+                                                        :
+                                                        isFollowing ?
+                                                            'Following'
+                                                            :
+                                                            'Follow'
+                                            }
+                                        </span>
+
+                                        <span className={`hidden group-hover:inline ${isBlockedUser ? 'text-white' : 'text-danger'}`}>{isBlockedUser ? 'Unblock' : 'Unfollow'}</span>
+                                    </Button>
+
+                                    <ConfirmDialog
+                                        isOpen={isConfirmDialogOpen}
+                                        title={`Unfollow @${viewedProfile?.user.username}?`}
+                                        description="You'll stop seeing their posts in your feed. You can still visit their profile and follow them again anytime."
+                                        confirmLabel='Unfollow'
+                                        onConfirm={() => {
+                                            handleUnFollowUser();
+                                            setIsConfirmDialogOpen(false);
+                                        }}
+                                        onCancel={() => setIsConfirmDialogOpen(false)}
+                                    />
+                                </>
                         }
-
-                        <Button
-                            onClick={() => isBlockedUser ? setIsBlockUnblockUserModelOpen(true) : handleProfileClick()}
-                            onMouseLeave={() => !isBlockedUser && setisMouseLeave(true)}
-                            size='md'
-                            variant={isFollowing ? 'outline' : 'primary'}
-                            className={`${isBlockedUser ? 'group' : (isFollowing && isMouseLeave) && 'group'} ${isBlockedUser ? 'text-white bg-danger! hover:bg-danger!' : ''} w-fit h-9 sm:h-full rounded-full! cursor-pointer sm:px-5 ${(isFollowing && isMouseLeave && !isBlockedUser) && 'hover:bg-red-100 hover:border-red-300!'}`}
-                        >
-                            <span className='group-hover:hidden'>
-                                {
-                                    isBlockedUser ?
-                                        'Blocked'
-                                        :
-                                        isOwnProfile ?
-                                            'Edit profile'
-                                            :
-                                            isFollowing ?
-                                                'Following'
-                                                :
-                                                'Follow'
-                                }
-                            </span>
-
-                            <span className={`hidden group-hover:inline ${isBlockedUser ? 'text-white' : 'text-danger'}`}>{isBlockedUser ? 'Unblock' : 'Unfollow'}</span>
-                        </Button>
-
-                        <ConfirmDialog
-                            isOpen={isConfirmDialogOpen}
-                            title={`Unfollow @${viewedProfile?.user.username}?`}
-                            description="You'll stop seeing their posts in your feed. You can still visit their profile and follow them again anytime."
-                            confirmLabel='Unfollow'
-                            onConfirm={() => {
-                                handleUnFollowUser();
-                                setIsConfirmDialogOpen(false);
-                            }}
-                            onCancel={() => setIsConfirmDialogOpen(false)}
-                        />
                     </div>
 
                     {/* User information */}
