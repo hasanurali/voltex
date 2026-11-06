@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMarkAllConversationMessagesAsRead } from "../hooks/useMarkAllConversationMessagesAsRead";
 import { toast } from "sonner";
 import UserInfoSkeleton from "../components/UserInfoSkeleton";
+import { useConversationRoom } from "@/features/socket";
 
 interface UserInfo {
     displayName: string;
@@ -45,6 +46,8 @@ const ConversationDetailsPage = () => {
     const navigate = useNavigate();
 
     const { data: conversationDetails, isPending: isFetchConversationPending, isError } = useFetchConversationDetails(id);
+
+    useConversationRoom(conversationDetails?._id);
 
     const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationDetails?._id ?? '');
     const messages = data?.data ?? [];
