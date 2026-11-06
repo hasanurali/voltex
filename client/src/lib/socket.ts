@@ -5,6 +5,7 @@ import type { ServerToClientEvents, ClientToServerEvents } from '@/features/sock
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(config.socketUrl, {
     withCredentials: true,
     autoConnect: false,
+    transports: ["websocket"]
 });
 
 export const connectSocket = () => {
