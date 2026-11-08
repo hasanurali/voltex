@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ImageWithSkeleton } from "@/components/media";
 import { timeConverter } from "@/utils";
 import type { Conversation } from "../type";
+import { usePresenceStore } from "@/store";
 
 
 interface ConversationCardProps {
@@ -20,13 +21,15 @@ const ConversationCard = ({ conversation }: ConversationCardProps) => {
     navigate(`/profile/${participant.username}`);
   };
 
+  const isOnline = usePresenceStore((state) => state.userStatuses[participant._id]);
+
   return (
     <article onClick={() => navigate(`/conversations/${_id}`)} className="flex w-full items-center gap-3 border-b border-secondary-200 px-4 py-3 transition-colors hover:bg-secondary-50 cursor-pointer">
 
       <button
         type="button"
         onClick={navigateToProfile}
-        className="cursor-pointer"
+        className="cursor-pointer relative"
       >
         <ImageWithSkeleton
           src={participant.avatar}
@@ -34,6 +37,8 @@ const ConversationCard = ({ conversation }: ConversationCardProps) => {
           className="h-full w-full rounded-full object-cover"
           containerClassName="h-12 w-12 shrink-0 rounded-full bg-secondary-100"
         />
+
+        <div className={`absolute w-3 h-3 ${isOnline ? 'bg-green-400' : 'bg-gray-400'} rounded-full -right-0.5 top-8 border-2 border-white`}></div>
       </button>
 
       {/* Main info container */}

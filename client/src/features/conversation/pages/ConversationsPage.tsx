@@ -3,6 +3,7 @@ import ConversationCard from "../components/ConversationCard";
 import { useFetchConversations } from "../hooks/useFetchConversations";
 import { SentinelLoadingItem } from "@/components";
 import { useEffect, useRef } from "react";
+import { useSubscribeToUsers } from "@/features/socket";
 
 const ConversationsPage = () => {
 
@@ -34,6 +35,9 @@ const ConversationsPage = () => {
             };
         };
     }, [hasNextPage, isFetchingNextPage]);
+
+    const outherUserIds = conversations.map((conversation) => conversation.participant._id);
+    useSubscribeToUsers(outherUserIds);
 
     return (
         <>

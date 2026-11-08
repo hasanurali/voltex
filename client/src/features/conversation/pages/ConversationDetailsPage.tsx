@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import TopBar from "@/app/TopBar";
-import { useAuthStore } from "@/store";
+import { useAuthStore, usePresenceStore } from "@/store";
 import { ImageWithSkeleton } from "@/components/media";
 import { useFetchConversationDetails } from "../hooks/useFetchConversationDetails";
 import { SentinelLoadingItem, Spinner } from "@/components";
@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMarkAllConversationMessagesAsRead } from "../hooks/useMarkAllConversationMessagesAsRead";
 import { toast } from "sonner";
 import UserInfoSkeleton from "../components/UserInfoSkeleton";
-import { useConversationRoom } from "@/features/socket";
+import { useConversationRoom, useSubscribeToUsers } from "@/features/socket";
 
 interface UserInfo {
     displayName: string;
@@ -155,6 +155,11 @@ const ConversationDetailsPage = () => {
         return;
     };
 
+    const outherUserId = conversationDetails?.participants.find(participant => participant._id !== auth?.user._id)?._id;
+    useSubscribeToUsers(outherUserId ? [outherUserId] : []);
+
+    const isOnline = usePresenceStore((state) => outherUserId ? state.userStatuses[outherUserId] : undefined);
+
     return (
         <>
             <TopBar>
@@ -162,7 +167,7 @@ const ConversationDetailsPage = () => {
                     <button
                         type="button"
                         onClick={navigateToProfile}
-                        className="cursor-pointer"
+                        className="cursor-pointer relative"
                     >
                         <ImageWithSkeleton
                             src={messagedUser?.avatar || userInfo?.avatar}
@@ -170,6 +175,8 @@ const ConversationDetailsPage = () => {
                             className="h-full w-full rounded-full object-cover"
                             containerClassName="h-12 w-12 shrink-0 rounded-full bg-secondary-100"
                         />
+
+                        <div className={`absolute w-3 h-3 ${isOnline ? 'bg-green-400' : 'bg-gray-400'} rounded-full -right-0.5 top-8 border-2 border-white`}></div>
                     </button>
                     {
                         isFetchConversationPending && !userInfo ?
@@ -177,7 +184,7 @@ const ConversationDetailsPage = () => {
                             :
                             <span className="flex flex-col">
                                 <span onClick={navigateToProfile} className="text-[18px] font-medium cursor-pointer">{messagedUser?.displayName || userInfo?.displayName}</span>
-                                <span className="text-sm text-secondary-500">online</span>
+                                <span className="text-sm text-secondary-500">{isOnline ? 'online' : 'offline'}</span>
                             </span>
                     }
                 </span>
