@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMarkAllConversationMessagesAsRead } from "../hooks/useMarkAllConversationMessagesAsRead";
 import { toast } from "sonner";
 import UserInfoSkeleton from "../components/UserInfoSkeleton";
-import { useConversationRoom, useSubscribeToUsers } from "@/features/socket";
+import { useConversationRoom, useSubscribeToUsers, useTypingIndicator } from "@/features/socket";
 
 interface UserInfo {
     displayName: string;
@@ -155,10 +155,11 @@ const ConversationDetailsPage = () => {
         return;
     };
 
-    const outherUserId = conversationDetails?.participants.find(participant => participant._id !== auth?.user._id)?._id;
-    useSubscribeToUsers(outherUserId ? [outherUserId] : []);
+    const otherUserId = conversationDetails?.participants.find(participant => participant._id !== auth?.user._id)?._id;
+    useSubscribeToUsers(otherUserId ? [otherUserId] : []);
 
-    const isOnline = usePresenceStore((state) => outherUserId ? state.userStatuses[outherUserId] : undefined);
+    const isOnline = usePresenceStore((state) => otherUserId ? state.userStatuses[otherUserId] : undefined);
+    const isTyping = useTypingIndicator(otherUserId);
 
     return (
         <>
@@ -184,7 +185,7 @@ const ConversationDetailsPage = () => {
                             :
                             <span className="flex flex-col">
                                 <span onClick={navigateToProfile} className="text-[18px] font-medium cursor-pointer">{messagedUser?.displayName || userInfo?.displayName}</span>
-                                <span className="text-sm text-secondary-500">{isOnline ? 'online' : 'offline'}</span>
+                                <span className="text-sm text-secondary-500">{isTyping ? 'typing...' : isOnline ? 'online' : 'offline'}</span>
                             </span>
                     }
                 </span>
