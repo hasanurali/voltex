@@ -9,13 +9,16 @@ export const handleMessageReceive = (queryClient: QueryClient, message: Message)
 
     const conversationId = message.conversation;
 
-    queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationId) });
-    queryClient.invalidateQueries({ queryKey: conversationKeys.conversations() });
-
-    const currentUserId = useAuthStore.getState().auth?.user._id;
+    const isCurrentUser = message.sender._id === useAuthStore.getState().auth?.user._id;
     const isOpen = useChatStore.getState().activeConversationId === conversationId;
 
-    if (message.sender._id !== currentUserId && isOpen) {
+    if(!isCurrentUser){
+        queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationId) });
+    };
+    
+    queryClient.invalidateQueries({ queryKey: conversationKeys.conversations() });
+
+    if (!isCurrentUser && isOpen) {
         markAllConversationMessagesAsRead(conversationId);
     };
-};
+}; 
