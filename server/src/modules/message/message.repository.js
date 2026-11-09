@@ -188,7 +188,7 @@ export const softDeleteMessage = async (messageId, session) => {
 
 export const markMessagesAsRead = async (conversationId, userId) => {
 
-    await messageModel.updateMany(
+    const markMessagesAsReadResult = await messageModel.updateMany(
         {
             conversation: conversationId,
             sender: {
@@ -204,6 +204,8 @@ export const markMessagesAsRead = async (conversationId, userId) => {
             }
         }
     );
+
+    return markMessagesAsReadResult;
 };
 
 export const countUnreadMessages = async (conversationId, userId) => {
