@@ -6,6 +6,7 @@ export const SOCKET_EVENTS = {
     userOffline: 'status:user-offline',
     typingStart: 'status:typing-start',
     typingStop: 'status:typing-stop',
+    messagesRead: 'chat:messages-read',
 
     // client to server
     subscribeUsers: 'status:subscribe-users',

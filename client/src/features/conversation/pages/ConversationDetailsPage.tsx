@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMarkAllConversationMessagesAsRead } from "../hooks/useMarkAllConversationMessagesAsRead";
 import { toast } from "sonner";
 import UserInfoSkeleton from "../components/UserInfoSkeleton";
-import { useConversationRoom, useSubscribeToUsers, useTypingIndicator } from "@/features/socket";
+import { useConversationRoom, useMessagesRead, useSubscribeToUsers, useTypingIndicator } from "@/features/socket";
 
 interface UserInfo {
     displayName: string;
@@ -160,6 +160,35 @@ const ConversationDetailsPage = () => {
 
     const isOnline = usePresenceStore((state) => otherUserId ? state.userStatuses[otherUserId] : undefined);
     const isTyping = useTypingIndicator(otherUserId);
+
+    const conversationId = conversationDetails?._id;
+    useMessagesRead(conversationId, async () => {
+
+        if (!conversationId) {
+            return;
+        };
+
+        try {
+            await queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationId) }, {
+                throwOnError: true
+            });
+        } catch {
+            return;
+        };
+
+        setTemporaryMessages((tm) => {
+
+            const newMap = new Map(tm);
+
+            for (const [key, message] of newMap) {
+                if (!message.isTemporary) {
+                    newMap.delete(key);
+                };
+            };
+
+            return newMap;
+        });
+    });
 
     return (
         <>

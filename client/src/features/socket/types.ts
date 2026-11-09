@@ -6,6 +6,11 @@ export interface UserIdPayload {
     userId: string;
 };
 
+export interface MessagesReadPayload {
+    conversationId: string;
+    readerId: string;
+};
+
 export interface ServerToClientEvents {
     [SOCKET_EVENTS.notificationReceive]: (notification: Notification) => void;
     [SOCKET_EVENTS.messageReceive]: (message: Message) => void;
@@ -13,6 +18,7 @@ export interface ServerToClientEvents {
     [SOCKET_EVENTS.userOffline]: (payload: UserIdPayload) => void;
     [SOCKET_EVENTS.typingStart]: (payload: UserIdPayload) => void;
     [SOCKET_EVENTS.typingStop]: (payload: UserIdPayload) => void;
+    [SOCKET_EVENTS.messagesRead]: (payload: MessagesReadPayload) => void;
 };
 
 export interface ClientToServerEvents {

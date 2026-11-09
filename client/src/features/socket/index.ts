@@ -4,3 +4,4 @@ export { useConversationRoom } from './hooks/useConversationRoom';
 export { useSubscribeToUsers } from './hooks/useSubscribeToUsers';
 export { useTypingIndicator } from './hooks/useTypingIndicator';
 export { useTypingEmitter } from './hooks/useTypingEmitter';
+export { useMessagesRead } from './hooks/useMessagesRead';
