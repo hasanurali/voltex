@@ -12,6 +12,7 @@ const SOCKET_EVENTS = Object.freeze({
     TYPING_STOP: 'status:typing-stop',
 
     READ_CHAT_MESSAGES: 'chat:messages-read',
+    BLOCK_CHANGED: 'block:changed',
 
     RECEIVE_CHAT_MESSAGE: 'chat:message-receive',
     RECEIVE_NOTIFICATION: 'notification:receive',
