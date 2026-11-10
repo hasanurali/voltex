@@ -11,7 +11,9 @@ Voltex uses **Socket.IO** with WebSocket transport for real-time communication.
 - Conversation rooms
 - Typing indicators
 - Real-time chat messages
+- Real-time read receipts
 - Real-time notifications
+- Real-time block/unblock updates
 
 ## Authentication
 
@@ -23,8 +25,8 @@ The server verifies the JWT and attaches the authenticated user ID to the socket
 
 | Room | Purpose |
 |---|---|
-| `{userId}` | User-specific events such as notifications |
-| `{conversationId}` | Conversation events |
+| `{userId}` | User-specific events such as notifications and block updates |
+| `{conversationId}` | Conversation events such as messages and read receipts |
 | `status:{userId}` | Online/offline presence |
 
 Conversation membership is verified before joining a conversation room.
@@ -40,7 +42,17 @@ Conversation membership is verified before joining a conversation room.
 | `status:typing-start` | Client → Server → Clients | `conversationId: string` | `{ userId: string }` | Notifies other members that the user started typing. |
 | `status:typing-stop` | Client → Server → Clients | `conversationId: string` | `{ userId: string }` | Notifies other members that the user stopped typing. |
 | `chat:message-receive` | Server → Client | — | Message object | Delivers a new chat message. |
+| `chat:messages-read` | Server → Client | — | `{ conversationId: string, readerId: string }` | Notifies the conversation room that a member read the messages. Emitted only when at least one message was marked as read. |
 | `notification:receive` | Server → Client | — | Notification object | Delivers a new notification. |
+| `block:changed` | Server → Client | — | `{ blockerId: string, isBlocked: boolean }` | Notifies a user that another user blocked (`true`) or unblocked (`false`) them. Sent to the affected user's `{userId}` room, so every open tab receives it. |
+
+## Read Receipts
+
+When a user marks a conversation as read, the server emits `chat:messages-read` to the conversation room after the database update, and only if at least one message changed. The reader's own clients also receive the event and ignore it by comparing `readerId` with the current user.
+
+## Block Updates
+
+When a user blocks or unblocks another user, the server emits `block:changed` to the affected user after the database write succeeds. Clients refetch the related profile, follow and conversation data instead of reading state from the event.
 
 ## Presence
 
