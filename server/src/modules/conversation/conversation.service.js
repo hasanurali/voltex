@@ -4,6 +4,8 @@ import * as conversationRepository from "./conversation.repository.js";
 import { messageRepository } from "../message/index.js";
 import { ApiError, convertToObjectId, log, pagination } from "../../shared/utils/index.js";
 import { CONVERSATION_MESSAGES } from "../../shared/constants/messages/index.js";
+import { getIO } from "../../shared/socket/socket.js";
+import SOCKET_EVENTS from "../../shared/constants/enums/socket.enum.js";
 
 
 export const fetchConversationsService = async (userId, page, limit) => {
@@ -79,5 +81,14 @@ export const markConversationMessagesAsReadService = async (userId, conversation
         throw new ApiError(StatusCodes.NOT_FOUND, CONVERSATION_MESSAGES.NOT_FOUND);
     };
 
-    await messageRepository.markMessagesAsRead(conversationObjectId, userId);
+    const markMessagesAsReadResult = await messageRepository.markMessagesAsRead(conversationObjectId, userId);
+
+    const io = getIO();
+
+    if (markMessagesAsReadResult.modifiedCount > 0) {
+        io.to(conversationId.toString()).emit(SOCKET_EVENTS.READ_CHAT_MESSAGES, {
+            conversationId,
+            readerId: userId
+        });
+    };
 };

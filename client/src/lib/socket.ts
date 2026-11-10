@@ -1,19 +1,17 @@
 import { io, type Socket } from 'socket.io-client';
 import { config } from './config';
+import type { ServerToClientEvents, ClientToServerEvents } from '@/features/socket';
 
-export const socket: Socket = io(config.socketUrl, {
+export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(config.socketUrl, {
     withCredentials: true,
     autoConnect: false,
+    transports: ["websocket"]
 });
 
 export const connectSocket = () => {
-    if (!socket.connected) {
-        socket.connect();
-    };
+    socket.connect();
 };
 
 export const disconnectSocket = () => {
-    if (socket.connected) {
-        socket.disconnect();
-    };
+    socket.disconnect();
 };

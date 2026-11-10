@@ -15,6 +15,7 @@ import { conversationKeys } from '@/features/conversation';
 import { createPortal } from 'react-dom';
 import type { EmojiClickData } from 'emoji-picker-react';
 import EmojiPicker from 'emoji-picker-react';
+import { useTypingEmitter } from '@/features/socket';
 
 
 type CreateMessageInputProps = {
@@ -185,6 +186,7 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
     };
 
     const { mutateAsync: createMessageMutateAsync, isPending: isCreateMessagePending } = useCreateMessage();
+    const { startTyping, stopTyping } = useTypingEmitter(createIdType === 'conversation' ? createId : '');
     const queryClient = useQueryClient();
 
     const onSubmit = async ({ content }: CreateMessageFormValues) => {
@@ -192,6 +194,8 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
         if (!content && !messageMediaFiles.length) {
             return;
         };
+
+        stopTyping();
 
         const key = `${crypto.randomUUID()}`;
 
@@ -299,7 +303,7 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
         } catch (error) {
             fieldApiError(error, setError);
             toast.error('Could not send your message. Please try again');
-        }
+        };
     };
 
     useEffect(() => {
@@ -503,6 +507,13 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
                     onChange={(e) => {
                         void contentField.onChange(e);
                         resizeMessageInput();
+
+                        if (e.target.value.trim()) {
+                            startTyping();
+                        }
+                        else {
+                            stopTyping();
+                        };
                     }}
                     rows={1}
                     placeholder="Message"

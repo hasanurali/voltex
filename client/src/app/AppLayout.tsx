@@ -6,8 +6,11 @@ import PostRightSideBar from './RightSideBar';
 import { usePostStore } from '@/store';
 import { PostCreateSection } from '@/features/post';
 import { X } from 'lucide-react';
+import { useSocket } from '@/features/socket';
 
 const AppLayout = () => {
+
+    useSocket();
 
     const isCreatePostModelOpen = usePostStore((state) => state.isCreatePostModelOpen);
     const setIsCreatePostModelOpen = usePostStore((state) => state.setIsCreatePostModelOpen);

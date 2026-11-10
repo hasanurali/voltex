@@ -4,6 +4,8 @@ import * as blockRepository from "./block.repository.js";
 import { authRepository } from "../auth/index.js";
 import { ApiError, convertToObjectId } from "../../shared/utils/index.js";
 import { AUTH_MESSAGES, USER_MESSAGES, BLOCK_MESSAGES } from "../../shared/constants/messages/index.js";
+import { getIO } from "../../shared/socket/socket.js";
+import SOCKET_EVENTS from "../../shared/constants/enums/socket.enum.js";
 
 
 export const blockUserService = async (userId, username) => {
@@ -27,6 +29,13 @@ export const blockUserService = async (userId, username) => {
     };
 
     await blockRepository.blockUser(userId, user._id);
+
+    const io = getIO();
+
+    io.to(user._id.toString()).emit(SOCKET_EVENTS.BLOCK_CHANGED, {
+        blockerId: userId.toString(),
+        isBlocked: true
+    });
 };
 
 export const fetchBlockedUsersService = async (userId) => {
@@ -53,4 +62,11 @@ export const unblockUserService = async (userId, username) => {
     };
 
     await blockRepository.unblockUser(userId, user._id);
+
+    const io = getIO();
+
+    io.to(user._id.toString()).emit(SOCKET_EVENTS.BLOCK_CHANGED, {
+        blockerId: userId.toString(),
+        isBlocked: false
+    });
 };

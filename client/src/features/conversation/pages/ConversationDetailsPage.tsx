@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import TopBar from "@/app/TopBar";
-import { useAuthStore } from "@/store";
+import { useAuthStore, usePresenceStore } from "@/store";
 import { ImageWithSkeleton } from "@/components/media";
 import { useFetchConversationDetails } from "../hooks/useFetchConversationDetails";
 import { SentinelLoadingItem, Spinner } from "@/components";
@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMarkAllConversationMessagesAsRead } from "../hooks/useMarkAllConversationMessagesAsRead";
 import { toast } from "sonner";
 import UserInfoSkeleton from "../components/UserInfoSkeleton";
+import { useConversationRoom, useMessagesRead, useSubscribeToUsers, useTypingIndicator } from "@/features/socket";
 
 interface UserInfo {
     displayName: string;
@@ -45,6 +46,8 @@ const ConversationDetailsPage = () => {
     const navigate = useNavigate();
 
     const { data: conversationDetails, isPending: isFetchConversationPending, isError } = useFetchConversationDetails(id);
+
+    useConversationRoom(conversationDetails?._id);
 
     const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationDetails?._id ?? '');
     const messages = data?.data ?? [];
@@ -152,6 +155,41 @@ const ConversationDetailsPage = () => {
         return;
     };
 
+    const otherUserId = conversationDetails?.participants.find(participant => participant._id !== auth?.user._id)?._id;
+    useSubscribeToUsers(otherUserId ? [otherUserId] : []);
+
+    const isOnline = usePresenceStore((state) => otherUserId ? state.userStatuses[otherUserId] : undefined);
+    const isTyping = useTypingIndicator(otherUserId);
+
+    const conversationId = conversationDetails?._id;
+    useMessagesRead(conversationId, async () => {
+
+        if (!conversationId) {
+            return;
+        };
+
+        try {
+            await queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationId) }, {
+                throwOnError: true
+            });
+        } catch {
+            return;
+        };
+
+        setTemporaryMessages((tm) => {
+
+            const newMap = new Map(tm);
+
+            for (const [key, message] of newMap) {
+                if (!message.isTemporary) {
+                    newMap.delete(key);
+                };
+            };
+
+            return newMap;
+        });
+    });
+
     return (
         <>
             <TopBar>
@@ -159,7 +197,7 @@ const ConversationDetailsPage = () => {
                     <button
                         type="button"
                         onClick={navigateToProfile}
-                        className="cursor-pointer"
+                        className="cursor-pointer relative"
                     >
                         <ImageWithSkeleton
                             src={messagedUser?.avatar || userInfo?.avatar}
@@ -167,6 +205,8 @@ const ConversationDetailsPage = () => {
                             className="h-full w-full rounded-full object-cover"
                             containerClassName="h-12 w-12 shrink-0 rounded-full bg-secondary-100"
                         />
+
+                        <div className={`absolute w-3 h-3 ${isOnline ? 'bg-green-400' : 'bg-gray-400'} rounded-full -right-0.5 top-8 border-2 border-white`}></div>
                     </button>
                     {
                         isFetchConversationPending && !userInfo ?
@@ -174,7 +214,7 @@ const ConversationDetailsPage = () => {
                             :
                             <span className="flex flex-col">
                                 <span onClick={navigateToProfile} className="text-[18px] font-medium cursor-pointer">{messagedUser?.displayName || userInfo?.displayName}</span>
-                                <span className="text-sm text-secondary-500">online</span>
+                                <span className="text-sm text-secondary-500">{isTyping ? 'typing...' : isOnline ? 'online' : 'offline'}</span>
                             </span>
                     }
                 </span>

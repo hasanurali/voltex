@@ -235,6 +235,12 @@ const ProfilePage = () => {
         };
     };
 
+    useEffect(() => {
+        if (viewedProfile?.isFollowing && viewedProfile.isBlockedByUser) {
+            handleUnFollowUser();
+        };
+    }, [viewedProfile?.isFollowing, viewedProfile?.isBlockedByUser]);
+
     return (
         <>
             <TopBar>
