@@ -11,6 +11,11 @@ export interface MessagesReadPayload {
     readerId: string;
 };
 
+export interface BlockChangedPayload {
+    blockerId: string;
+    isBlocked: boolean;
+};
+
 export interface ServerToClientEvents {
     [SOCKET_EVENTS.notificationReceive]: (notification: Notification) => void;
     [SOCKET_EVENTS.messageReceive]: (message: Message) => void;
@@ -19,6 +24,7 @@ export interface ServerToClientEvents {
     [SOCKET_EVENTS.typingStart]: (payload: UserIdPayload) => void;
     [SOCKET_EVENTS.typingStop]: (payload: UserIdPayload) => void;
     [SOCKET_EVENTS.messagesRead]: (payload: MessagesReadPayload) => void;
+    [SOCKET_EVENTS.blockChanged]: (payload: BlockChangedPayload) => void;
 };
 
 export interface ClientToServerEvents {
