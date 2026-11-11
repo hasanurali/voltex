@@ -43,7 +43,7 @@ const CommentSection = ({ post }: CommentSectionProps) => {
                 observer.unobserve(currentTarget);
             };
         };
-    }, [hasNextPage, isFetchingNextPage]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     return (
         <div>
