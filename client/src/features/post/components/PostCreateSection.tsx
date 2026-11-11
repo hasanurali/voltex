@@ -450,7 +450,7 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
                 }, { emitUpdate: false });
             };
         };
-    }, [editor, updatePostId, updatePostData]);
+    }, [editor, updatePostId, updatePostData, setValues]);
 
     if (!editor) {
         return null;
