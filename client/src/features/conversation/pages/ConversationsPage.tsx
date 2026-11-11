@@ -34,7 +34,7 @@ const ConversationsPage = () => {
                 observer.unobserve(currentTarget);
             };
         };
-    }, [hasNextPage, isFetchingNextPage]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     const outherUserIds = conversations.map((conversation) => conversation.participant._id);
     useSubscribeToUsers(outherUserIds);
