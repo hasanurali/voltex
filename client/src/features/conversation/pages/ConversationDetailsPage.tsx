@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import TopBar from "@/app/TopBar";
 import { useAuthStore, usePresenceStore } from "@/store";
@@ -43,11 +43,12 @@ const ConversationDetailsPage = () => {
     const navigate = useNavigate();
 
     const { data: conversationDetails, isPending: isFetchConversationPending, isError } = useFetchConversationDetails(id ?? '');
+    const conversationId = conversationDetails?._id;
 
     useConversationRoom(conversationDetails?._id);
 
     const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationDetails?._id ?? '');
-    const messages = data?.data ?? [];
+    const messages = useMemo(() => data?.data ?? [], [data?.data]);
     const messagesLength = messages.length + temporaryMessages.size;
 
     const { mutate: markAllConversationMessagesAsReadMutate } = useMarkAllConversationMessagesAsRead();
@@ -74,7 +75,7 @@ const ConversationDetailsPage = () => {
                 observer.unobserve(currentTarget);
             };
         };
-    }, [hasNextPage, isFetchingNextPage]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     useEffect(() => {
 
@@ -120,19 +121,19 @@ const ConversationDetailsPage = () => {
                 behavior: 'auto'
             });
         };
-    }, [messages, temporaryMessages, data?.cursorLength]);
+    }, [messages, temporaryMessages, data?.cursorLength, messagesLength]);
 
     useEffect(() => {
         return () => {
-            queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationDetails?._id ?? '') })
-        }
-    }, []);
+            queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationId ?? '') })
+        };
+    }, [conversationId, queryClient]);
 
     useEffect(() => {
-        if (conversationDetails?._id) {
-            markAllConversationMessagesAsReadMutate(conversationDetails._id);
+        if (conversationId) {
+            markAllConversationMessagesAsReadMutate(conversationId);
         };
-    }, []);
+    }, [conversationId, markAllConversationMessagesAsReadMutate]);
 
     const messagedUser = conversationDetails?.participants.filter(participant => participant._id !== auth?.user._id)[0];
     const userInfo: UserInfo | null = location.state;
@@ -152,7 +153,6 @@ const ConversationDetailsPage = () => {
     const isOnline = usePresenceStore((state) => otherUserId ? state.userStatuses[otherUserId] : undefined);
     const isTyping = useTypingIndicator(otherUserId);
 
-    const conversationId = conversationDetails?._id;
     useMessagesRead(conversationId, async () => {
 
         if (!conversationId) {
