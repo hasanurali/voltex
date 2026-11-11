@@ -23,9 +23,6 @@ interface UserInfo {
 const ConversationDetailsPage = () => {
 
     const { id } = useParams<{ id: string }>();
-    if (!id) {
-        return;
-    };
 
     const [temporaryMessages, setTemporaryMessages] = useState(new Map<string, TemporaryMessage>());
 
@@ -45,7 +42,7 @@ const ConversationDetailsPage = () => {
 
     const navigate = useNavigate();
 
-    const { data: conversationDetails, isPending: isFetchConversationPending, isError } = useFetchConversationDetails(id);
+    const { data: conversationDetails, isPending: isFetchConversationPending, isError } = useFetchConversationDetails(id ?? '');
 
     useConversationRoom(conversationDetails?._id);
 
@@ -149,12 +146,6 @@ const ConversationDetailsPage = () => {
         previousMessagesLength.current = messagesLength;
     };
 
-    if (isError && !userInfo) {
-        navigate('/conversations');
-        toast.error('Conversation not found or unavailable')
-        return;
-    };
-
     const otherUserId = conversationDetails?.participants.find(participant => participant._id !== auth?.user._id)?._id;
     useSubscribeToUsers(otherUserId ? [otherUserId] : []);
 
@@ -189,6 +180,12 @@ const ConversationDetailsPage = () => {
             return newMap;
         });
     });
+
+    if (isError && !userInfo) {
+        navigate('/conversations');
+        toast.error('Conversation not found or unavailable')
+        return;
+    };
 
     return (
         <>
@@ -288,7 +285,7 @@ const ConversationDetailsPage = () => {
                 </div>
 
                 <CreateMessageInput
-                    createId={conversationDetails?._id || id}
+                    createId={(conversationDetails?._id || id) as string}
                     createIdType={conversationDetails?._id ? "conversation" : "participant"}
                     setMessage={(key: string, val: TemporaryMessage) => setTemporaryMessages(tm => {
 
