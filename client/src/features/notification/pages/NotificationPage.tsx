@@ -37,7 +37,7 @@ const NotificationPage = () => {
         observer.unobserve(currentTarget);
       };
     };
-  }, [hasNextPage, isFetchingNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const { mutate: markNotificationAsReadMutate } = useMarkNotificationAsRead();
   const { mutate: markAllNotificationsAsReadMutate } = useMarkAllNotificationsAsRead();
