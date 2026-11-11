@@ -340,10 +340,13 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
     }, [messageMediaFiles.length]);
 
     useEffect(() => {
+        const messageMediaPreviewUrls = messageMediaPreviewUrlsRef.current;
+        const mediaInput = mediaInputRef.current;
+
         return () => {
-            [...messageMediaPreviewUrlsRef.current].forEach(url => URL.revokeObjectURL(url));
-            if (mediaInputRef.current) {
-                mediaInputRef.current.value = '';
+            [...messageMediaPreviewUrls].forEach(url => URL.revokeObjectURL(url));
+            if (mediaInput) {
+                mediaInput.value = '';
             };
         };
     }, []);
