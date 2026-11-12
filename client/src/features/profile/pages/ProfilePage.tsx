@@ -194,14 +194,17 @@ const ProfilePage = () => {
 
     const { mutate: blockUserMutate } = useBlockUser(viewedUserInfo);
     const { mutate: unblockUserMutate } = useUnblockUser();
-    const { mutate: unfollowUserMutate } = useUnfollowUser(auth?.user.username ?? '');
+    const { mutateAsync: unfollowUserMutateAsync } = useUnfollowUser(auth?.user.username ?? '');
 
-    const handleBlockUser = () => {
+    const handleBlockUser = async () => {
+        try {
+            if (viewedProfile?.isFollowing) {
+                await unfollowUserMutateAsync(viewedProfile.user.username ?? '');
+            };
 
-        blockUserMutate(viewedProfile?.user.username ?? '');
-
-        if (viewedProfile?.isFollowing) {
-            unfollowUserMutate(viewedProfile.user.username ?? '');
+            blockUserMutate(viewedProfile?.user.username ?? '');
+        } catch {
+            // the unfollow mutation shows its own error and the block is not sent
         };
     };
 
