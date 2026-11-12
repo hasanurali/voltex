@@ -233,7 +233,7 @@ const ProfilePage = () => {
         if (viewedProfile?.isFollowing && viewedProfile.isBlockedByUser) {
             handleUnFollowUser();
         };
-    }, [viewedProfile?.isFollowing, viewedProfile?.isBlockedByUser]);
+    }, [viewedProfile?.isFollowing, viewedProfile?.isBlockedByUser, handleUnFollowUser]);
 
     return (
         <>
