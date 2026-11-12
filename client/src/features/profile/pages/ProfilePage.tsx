@@ -57,22 +57,16 @@ const ProfilePage = () => {
             navigate(ROUTES.home);
             toast.error(getApiErrorMessage(userProfileError));
         };
-    }, [userProfileError]);
+    }, [userProfileError, navigate]);
 
-    const { isFollowing, setIsFollowing, handleFollowUser, handleUnFollowUser } = useFollowToggle(auth?.user.username as string, viewedProfile?.user.username as string);
+    const { handleFollowUser, handleUnFollowUser } = useFollowToggle(auth?.user.username as string, viewedProfile?.user.username as string);
 
+    const isFollowing = viewedProfile?.isFollowing;
     useEffect(() => {
-
-        if (!viewedProfile) {
-            return;
+        if (isFollowing !== undefined) {
+            setisMouseLeave(ml => ml === null ? isFollowing : ml);
         };
-
-        if (isMouseLeave === null) {
-            setisMouseLeave(viewedProfile?.isFollowing);
-        };
-
-        setIsFollowing(viewedProfile?.isFollowing);
-    }, [viewedProfile?.isFollowing]);
+    }, [isFollowing]);
 
     const handleProfileClick = () => {
 
@@ -174,7 +168,7 @@ const ProfilePage = () => {
                 observer.unobserve(currentTarget);
             };
         };
-    }, [hasNextPage, isFetchingNextPage]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     const handleMessage = () => {
         if (viewedProfile) {

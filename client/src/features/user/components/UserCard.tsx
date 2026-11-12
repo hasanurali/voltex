@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, ConfirmDialog } from '@/components'
 import type { SearchedUser } from '../types';
@@ -13,16 +13,14 @@ interface UserCardProps {
 
 const UserCard = ({ user, currentUserName }: UserCardProps) => {
 
-    const [isMouseLeave, setisMouseLeave] = useState(user.isFollowing);
+    const isFollowing = user.isFollowing;
+
+    const [isMouseLeave, setisMouseLeave] = useState(isFollowing);
     const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
     const navigate = useNavigate();
 
-    const { isFollowing, setIsFollowing, handleFollowUser, handleUnFollowUser } = useFollowToggle(currentUserName as string, user.username);
-
-    useEffect(() => {
-        setIsFollowing(user.isFollowing);
-    }, [user.isFollowing]);
+    const { handleFollowUser, handleUnFollowUser } = useFollowToggle(currentUserName as string, user.username);
 
     const handleCardClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 
