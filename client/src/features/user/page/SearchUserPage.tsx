@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import { useSearchUser } from "../hooks/useSearchUser";
 import UserCard from "../components/UserCard";
@@ -36,15 +36,19 @@ const SearchUserPage = () => {
         observer.unobserve(currentTarget);
       };
     };
-  }, [hasNextPage, isFetchingNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const auth = useAuthStore((state) => state.auth);
+
+  const handleUserSearchValue = useCallback((searchValue: string) => {
+    setUserSearchValue(searchValue);
+  }, []);
 
   return (
     <div className="@container h-screen overflow-hidden">
 
       {/* Search bar */}
-      <SearchBar onUserSearchValue={setUserSearchValue} />
+      <SearchBar onUserSearchValue={handleUserSearchValue} />
 
       {/* Searched User display section */}
       <section className="px-4 @xl:px-10 @2xl:px-15 @3xl:px-20">
