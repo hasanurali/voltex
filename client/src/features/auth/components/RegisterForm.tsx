@@ -48,7 +48,7 @@ const RegisterForm = () => {
             const { displayName, username, email } = draftValues;
             setValues({ displayName, username, email });
         };
-    }, []);
+    }, [setValues]);
 
     const { mutate: registerUserMutate, isPending: isRegisterPending } = useRegisterUser();
     const onSubmit = (formValue: RegisterFormValues) => {

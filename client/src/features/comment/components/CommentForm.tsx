@@ -152,11 +152,12 @@ const CommentForm = ({ postId, parentComment, commentUpdateData, onClose }: Crea
     }
   };
 
+  const updateContent = commentUpdateData?.content;
   useEffect(() => {
-    if (commentUpdateData) {
-      setValue("content", commentUpdateData?.content)
+    if (updateContent !== undefined) {
+      setValue("content", updateContent);
     };
-  }, [commentUpdateData?.content]);
+  }, [updateContent, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`${!onClose ? 'border-b border-secondary-200 pb-5' : ''}`}>

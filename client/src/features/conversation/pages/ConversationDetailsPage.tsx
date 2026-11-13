@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import TopBar from "@/app/TopBar";
 import { useAuthStore, usePresenceStore } from "@/store";
@@ -23,9 +23,6 @@ interface UserInfo {
 const ConversationDetailsPage = () => {
 
     const { id } = useParams<{ id: string }>();
-    if (!id) {
-        return;
-    };
 
     const [temporaryMessages, setTemporaryMessages] = useState(new Map<string, TemporaryMessage>());
 
@@ -45,12 +42,13 @@ const ConversationDetailsPage = () => {
 
     const navigate = useNavigate();
 
-    const { data: conversationDetails, isPending: isFetchConversationPending, isError } = useFetchConversationDetails(id);
+    const { data: conversationDetails, isPending: isFetchConversationPending, isError } = useFetchConversationDetails(id ?? '');
+    const conversationId = conversationDetails?._id;
 
     useConversationRoom(conversationDetails?._id);
 
     const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isPending: isFetchMessagePending, isError: isFetchMessageError } = useFetchConversationMessages(conversationDetails?._id ?? '');
-    const messages = data?.data ?? [];
+    const messages = useMemo(() => data?.data ?? [], [data?.data]);
     const messagesLength = messages.length + temporaryMessages.size;
 
     const { mutate: markAllConversationMessagesAsReadMutate } = useMarkAllConversationMessagesAsRead();
@@ -77,7 +75,7 @@ const ConversationDetailsPage = () => {
                 observer.unobserve(currentTarget);
             };
         };
-    }, [hasNextPage, isFetchingNextPage]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     useEffect(() => {
 
@@ -123,19 +121,19 @@ const ConversationDetailsPage = () => {
                 behavior: 'auto'
             });
         };
-    }, [messages, temporaryMessages, data?.cursorLength]);
+    }, [messages, temporaryMessages, data?.cursorLength, messagesLength]);
 
     useEffect(() => {
         return () => {
-            queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationDetails?._id ?? '') })
-        }
-    }, []);
+            queryClient.invalidateQueries({ queryKey: messageKeys.conversationMessages(conversationId ?? '') })
+        };
+    }, [conversationId, queryClient]);
 
     useEffect(() => {
-        if (conversationDetails?._id) {
-            markAllConversationMessagesAsReadMutate(conversationDetails._id);
+        if (conversationId) {
+            markAllConversationMessagesAsReadMutate(conversationId);
         };
-    }, []);
+    }, [conversationId, markAllConversationMessagesAsReadMutate]);
 
     const messagedUser = conversationDetails?.participants.filter(participant => participant._id !== auth?.user._id)[0];
     const userInfo: UserInfo | null = location.state;
@@ -149,19 +147,12 @@ const ConversationDetailsPage = () => {
         previousMessagesLength.current = messagesLength;
     };
 
-    if (isError && !userInfo) {
-        navigate('/conversations');
-        toast.error('Conversation not found or unavailable')
-        return;
-    };
-
     const otherUserId = conversationDetails?.participants.find(participant => participant._id !== auth?.user._id)?._id;
     useSubscribeToUsers(otherUserId ? [otherUserId] : []);
 
     const isOnline = usePresenceStore((state) => otherUserId ? state.userStatuses[otherUserId] : undefined);
     const isTyping = useTypingIndicator(otherUserId);
 
-    const conversationId = conversationDetails?._id;
     useMessagesRead(conversationId, async () => {
 
         if (!conversationId) {
@@ -189,6 +180,12 @@ const ConversationDetailsPage = () => {
             return newMap;
         });
     });
+
+    if (isError && !userInfo) {
+        navigate('/conversations');
+        toast.error('Conversation not found or unavailable')
+        return;
+    };
 
     return (
         <>
@@ -288,7 +285,7 @@ const ConversationDetailsPage = () => {
                 </div>
 
                 <CreateMessageInput
-                    createId={conversationDetails?._id || id}
+                    createId={(conversationDetails?._id || id) as string}
                     createIdType={conversationDetails?._id ? "conversation" : "participant"}
                     setMessage={(key: string, val: TemporaryMessage) => setTemporaryMessages(tm => {
 

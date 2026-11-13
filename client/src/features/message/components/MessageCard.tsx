@@ -65,13 +65,13 @@ const MessageCard = ({ message, isOwnMessage, setPreviousMessagesLength, deleteM
                 setIsDeleteMenuOpen(true);
             };
         }, 800);
-    }, []);
+    }, [isOwnMessage]);
 
     const handleTouchEnd = useCallback(() => {
         if (timerRef.current && isOwnMessage) {
             clearTimeout(timerRef.current);
         };
-    }, []);
+    }, [isOwnMessage]);
 
     return (
         <>

@@ -50,7 +50,7 @@ const FollowUserSideBar = ({ username, relationship, count, isClosing = false, o
                 observer.unobserve(currentTarget);
             };
         };
-    }, [hasNextPage, isFetchingNextPage]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     useEffect(() => {
 

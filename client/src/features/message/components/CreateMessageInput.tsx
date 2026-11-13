@@ -124,11 +124,12 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
         };
 
         let hasShownError = false;
-        acceptedFiles.forEach(file => {
+        const validFiles = acceptedFiles.filter(file => {
             const errorMsg = validateImageFile(file, MAX_MESSAGE_IMAGE_SIZE)
             if (errorMsg) {
                 if (!hasShownError) {
                     toast.error(errorMsg);
+                    hasShownError = true;
                 };
 
                 return false;
@@ -137,11 +138,11 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
             return true;
         });
 
-        if (acceptedFiles.length) {
+        if (validFiles.length) {
 
             setMessageMediaFiles([
                 ...messageMediaFiles,
-                ...acceptedFiles.map(file => ({ file, previewUrl: createPreviewUrl(file), mediaType } as MessageMediaFile))
+                ...validFiles.map(file => ({ file, previewUrl: createPreviewUrl(file), mediaType } as MessageMediaFile))
             ]);
         };
 
@@ -340,10 +341,13 @@ const CreateMessageInput = ({ createId, createIdType, setMessage, setProgress, c
     }, [messageMediaFiles.length]);
 
     useEffect(() => {
+        const messageMediaPreviewUrls = messageMediaPreviewUrlsRef.current;
+        const mediaInput = mediaInputRef.current;
+
         return () => {
-            [...messageMediaPreviewUrlsRef.current].forEach(url => URL.revokeObjectURL(url));
-            if (mediaInputRef.current) {
-                mediaInputRef.current.value = '';
+            [...messageMediaPreviewUrls].forEach(url => URL.revokeObjectURL(url));
+            if (mediaInput) {
+                mediaInput.value = '';
             };
         };
     }, []);

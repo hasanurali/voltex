@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components";
 import { useDebounce } from "@/hooks";
 
 
 interface SearchBarProps {
-    onUserSearchValue: React.Dispatch<React.SetStateAction<string>>,
+    onUserSearchValue: (searchValue: string) => void;
 };
 
 
@@ -17,7 +17,7 @@ const SearchBar = ({ onUserSearchValue }: SearchBarProps) => {
 
     useEffect(() => {
         onUserSearchValue(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+    }, [debouncedSearchValue, onUserSearchValue]);
 
     return (
         <div className='flex items-center px-4 @xl:px-10 @2xl:px-15 @3xl:px-20 py-8 bg-white w-full h-10 border-b border-b-secondary-100 relative'>

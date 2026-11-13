@@ -38,5 +38,5 @@ export const useSubscribeToUsers = (userIds: string[]) => {
         return () => {
             socket.off('connect', syncStatuses);
         };
-    }, [key]);
+    }, [key, checkUserStatusesMutateAsync]);
 };

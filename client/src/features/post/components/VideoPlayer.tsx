@@ -45,12 +45,12 @@ const VideoPlayer = ({ url, isPostCenter }: VideoPlayerProps) => {
     const containerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
+        const video = videoRef.current;
         return () => {
             if (controlsTimerRef.current) {
                 window.clearTimeout(controlsTimerRef.current);
             };
 
-            const video = videoRef.current;
             if (video && activeVideo === video) {
                 video.pause();
                 activeVideo = null;

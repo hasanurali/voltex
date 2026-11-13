@@ -35,7 +35,7 @@ const LoginForm = () => {
         if (email) {
             setValue('email', email);
         };
-    }, []);
+    }, [setValue]);
 
     const { mutate: loginUserMutate, isPending: isLoginUserPending } = useLoginUser();
     const onSubmit = (formValue: LoginFormValues) => {

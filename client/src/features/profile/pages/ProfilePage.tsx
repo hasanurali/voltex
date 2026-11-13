@@ -57,22 +57,16 @@ const ProfilePage = () => {
             navigate(ROUTES.home);
             toast.error(getApiErrorMessage(userProfileError));
         };
-    }, [userProfileError]);
+    }, [userProfileError, navigate]);
 
-    const { isFollowing, setIsFollowing, handleFollowUser, handleUnFollowUser } = useFollowToggle(auth?.user.username as string, viewedProfile?.user.username as string);
+    const { handleFollowUser, handleUnFollowUser } = useFollowToggle(auth?.user.username as string, viewedProfile?.user.username as string);
 
+    const isFollowing = viewedProfile?.isFollowing;
     useEffect(() => {
-
-        if (!viewedProfile) {
-            return;
+        if (isFollowing !== undefined) {
+            setisMouseLeave(ml => ml === null ? isFollowing : ml);
         };
-
-        if (isMouseLeave === null) {
-            setisMouseLeave(viewedProfile?.isFollowing);
-        };
-
-        setIsFollowing(viewedProfile?.isFollowing);
-    }, [viewedProfile?.isFollowing]);
+    }, [isFollowing]);
 
     const handleProfileClick = () => {
 
@@ -174,7 +168,7 @@ const ProfilePage = () => {
                 observer.unobserve(currentTarget);
             };
         };
-    }, [hasNextPage, isFetchingNextPage]);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     const handleMessage = () => {
         if (viewedProfile) {
@@ -200,14 +194,17 @@ const ProfilePage = () => {
 
     const { mutate: blockUserMutate } = useBlockUser(viewedUserInfo);
     const { mutate: unblockUserMutate } = useUnblockUser();
-    const { mutate: unfollowUserMutate } = useUnfollowUser(auth?.user.username ?? '');
+    const { mutateAsync: unfollowUserMutateAsync } = useUnfollowUser(auth?.user.username ?? '');
 
-    const handleBlockUser = () => {
+    const handleBlockUser = async () => {
+        try {
+            if (viewedProfile?.isFollowing) {
+                await unfollowUserMutateAsync(viewedProfile.user.username ?? '');
+            };
 
-        blockUserMutate(viewedProfile?.user.username ?? '');
-
-        if (viewedProfile?.isFollowing) {
-            unfollowUserMutate(viewedProfile.user.username ?? '');
+            blockUserMutate(viewedProfile?.user.username ?? '');
+        } catch {
+            // the unfollow mutation shows its own error and the block is not sent
         };
     };
 
@@ -239,7 +236,7 @@ const ProfilePage = () => {
         if (viewedProfile?.isFollowing && viewedProfile.isBlockedByUser) {
             handleUnFollowUser();
         };
-    }, [viewedProfile?.isFollowing, viewedProfile?.isBlockedByUser]);
+    }, [viewedProfile?.isFollowing, viewedProfile?.isBlockedByUser, handleUnFollowUser]);
 
     return (
         <>
@@ -371,7 +368,10 @@ const ProfilePage = () => {
 
                                                         <div className="mt-2 flex flex-col">
                                                             <button
-                                                                onClick={() => setIsMoreOptionsMenuOpen(false)}
+                                                                onClick={() => {
+                                                                    handleCopyProfileLink();
+                                                                    setIsMoreOptionsMenuOpen(false)
+                                                                }}
                                                                 type="button"
                                                                 className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-secondary-900 transition-colors hover:bg-secondary-50 focus-visible:bg-secondary-50 focus-visible:outline-none"
                                                             >
@@ -389,7 +389,7 @@ const ProfilePage = () => {
                                                                         className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none"
                                                                     >
                                                                         <Ban size={16} aria-hidden="true" />
-                                                                        <span>Block @{viewedProfile?.user.username}</span>
+                                                                        <span>{`${isBlockedUser ? 'Unblock' : 'Block'} @${viewedProfile?.user.username}`}</span>
                                                                     </button>
                                                                 )
                                                             }
@@ -526,7 +526,7 @@ const ProfilePage = () => {
             {/* Confirm message delete model */}
             <ConfirmDialog
                 isOpen={isBlockUnblockUserModelOpen}
-                title={`${isBlockedUser ? 'Unblock' : 'Block'} ${viewedProfile?.user.username}?`}
+                title={`${isBlockedUser ? 'Unblock' : 'Block'} @${viewedProfile?.user.username}?`}
                 description={isBlockedUser ?
                     `You and ${viewedProfile?.user.username} will now be able to follow and message each other again.`
                     :
