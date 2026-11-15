@@ -76,7 +76,7 @@ export interface FetchUserPostPayload {
 
 export type PostsCachePage = {
     posts?: Post[];
-    pagination: ApiPaginationResponse;
+    nextCursor: string;
 };
 
 export type PostsCacheData = InfiniteData<PostsCachePage>;
