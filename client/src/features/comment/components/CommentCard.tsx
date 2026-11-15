@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import { ConfirmDialog } from "@/components";
 import { useDeleteComment } from "../hooks/useDeleteComment";
 import { useReactionToggle } from "@/hooks";
+import { useAuthStore } from "@/store";
 
 
 interface CommentCardProps {
@@ -51,6 +52,8 @@ const CommentCard = ({ comment }: CommentCardProps) => {
             createReactionMutate();
         };
     };
+
+    const isOwnComment = useAuthStore((state) => !!state.auth && state.auth.user._id === comment.author._id);
 
     return (
         <>
@@ -105,7 +108,7 @@ const CommentCard = ({ comment }: CommentCardProps) => {
                             </div>
 
                             {
-                                !isEditComment && <button
+                                (isOwnComment && !isEditComment) && <button
                                     onClick={() => setIsMenuOpen(true)}
                                     type="button"
                                     className="cursor-pointer"
@@ -114,9 +117,9 @@ const CommentCard = ({ comment }: CommentCardProps) => {
                                 </button>
                             }
 
-                            {/* Post edit menu */}
+                            {/* Comment edit menu */}
                             {
-                                isMenuOpen && <div onClick={(e) => e.stopPropagation()} className="absolute z-20 top-3 right-3 w-36 h-fit overflow-hidden rounded-md border border-secondary-100 bg-white shadow-2xl flex flex-col">
+                                (isOwnComment && isMenuOpen) && <div onClick={(e) => e.stopPropagation()} className="absolute z-20 top-3 right-3 w-36 h-fit overflow-hidden rounded-md border border-secondary-100 bg-white shadow-2xl flex flex-col">
                                     <button
                                         onClick={() => {
                                             setIsMenuOpen(false);
