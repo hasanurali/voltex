@@ -227,7 +227,7 @@ const ProfilePage = () => {
 
             toast.success("Profile link copied");
 
-        } catch (error) {
+        } catch {
             toast.error("Failed to copy link");
         };
     };
