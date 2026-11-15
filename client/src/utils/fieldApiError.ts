@@ -1,4 +1,4 @@
-import type { UseFormSetError, FieldValues } from 'react-hook-form';
+import type { UseFormSetError, FieldValues, Path } from 'react-hook-form';
 import { isAxiosError } from 'axios';
 import type { ApiErrorResponse } from '@/lib';
 
@@ -25,7 +25,7 @@ const fieldApiError = <T extends FieldValues>(error: unknown, setError: UseFormS
     }, {});
 
     Object.entries(groupedErrors).forEach(([path, msg]) => {
-        setError(path as any, {
+        setError(path as Path<T>, {
             type: 'server',
             message: msg
         });
