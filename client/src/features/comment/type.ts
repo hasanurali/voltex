@@ -2,6 +2,7 @@ import type { ApiResponse } from "@/lib";
 import type { ApiPaginationResponse } from "@/lib/types/api";
 import type { Author } from "../post";
 import type { CreateCommentFormValues, UpdateCommentFormValues } from "./schema/commentSchema";
+import type { InfiniteData } from "@tanstack/react-query";
 
 export interface Comment {
     _id: string;
@@ -48,3 +49,11 @@ export interface FetchCommentReplyPayload extends Pagination {
 export interface UpdateCommentPayload extends UpdateCommentFormValues {
     commentId: string;
 };
+
+export type CommentsCachePage = {
+    comments?: Comment[];
+    commentReplies?: Comment[];
+    pagination: ApiPaginationResponse;
+};
+
+export type CommentsCacheData = InfiniteData<CommentsCachePage>;
