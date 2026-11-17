@@ -28,7 +28,7 @@ export const patchFollow = async (queryClient: QueryClient, currentUsername: str
     const previousSearches = queryClient.getQueriesData<SearchUserData>({ queryKey: userKeys.all });
 
     const previousFollowing = previousUserProfile?.[1]?.[1]?.isFollowing ?? previousSearches
-        .flatMap(([_, data]) => data?.pages.flatMap((page) => page.users) ?? [])
+        .flatMap(([, data]) => data?.pages.flatMap((page) => page.users) ?? [])
         .find((user) => user.username === username)?.isFollowing;
 
     const followerCountChange = previousFollowing !== isFollowing ?

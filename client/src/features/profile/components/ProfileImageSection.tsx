@@ -142,7 +142,7 @@ const ProfileImageSection = ({ isOwnProfile, viewedProfile, isLoading }: CoverIm
                     }
                 });
             };
-        } catch (error) {
+        } catch {
 
             if (imageType === 'avatar') {
 

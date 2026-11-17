@@ -2,6 +2,7 @@ import type { Author } from "../post"
 import type { ApiResponse } from "@/lib";
 import type { ApiPaginationResponse } from "@/lib/types/api";
 import type { Pagination } from "../comment/type";
+import type { InfiniteData } from "@tanstack/react-query";
 
 export type TypeEnum =
     | "post-like"
@@ -51,4 +52,6 @@ export type MarkNotificationAsReadResponse = ApiResponse<null>;
 export type MarkAllNotificationsAsReadResponse = ApiResponse<null>;
 export type DeleteNotificationResponse = ApiResponse<null>;
 
-export interface FetchNotificationsPayload extends Pagination { };
+export type FetchNotificationsPayload = Pagination;
+
+export type NotificationsInfiniteData = InfiniteData<FetchNotificationsResponse['data']>;

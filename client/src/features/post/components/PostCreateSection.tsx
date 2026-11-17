@@ -146,8 +146,10 @@ const PostCreateSection = ({ isModelOpen = false, setIsModelOpen, updatePostId =
     });
 
     useEffect(() => {
-        () => {
-            previewUrlsRef.current.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
+        const previewUrls = previewUrlsRef.current;
+
+        return () => {
+            previewUrls.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
         };
     }, []);
 

@@ -1,5 +1,6 @@
 import type { ApiResponse } from "@/lib";
 import type { ApiPaginationResponse } from "@/lib/types/api";
+import type { InfiniteData } from "@tanstack/react-query";
 
 export interface Author {
     _id: string;
@@ -72,3 +73,11 @@ export interface FetchUserPostPayload {
     page?: number;
     limit?: number;
 };
+
+export type PostsCachePage = {
+    posts?: Post[];
+    nextCursor: string;
+};
+
+export type PostsCacheData = InfiniteData<PostsCachePage>;
+export type PostCacheValue = PostsCacheData | Post;

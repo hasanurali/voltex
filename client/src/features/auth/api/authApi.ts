@@ -6,7 +6,7 @@ import { AUTH_ENDPOINTS } from "./authEndpoints";
 
 export const registerUser = async (payload: RegisterFormValues): Promise<authTypes.RegisterResponse['data']> => {
 
-    const { confirmPassword, ...body } = payload;
+    const { confirmPassword: _confirmPassword, ...body } = payload;
 
     const res = await api.post<authTypes.RegisterResponse>(AUTH_ENDPOINTS.register, body);
 

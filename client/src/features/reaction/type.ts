@@ -8,5 +8,5 @@ export interface ReactionPayload {
     targetId: string;
 };
 
-export interface CreateReactionPayload extends ReactionPayload { };
-export interface RemoveReactionPayload extends ReactionPayload { };
+export type CreateReactionPayload = ReactionPayload;
+export type RemoveReactionPayload = ReactionPayload;

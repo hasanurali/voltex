@@ -84,10 +84,11 @@ const ProfilePage = () => {
             return;
         };
 
-        isOwnProfile ?
-            setIsEditProfileOpen(true)
-            :
+        if (isOwnProfile) {
+            setIsEditProfileOpen(true);
+        } else {
             handleFollowUser();
+        };
     };
 
     const clearTimeout = () => {
@@ -227,7 +228,7 @@ const ProfilePage = () => {
 
             toast.success("Profile link copied");
 
-        } catch (error) {
+        } catch {
             toast.error("Failed to copy link");
         };
     };
@@ -535,10 +536,12 @@ const ProfilePage = () => {
                 confirmLabel={`${isBlockedUser ? 'Unblock' : 'Block'}`}
                 cancelLabel="Cancel"
                 onConfirm={() => {
-                    isBlockedUser ?
+                    if (isBlockedUser) {
                         handleUnblockUser()
-                        :
+                    } else {
                         handleBlockUser();
+                    };
+
                     setIsBlockUnblockUserModelOpen(false);
                 }}
                 onCancel={() => setIsBlockUnblockUserModelOpen(false)}

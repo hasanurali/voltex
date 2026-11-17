@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { deleteComment } from "../api/commentApi";
 import { commentKeys } from "../api/commentKeys";
-import { postKeys } from "@/features/post";
-import type { FetchCommentRepliesResponse, FetchCommentResponse } from "../type";
+import { postKeys, type Post, type PostCacheValue } from "@/features/post";
+import type { Comment, CommentsCacheData, FetchCommentRepliesResponse, FetchCommentResponse } from "../type";
 
 
 interface CommentPages {
@@ -13,11 +13,6 @@ interface CommentPages {
 interface ReplyPages {
     pages: FetchCommentRepliesResponse['data'][];
     pageParams: unknown[];
-};
-
-interface CountedPost {
-    _id: string;
-    commentsCount: number;
 };
 
 
@@ -42,7 +37,7 @@ export const useDeleteComment = (postId: string, commentReplyCount: number, pare
 
             if (parentCommentId) {
 
-                queryClient.setQueryData(dataKey, (oldData: ReplyPages | undefined) => {
+                queryClient.setQueryData<ReplyPages>(dataKey, (oldData) => {
 
                     if (!oldData) {
                         return oldData;
@@ -57,18 +52,18 @@ export const useDeleteComment = (postId: string, commentReplyCount: number, pare
                     };
                 });
 
-                queryClient.setQueriesData({ queryKey: commentKeys.all }, (oldData: any) => {
+                queryClient.setQueriesData<CommentsCacheData>({ queryKey: commentKeys.all }, (oldData) => {
 
                     if (!oldData) {
                         return oldData;
                     };
 
-                    const decrementCommentCount = (comment: { _id: string; repliesCount: number }) =>
+                    const decrementCommentCount = (comment: Comment) =>
                         comment._id === parentCommentId ? { ...comment, repliesCount: Math.max(0, comment.repliesCount - commentReplyCount) } : comment;
 
                     return {
                         ...oldData,
-                        pages: oldData.pages.map((page: any) => ({
+                        pages: oldData.pages.map((page) => ({
                             ...page,
                             ...(page.comments && { comments: page.comments.map(decrementCommentCount) }),
                             ...(page.commentReplies && { commentReplies: page.commentReplies.map(decrementCommentCount) })
@@ -77,7 +72,7 @@ export const useDeleteComment = (postId: string, commentReplyCount: number, pare
                 });
             } else {
 
-                queryClient.setQueryData(dataKey, (oldData: CommentPages | undefined) => {
+                queryClient.setQueryData<CommentPages>(dataKey, (oldData) => {
 
                     if (!oldData) {
                         return oldData;
@@ -93,25 +88,25 @@ export const useDeleteComment = (postId: string, commentReplyCount: number, pare
                 });
             };
 
-            queryClient.setQueriesData({ queryKey: postKeys.all }, (oldData: any) => {
+            queryClient.setQueriesData<PostCacheValue>({ queryKey: postKeys.all }, (oldData) => {
 
                 if (!oldData) {
                     return oldData;
                 };
 
-                const decrementPostCount = (post: CountedPost) =>
+                const decrementPostCount = (post: Post) =>
                     post._id === postId ? { ...post, commentsCount: Math.max(0, post.commentsCount - (commentReplyCount + 1)) } : post;
 
-                if (oldData.pages) {
+                if ('pages' in oldData) {
                     return {
                         ...oldData,
-                        pages: oldData.pages.map((page: { posts?: CountedPost[] }) =>
+                        pages: oldData.pages.map((page) =>
                             page.posts ? { ...page, posts: page.posts.map(decrementPostCount) } : page
                         ),
                     };
                 };
 
-                return oldData._id ? decrementPostCount(oldData) : oldData;
+                return '_id' in oldData ? decrementPostCount(oldData) : oldData;
             });
 
             return {

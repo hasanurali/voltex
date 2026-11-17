@@ -25,4 +25,4 @@ export type FetchConversationDetailsResponse = ApiResponse<{
 }>;
 export type MarkAllConversationMessagesAsReadResponse = ApiResponse<null>;
 
-export interface FetchConversationsPayload extends Pagination { };
+export type FetchConversationsPayload = Pagination;

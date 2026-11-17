@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { markNotificationAsRead } from "../api/notificationApi";
-import type { Notification } from "../type";
+import type { Notification, NotificationsInfiniteData } from "../type";
 import { notificationKeys } from "../api/queryKeys";
 
 export const useMarkNotificationAsRead = () => {
@@ -14,7 +14,7 @@ export const useMarkNotificationAsRead = () => {
             await queryClient.cancelQueries({ queryKey: notificationKeys.all });
             const previous = queryClient.getQueriesData({ queryKey: notificationKeys.all });
 
-            queryClient.setQueriesData({ queryKey: notificationKeys.fetchNotifications() }, (oldData: any) => {
+            queryClient.setQueriesData<NotificationsInfiniteData>({ queryKey: notificationKeys.fetchNotifications() }, (oldData) => {
 
                 if (!oldData?.pages) {
                     return oldData;
@@ -22,7 +22,7 @@ export const useMarkNotificationAsRead = () => {
 
                 return {
                     ...oldData,
-                    pages: oldData.pages.map((page: any) => ({
+                    pages: oldData.pages.map((page) => ({
                         ...page,
                         notifications: page.notifications.map((n: Notification) => ({ ...n, ...((n._id === notification._id && !n.isRead) && { isRead: true }) })),
                         ...(!notification.isRead && {
